@@ -1,0 +1,175 @@
+<div class="param-section">
+  <div class="param-section-header">
+    <h2>
+      <span class="section-icon">🏷️</span>
+      Catégories
+    </h2>
+    <div class="section-actions" *ngIf="auth.isTresorier()">
+      <button class="btn btn--outline btn--sm" (click)="onInitDefaut()" title="Restaurer les catégories par défaut">
+        <span class="btn-icon">↺</span> Défaut
+      </button>
+      <button class="btn btn--primary btn--sm" (click)="openForm()">
+        <span class="btn-icon">+</span> Nouvelle
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulaire inline amélioré -->
+  <div class="form-inline" *ngIf="showForm">
+    <div class="form-header">
+      <h4>
+        <span class="header-icon">{{ editingId ? '✏️' : '✨' }}</span>
+        {{ editingId ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
+      </h4>
+      <button class="close-form" (click)="onCancel()">✕</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSave()">
+      <div class="form-row">
+        <div class="form-group" style="flex: 2">
+          <label class="form-label required">Nom</label>
+          <input type="text"
+                 class="form-control"
+                 formControlName="nom"
+                 [class.is-invalid]="form.get('nom')?.invalid && form.get('nom')?.touched"
+                 placeholder="Ex: Transport, Cotisation, Communication..." />
+          <div class="form-error" *ngIf="form.get('nom')?.touched && form.get('nom')?.hasError('required')">
+            <span class="error-icon">⚠️</span> Le nom est obligatoire
+          </div>
+          <div class="form-error" *ngIf="form.get('nom')?.touched && form.get('nom')?.hasError('minlength')">
+            <span class="error-icon">⚠️</span> Minimum 2 caractères
+          </div>
+        </div>
+
+        <div class="form-group" style="flex: 1">
+          <label class="form-label required">Type</label>
+          <select class="form-control" formControlName="type">
+            <option *ngFor="let t of TYPES" [value]="t.value">
+              <span class="option-icon">{{ t.icon }}</span> {{ t.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Couleur</label>
+        <div class="couleur-picker">
+          <button type="button"
+                  *ngFor="let c of COULEURS"
+                  class="couleur-btn"
+                  [style.background]="c"
+                  [class.selected]="form.get('couleur')?.value === c"
+                  (click)="form.get('couleur')?.setValue(c)"
+                  [attr.title]="c">
+            <span class="check-icon" *ngIf="form.get('couleur')?.value === c">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Aperçu -->
+      <div class="preview-category" *ngIf="form.get('nom')?.value">
+        <div class="preview-label">Aperçu :</div>
+        <div class="preview-badge" [style.background]="form.get('couleur')?.value + '15'"
+             [style.color]="form.get('couleur')?.value"
+             [style.border-color]="form.get('couleur')?.value">
+          <span class="preview-icon">{{ getTypeIcon(form.get('type')?.value) }}</span>
+          {{ form.get('nom')?.value }}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn--outline btn--sm" (click)="onCancel()">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn--primary btn--sm" [disabled]="loadingSave || form.invalid">
+          <span *ngIf="!loadingSave">
+            <span class="btn-icon">{{ editingId ? '💾' : '✓' }}</span>
+            {{ editingId ? 'Mettre à jour' : 'Créer' }}
+          </span>
+          <span *ngIf="loadingSave" class="btn-spinner"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-mini" *ngIf="(categories$ | async) as cats">
+    <div class="stat-mini">
+      <span class="stat-value">{{ cats.length }}</span>
+      <span class="stat-label">total</span>
+    </div>
+    <div class="stat-mini">
+      <span class="stat-value">{{ getCountByType(cats, 'entree') }}</span>
+      <span class="stat-label">entrées</span>
+    </div>
+    <div class="stat-mini">
+      <span class="stat-value">{{ getCountByType(cats, 'sortie') }}</span>
+      <span class="stat-label">sorties</span>
+    </div>
+    <div class="stat-mini">
+      <span class="stat-value">{{ getCountByType(cats, 'les_deux') }}</span>
+      <span class="stat-label">les deux</span>
+    </div>
+  </div>
+
+  <!-- Grille catégories -->
+  <ng-container *ngIf="categories$ | async as cats">
+    <div class="categories-grid">
+      <div class="category-card animate-card" *ngFor="let cat of cats; let i = index"
+           [style.animation-delay]="(i * 0.03) + 's'">
+        <div class="cat-color-bar" [style.background]="cat.couleur"></div>
+        <div class="cat-info">
+          <div class="cat-name">{{ cat.nom }}</div>
+          <div class="cat-type">
+            <span class="type-badge" [class]="cat.type">
+              <span class="type-icon">{{ getTypeIcon(cat.type) }}</span>
+              {{ cat.type === 'entree' ? 'Entrée' : cat.type === 'sortie' ? 'Sortie' : 'Les deux' }}
+            </span>
+          </div>
+        </div>
+        <div class="cat-actions" *ngIf="!cat.systeme && auth.isTresorier()">
+          <button class="action-icon" (click)="onEdit(cat)" title="Modifier">✏️</button>
+          <button class="action-icon danger" (click)="onDelete(cat)" title="Supprimer">🗑️</button>
+        </div>
+        <span class="sys-badge" *ngIf="cat.systeme" title="Catégorie système">🔒 Système</span>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="cats.length === 0">
+      <div class="empty-icon-wrapper">
+        <div class="empty-icon">🏷️</div>
+      </div>
+      <h3>Aucune catégorie</h3>
+      <p>Cliquez sur "Défaut" pour initialiser les catégories standard ou créez vos propres catégories.</p>
+      <div class="empty-actions">
+        <button class="btn btn--outline btn--sm" (click)="onInitDefaut()">
+          <span class="btn-icon">↺</span> Initialiser les catégories par défaut
+        </button>
+        <button class="btn btn--primary btn--sm" (click)="openForm()">
+          <span class="btn-icon">+</span> Créer une catégorie
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Modal de confirmation pour suppression -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal modal--small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-icon danger">
+        <span class="icon">🗑️</span>
+      </div>
+      <h2>Confirmer la suppression</h2>
+      <button class="modal-close" (click)="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Êtes-vous sûr de vouloir supprimer la catégorie <strong>{{ categoryToDelete?.nom }}</strong> ?</p>
+      <p class="modal-hint">Cette action est irréversible. Les opérations existantes ne seront pas affectées.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--outline" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn btn--danger" (click)="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+</div>

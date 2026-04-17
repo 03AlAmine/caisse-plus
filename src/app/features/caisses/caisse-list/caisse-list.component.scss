@@ -1,0 +1,623 @@
+// ─── Caisses List Styles ──────────────────────────────────────────────────
+
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+// Header actions
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-icon {
+  margin-right: 0.25rem;
+}
+
+// Solde banner
+.solde-banner {
+  background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy-600) 100%);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: -40px;
+    top: -60px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(244, 166, 35, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -30px;
+    bottom: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .solde-info {
+    position: relative;
+    z-index: 1;
+  }
+
+  .solde-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+  }
+
+  .solde-montant {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-white);
+    letter-spacing: -0.04em;
+    line-height: 1;
+
+    .solde-currency {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-left: 0.5rem;
+      opacity: 0.7;
+    }
+  }
+
+  .solde-sub {
+    margin-top: 0.5rem;
+
+    .stat-badge {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+    }
+  }
+
+  .solde-icon {
+    .icon-large {
+      font-size: 3.5rem;
+      opacity: 0.3;
+    }
+  }
+}
+
+// Section header
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 2rem 0 1rem;
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-gray-600);
+
+    .title-icon {
+      font-size: 0.9rem;
+    }
+  }
+
+  .section-count {
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--radius-full);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-gray-200) 0%, transparent 100%);
+  }
+}
+
+// Carte caisse principale
+.caisse-main-card {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-gray-100);
+  box-shadow: var(--shadow-sm);
+  padding: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  border-left: 5px solid var(--color-navy);
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 200px;
+    background: linear-gradient(to right, transparent, rgba(10, 22, 40, 0.02));
+    pointer-events: none;
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px);
+  }
+
+  .main-card-left {
+    flex: 1;
+
+    .main-card-badge {
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-navy);
+      margin: 0 0 0.35rem;
+    }
+
+    .main-card-desc {
+      font-size: 0.85rem;
+      color: var(--color-gray-500);
+      margin: 0 0 0.75rem;
+    }
+
+    .main-card-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--color-gray-500);
+      background: var(--color-gray-50);
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-full);
+
+      .meta-icon {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .main-card-right {
+    text-align: right;
+
+    .main-card-solde {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--color-green);
+      letter-spacing: -0.04em;
+      margin-bottom: 0.5rem;
+
+      .currency {
+        font-size: 0.7rem;
+        font-weight: 500;
+        margin-left: 0.25rem;
+        opacity: 0.7;
+      }
+
+      &.negatif {
+        color: var(--color-red);
+      }
+    }
+
+    .main-card-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+  }
+}
+
+// Grille caisses secondaires
+.caisses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.caisse-card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-gray-100);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border-top: 4px solid var(--caisse-color, var(--color-purple));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+  }
+
+  .cc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem 1rem 0 1rem;
+  }
+
+  .cc-badge {
+    .badge--purple {
+      background: var(--color-purple-light);
+      color: var(--color-purple);
+    }
+  }
+
+  .cc-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .cc-body {
+    padding: 0.75rem 1rem;
+    flex: 1;
+
+    .cc-name {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: 0.25rem;
+    }
+
+    .cc-desc {
+      font-size: 0.75rem;
+      color: var(--color-gray-500);
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .cc-responsible {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      color: var(--color-gray-500);
+      background: var(--color-gray-50);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-full);
+
+      .responsible-icon {
+        font-size: 0.7rem;
+      }
+    }
+  }
+
+  .cc-footer {
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid var(--color-gray-50);
+    background: var(--color-gray-50);
+
+    .cc-solde {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--color-green);
+      letter-spacing: -0.03em;
+
+      .currency {
+        font-size: 0.65rem;
+        font-weight: 500;
+        margin-left: 0.25rem;
+        opacity: 0.7;
+      }
+
+      &.negatif {
+        color: var(--color-red);
+      }
+    }
+  }
+}
+
+// Carte ajout
+.caisse-add-card {
+  background: transparent;
+  border: 2px dashed var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 180px;
+  text-align: center;
+
+  .add-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px dashed var(--color-gray-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+
+    .add-icon {
+      font-size: 1.75rem;
+      font-weight: 300;
+      color: var(--color-gray-400);
+    }
+  }
+
+  .add-text {
+    font-weight: 600;
+    color: var(--color-gray-500);
+  }
+
+  .add-hint {
+    font-size: 0.7rem;
+    color: var(--color-gray-400);
+  }
+
+  &:hover {
+    border-color: var(--color-navy);
+    background: var(--color-cream);
+
+    .add-icon-wrapper {
+      border-color: var(--color-navy);
+      background: var(--color-navy);
+
+      .add-icon {
+        color: var(--color-gold);
+      }
+    }
+
+    .add-text {
+      color: var(--color-navy);
+    }
+  }
+}
+
+// Action buttons
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-50);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--color-gray-200);
+    transform: scale(1.05);
+  }
+
+  &.danger:hover {
+    background: var(--color-red-light);
+  }
+}
+
+.action-btn-sm {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--color-gray-100);
+    transform: scale(1.05);
+  }
+
+  &.danger:hover {
+    background: var(--color-red-light);
+  }
+}
+
+// Modal amélioré
+.modal {
+  max-width: 520px;
+  width: 90%;
+
+  &--medium {
+    max-width: 560px;
+  }
+}
+
+.modal-header {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .modal-header-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy-600) 100%);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .icon {
+      font-size: 1.2rem;
+    }
+  }
+
+  h2 {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-navy);
+    margin: 0;
+  }
+}
+
+.modal-body {
+  padding: 0 1.75rem 1.5rem;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  .label-icon {
+    font-size: 0.9rem;
+  }
+}
+
+.option-solde {
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+}
+
+.transfer-arrow {
+  text-align: center;
+  margin: 0.5rem 0;
+
+  .arrow-animation {
+    font-size: 1.5rem;
+    animation: bounce 0.5s ease infinite;
+  }
+}
+
+.transfer-summary {
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-top: 1rem;
+
+  .summary-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-gray-600);
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-details {
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.35rem 0;
+      font-size: 0.85rem;
+
+      &.highlight {
+        border-top: 1px solid var(--color-gray-200);
+        margin-top: 0.35rem;
+        padding-top: 0.75rem;
+        font-weight: 700;
+        color: var(--color-navy);
+      }
+    }
+  }
+}
+
+.form-hint.error {
+  color: var(--color-red);
+  margin-top: 0.25rem;
+}
+
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 1rem;
+  }
+
+  .solde-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+
+    .solde-icon {
+      margin-top: 1rem;
+    }
+  }
+
+  .caisse-main-card {
+    flex-direction: column;
+    text-align: center;
+
+    .main-card-left {
+      margin-bottom: 1rem;
+    }
+
+    .main-card-right {
+      text-align: center;
+    }
+  }
+
+  .caisses-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 1rem;
+  }
+}

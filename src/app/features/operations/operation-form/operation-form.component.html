@@ -1,0 +1,348 @@
+<div class="form-page page-wrapper">
+
+  <div class="form-header animate-fade-in">
+    <div class="header-back">
+      <a routerLink="/operations" class="back-link">
+        <span class="back-icon">←</span> Retour aux opérations
+      </a>
+    </div>
+    <div class="header-title">
+      <div class="title-icon" [class.edit-mode]="isEdit">
+        <span>{{ isEdit ? '✏️' : '💸' }}</span>
+      </div>
+      <div class="title-content">
+        <h1>{{ isEdit ? 'Modifier l\'opération' : 'Nouvelle opération' }}</h1>
+        <p>{{ isEdit ? 'Modifiez les détails de la transaction' : 'Enregistrez un mouvement de fonds' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-grid">
+    <!-- Formulaire principal -->
+    <div class="form-card animate-slide-in">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <!-- Type d'opération -->
+        <div class="form-group">
+          <label class="form-label required">
+            <span class="label-icon">📋</span>
+            Type d'opération
+          </label>
+          <div class="type-tabs">
+            <button type="button" class="type-tab"
+                    [class.active]="form.get('type')?.value === 'entree'"
+                    (click)="form.get('type')?.setValue('entree')">
+              <span class="tab-icon">📈</span>
+              <span class="tab-label">Entrée</span>
+            </button>
+            <button type="button" class="type-tab"
+                    [class.active]="form.get('type')?.value === 'sortie'"
+                    (click)="form.get('type')?.setValue('sortie')">
+              <span class="tab-icon">📉</span>
+              <span class="tab-label">Sortie</span>
+            </button>
+            <button type="button" class="type-tab"
+                    [class.active]="form.get('type')?.value === 'transfert'"
+                    (click)="form.get('type')?.setValue('transfert')"
+                    *ngIf="auth.isTresorier()">
+              <span class="tab-icon">🔄</span>
+              <span class="tab-label">Transfert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Libellé -->
+        <div class="form-group" [class.has-error]="libelle.invalid && (libelle.dirty || libelle.touched)">
+          <label class="form-label required">
+            <span class="label-icon">🏷️</span>
+            Libellé
+          </label>
+          <input type="text"
+                 formControlName="libelle"
+                 class="form-control"
+                 [class.is-invalid]="libelle.invalid && (libelle.dirty || libelle.touched)"
+                 placeholder="Ex: Achat de fournitures, Cotisation mensuelle..." />
+          <div class="form-error" *ngIf="libelle.touched && libelle.hasError('required')">
+            <span class="error-icon">⚠️</span> Le libellé est obligatoire
+          </div>
+          <div class="form-error" *ngIf="libelle.touched && libelle.hasError('minlength')">
+            <span class="error-icon">⚠️</span> Le libellé doit contenir au moins 3 caractères
+          </div>
+          <div class="form-hint success" *ngIf="libelle.valid && libelle.dirty">
+            <span class="hint-icon">✓</span> Libellé valide
+          </div>
+        </div>
+
+        <!-- Montant -->
+        <div class="form-group" [class.has-error]="montant.invalid && (montant.dirty || montant.touched)">
+          <label class="form-label required">
+            <span class="label-icon">💰</span>
+            Montant
+          </label>
+          <div class="input-suffix">
+            <input type="number"
+                   formControlName="montant"
+                   class="form-control"
+                   [class.is-invalid]="montant.invalid && (montant.dirty || montant.touched)"
+                   min="1"
+                   step="100"
+                   placeholder="0" />
+            <span class="suffix-text">FCFA</span>
+          </div>
+          <div class="form-error" *ngIf="montant.touched && montant.hasError('required')">
+            <span class="error-icon">⚠️</span> Le montant est obligatoire
+          </div>
+          <div class="form-error" *ngIf="montant.touched && montant.hasError('min')">
+            <span class="error-icon">⚠️</span> Le montant doit être supérieur à 0
+          </div>
+
+          <!-- Avertissement validation -->
+          <div class="validation-notice" *ngIf="montant.value >= 100000 && !auth.isTresorier() && !isEdit">
+            <div class="notice-icon">⚠️</div>
+            <div class="notice-content">
+              <strong>Attention :</strong> Montant ≥ 100 000 FCFA — cette opération sera soumise à validation par un trésorier.
+            </div>
+          </div>
+
+          <!-- Indicateur de solde -->
+          <div class="solde-warning" *ngIf="form.get('type')?.value === 'sortie' && selectedCaisseSolde < montant.value && montant.value > 0">
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-content">
+              <strong>Solde insuffisant !</strong> Le solde de la caisse ({{ selectedCaisseSolde | number:'1.0-0' }} FCFA) est inférieur au montant saisi.
+            </div>
+          </div>
+        </div>
+
+        <!-- Caisse -->
+        <div class="form-group">
+          <label class="form-label required">
+            <span class="label-icon">🏦</span>
+            Caisse
+          </label>
+          <select formControlName="caisseId" class="form-control" (change)="onCaisseChange()">
+            <option value="">-- Sélectionner une caisse --</option>
+            <option *ngFor="let c of caisses" [value]="c.id" [disabled]="c.actif === false">
+              {{ c.nom }}
+              <span class="option-solde" *ngIf="form.get('type')?.value === 'sortie'">
+                ({{ c.solde | number:'1.0-0' }} FCFA)
+              </span>
+            </option>
+          </select>
+
+          <!-- Informations caisse sélectionnée -->
+          <div class="caisse-info" *ngIf="selectedCaisse">
+            <div class="info-row">
+              <span class="info-label">Type :</span>
+              <span class="badge" [class]="selectedCaisse.type">
+                {{ selectedCaisse.type === 'principale' ? '⭐ Principale' : '📦 Secondaire' }}
+              </span>
+            </div>
+            <div class="info-row" *ngIf="selectedCaisse.responsableNom">
+              <span class="info-label">Responsable :</span>
+              <span>{{ selectedCaisse.responsableNom }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Solde actuel :</span>
+              <span class="solde-value" [class.negatif]="selectedCaisse.solde < 0">
+                {{ selectedCaisse.solde | number:'1.0-0' }} FCFA
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Catégorie (pour entrée/sortie) -->
+        <div class="form-group" *ngIf="form.get('type')?.value !== 'transfert'">
+          <label class="form-label">
+            <span class="label-icon">📁</span>
+            Catégorie
+          </label>
+          <select formControlName="categorieId" class="form-control" (change)="onCategorieChange()">
+            <option value="">-- Sans catégorie --</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">
+              <span class="category-icon">{{ cat.icone || '📄' }}</span>
+              {{ cat.nom }}
+            </option>
+          </select>
+          <div class="form-hint">
+            <span class="hint-icon">💡</span>
+            Les catégories vous aident à analyser vos dépenses et revenus
+          </div>
+        </div>
+
+        <!-- Cible du transfert -->
+        <div class="form-group" *ngIf="form.get('type')?.value === 'transfert'">
+          <label class="form-label required">
+            <span class="label-icon">🎯</span>
+            Caisse de destination
+          </label>
+          <select formControlName="transfertCaisseDestId" class="form-control">
+            <option value="">-- Sélectionner la caisse de destination --</option>
+            <option *ngFor="let c of caisses" [value]="c.id" [disabled]="c.id === form.get('caisseId')?.value">
+              {{ c.nom }}
+            </option>
+          </select>
+          <div class="form-hint" *ngIf="form.get('caisseId')?.value && form.get('transfertCaisseDestId')?.value">
+            <span class="hint-icon">🔄</span>
+            Transfert de {{ selectedCaisse?.nom }} vers {{ getSelectedDestCaisse()?.nom }}
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="form-group">
+          <label class="form-label required">
+            <span class="label-icon">📅</span>
+            Date
+          </label>
+          <input type="date" formControlName="date" class="form-control" />
+          <div class="form-hint">
+            <span class="hint-icon">ℹ️</span>
+            Par défaut, la date du jour est utilisée
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">📝</span>
+            Notes / Justificatifs
+          </label>
+          <textarea formControlName="notes"
+                    rows="3"
+                    class="form-control"
+                    placeholder="Informations complémentaires, numéro de justificatif, référence..."></textarea>
+          <div class="form-hint" *ngIf="form.get('notes')?.value?.length">
+            <span class="hint-icon">📏</span>
+            {{ form.get('notes')?.value?.length }} / 500 caractères
+          </div>
+        </div>
+
+        <!-- Pièces jointes (optionnel) -->
+        <div class="form-group" *ngIf="!isEdit">
+          <label class="form-label">
+            <span class="label-icon">📎</span>
+            Pièces jointes
+          </label>
+          <div class="file-zone" (click)="fileInput.click()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+            <input type="file" #fileInput multiple style="display:none" (change)="onFilesSelected($event)" />
+            <div class="file-zone-content">
+              <span class="file-icon">📎</span>
+              <span>Cliquez ou glissez-déposez des fichiers</span>
+              <span class="file-hint">PDF, JPG, PNG (max 5MB)</span>
+            </div>
+          </div>
+          <div class="file-list" *ngIf="uploadedFiles.length > 0">
+            <div class="file-item" *ngFor="let file of uploadedFiles; let i = index">
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ (file.size / 1024) | number:'1.0-0' }} KB</span>
+              <button type="button" class="file-remove" (click)="removeFile(i)">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <a routerLink="/operations" class="btn btn--outline btn--lg">
+            <span class="btn-icon">✕</span> Annuler
+          </a>
+          <button type="submit" class="btn btn--primary btn--lg" [disabled]="loading || form.invalid">
+            <span *ngIf="!loading">
+              <span class="btn-icon">{{ isEdit ? '💾' : '✓' }}</span>
+              {{ isEdit ? 'Enregistrer les modifications' : 'Enregistrer l\'opération' }}
+            </span>
+            <span *ngIf="loading" class="btn-spinner"></span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Panneau d'aide contextuel -->
+    <div class="help-panel animate-slide-in">
+      <div class="help-header">
+        <span class="help-icon">ℹ️</span>
+        <h3>Aide contextuelle</h3>
+      </div>
+
+      <div class="help-section" *ngIf="form.get('type')?.value === 'entree'">
+        <h4>📈 Entrée d'argent</h4>
+        <p>Utilisez ce type pour enregistrer :</p>
+        <ul>
+          <li>Cotisations des membres</li>
+          <li>Dons et subventions</li>
+          <li>Revenus d'activités</li>
+          <li>Remboursements</li>
+        </ul>
+      </div>
+
+      <div class="help-section" *ngIf="form.get('type')?.value === 'sortie'">
+        <h4>📉 Sortie d'argent</h4>
+        <p>Utilisez ce type pour enregistrer :</p>
+        <ul>
+          <li>Achats et fournitures</li>
+          <li>Frais de transport</li>
+          <li>Salaires et prestations</li>
+          <li>Charges et abonnements</li>
+        </ul>
+        <div class="help-tip" *ngIf="montant.value >= 100000">
+          <strong>⚠️ Montant élevé</strong> - Une validation sera nécessaire
+        </div>
+      </div>
+
+      <div class="help-section" *ngIf="form.get('type')?.value === 'transfert'">
+        <h4>🔄 Transfert</h4>
+        <p>Déplacez de l'argent entre deux caisses :</p>
+        <ul>
+          <li>Alimenter une caisse secondaire</li>
+          <li>Rapatrier des fonds vers la caisse principale</li>
+          <li>Réallocation budgétaire</li>
+        </ul>
+        <div class="help-tip info">
+          <strong>💡 Astuce :</strong> Les transferts sont immédiats et ne nécessitent pas de validation
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h4>✓ Validation</h4>
+        <p>Les règles de validation :</p>
+        <ul>
+          <li><strong>Montant &lt; 100 000 FCFA</strong> : Validation automatique</li>
+          <li><strong>Montant ≥ 100 000 FCFA</strong> : En attente de validation</li>
+          <li>Seuls les <strong>trésoriers et admins</strong> peuvent valider</li>
+        </ul>
+      </div>
+
+      <div class="help-footer">
+        <div class="shortcut">
+          <span class="shortcut-key">↵</span>
+          <span>Valider le formulaire</span>
+        </div>
+        <div class="shortcut">
+          <span class="shortcut-key">Esc</span>
+          <span>Annuler</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmation pour modification -->
+  <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+    <div class="modal modal--small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-icon warning">
+          <span class="icon">⚠️</span>
+        </div>
+        <h2>Confirmer la modification</h2>
+        <button class="modal-close" (click)="closeConfirmModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Êtes-vous sûr de vouloir modifier cette opération ?</p>
+        <p class="modal-hint">Les modifications seront appliquées immédiatement et pourront affecter les soldes des caisses.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn--outline" (click)="closeConfirmModal()">Annuler</button>
+        <button class="btn btn--primary" (click)="confirmSubmit()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+</div>

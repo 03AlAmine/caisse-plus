@@ -1,0 +1,360 @@
+<div class="dashboard page-wrapper">
+  <div class="loading-center" *ngIf="loading">
+    <app-loading-spinner [size]="48"></app-loading-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- En-tête du tableau de bord -->
+    <div class="dashboard-header animate-fade-in">
+      <div class="header-left">
+        <div class="greeting-badge">
+          <span class="greeting-icon">👋</span>
+          <span class="greeting-text"> Bonjour, {{ userName }} </span>
+        </div>
+        <h1 class="dashboard-title">Tableau de bord</h1>
+        <p class="dashboard-subtitle">
+          Vue d'ensemble de votre activité financière
+        </p>
+      </div>
+      <div class="header-right">
+        <div class="date-chip">
+          <span class="date-icon">📅</span>
+          <span class="date-text">{{ today | date: "EEEE d MMMM yyyy" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Grid avec animations -->
+    <div class="kpi-grid">
+      <div
+        class="kpi-card stagger-{{ i + 1 }}"
+        *ngFor="let kpi of kpis; let i = index"
+        [style.--kpi-color]="kpi.color"
+        [style.--kpi-bg]="kpi.bgColor"
+      >
+        <div class="kpi-icon-wrap">
+          <span class="kpi-icon">{{ kpi.icon }}</span>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">{{ kpi.label }}</span>
+          <div class="kpi-value-wrapper">
+            <span class="kpi-value" *ngIf="kpi.isMontant">
+              {{ kpi.value | number: "1.0-0" }}
+            </span>
+            <span class="kpi-value" *ngIf="!kpi.isMontant">{{
+              kpi.value
+            }}</span>
+            <span class="kpi-unit" *ngIf="kpi.isMontant">FCFA</span>
+          </div>
+        </div>
+        <div class="kpi-trend" *ngIf="kpi.trend">
+          <span [class]="kpi.trend > 0 ? 'trend-up' : 'trend-down'">
+            {{ kpi.trend > 0 ? "↑" : "↓" }} {{ Math.abs(kpi.trend) }}%
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertes opérations en attente -->
+    <div
+      class="alert alert--warning animate-slide-in"
+      *ngIf="operationsEnAttente.length > 0"
+    >
+      <div class="alert-icon-wrapper">
+        <span class="alert-icon">⏳</span>
+      </div>
+      <div class="alert-content">
+        <span class="alert-text">
+          <strong>{{ operationsEnAttente.length }} opération(s)</strong> en
+          attente de validation
+        </span>
+      </div>
+      <a
+        routerLink="/operations"
+        [queryParams]="{ statut: 'en_attente' }"
+        class="alert-link"
+      >
+        Voir détails <span class="link-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- Alertes budgets -->
+    <ng-container *ngFor="let b of budgetsEnAlerte">
+      <div
+        class="alert animate-slide-in"
+        [class.alert--danger]="b.tauxConsommation >= 100"
+        [class.alert--warning]="b.tauxConsommation < 100"
+      >
+        <div class="alert-icon-wrapper">
+          <span class="alert-icon">{{
+            b.tauxConsommation >= 100 ? "🚨" : "⚠️"
+          }}</span>
+        </div>
+        <div class="alert-content">
+          <span class="alert-text">
+            <strong>Budget {{ b.nom }}</strong> —
+            {{
+              b.tauxConsommation >= 100
+                ? "Dépassé !"
+                : b.tauxConsommation + "% consommé"
+            }}
+            <span class="alert-details">
+              ({{ b.montantDepense | number: "1.0-0" }} /
+              {{ b.montantPrevu | number: "1.0-0" }} FCFA)
+            </span>
+          </span>
+        </div>
+        <a routerLink="/budgets" class="alert-link">
+          Voir détails <span class="link-arrow">→</span>
+        </a>
+      </div>
+    </ng-container>
+
+    <!-- Grille principale -->
+    <div class="dashboard-grid">
+      <!-- Caisses -->
+      <div class="dash-card card-hover">
+        <div class="dash-card-header">
+          <div class="header-left-group">
+            <div class="card-icon-badge">
+              <span class="card-icon">🏦</span>
+            </div>
+            <h3>Mes caisses</h3>
+          </div>
+          <a routerLink="/caisses" class="see-all-link">
+            Gérer <span class="link-arrow">→</span>
+          </a>
+        </div>
+
+        <ng-container *ngIf="caisses.length > 0; else noCaisses">
+          <div class="caisses-list">
+            <a
+              class="caisse-row"
+              *ngFor="let c of caisses"
+              [routerLink]="['/caisses', c.id]"
+            >
+              <div class="caisse-row-left">
+                <div
+                  class="caisse-color-dot"
+                  [style.background]="
+                    c.couleur ||
+                    (c.type === 'principale'
+                      ? 'var(--color-navy)'
+                      : 'var(--color-purple)')
+                  "
+                ></div>
+                <div class="caisse-row-info">
+                  <span class="caisse-row-name">{{ c.nom }}</span>
+                  <span class="caisse-row-type">
+                    <span class="type-badge" [class]="c.type">
+                      {{
+                        c.type === "principale"
+                          ? "Principale"
+                          : c.type === "secondaire"
+                            ? "Secondaire"
+                            : c.type
+                      }}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <div class="caisse-row-right">
+                <span class="caisse-row-solde" [class.negatif]="c.solde < 0">
+                  {{ c.solde | number: "1.0-0" }}
+                </span>
+                <span class="caisse-currency">FCFA</span>
+              </div>
+            </a>
+          </div>
+          <div class="caisses-footer">
+            <div class="total-solde">
+              <span class="total-label">Solde total</span>
+              <span class="total-amount"
+                >{{ soldePrincipal | number: "1.0-0" }} FCFA</span
+              >
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #noCaisses>
+          <div class="empty-state">
+            <div class="empty-icon-wrapper">
+              <div class="empty-icon">🏦</div>
+            </div>
+            <h3>Aucune caisse</h3>
+            <p>
+              Créez votre première caisse pour commencer à gérer vos finances.
+            </p>
+            <a routerLink="/caisses/nouveau" class="btn btn--primary btn--sm">
+              <span class="btn-icon">+</span> Créer une caisse
+            </a>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Dernières opérations -->
+      <div class="dash-card card-hover">
+        <div class="dash-card-header">
+          <div class="header-left-group">
+            <div class="card-icon-badge">
+              <span class="card-icon">💸</span>
+            </div>
+            <h3>Dernières opérations</h3>
+          </div>
+          <a routerLink="/operations" class="see-all-link">
+            Voir tout <span class="link-arrow">→</span>
+          </a>
+        </div>
+
+        <ng-container *ngIf="dernieresOperations.length > 0; else noOps">
+          <div class="operations-list">
+            <div class="op-row" *ngFor="let op of dernieresOperations">
+              <div class="op-row-left">
+                <div class="op-type-indicator" [class]="op.type">
+                  {{
+                    op.type === "entree"
+                      ? "↑"
+                      : op.type === "sortie"
+                        ? "↓"
+                        : "⇄"
+                  }}
+                </div>
+                <div class="op-row-info">
+                  <span class="op-row-libelle">{{ op.libelle }}</span>
+                  <div class="op-row-meta">
+                    <span class="meta-caisse">{{ op.caisseNom }}</span>
+                    <span class="meta-separator">•</span>
+                    <span class="meta-date">{{
+                      toDate(op.date) | date: "dd/MM/yy"
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="op-row-right">
+                <div class="op-amount-wrapper">
+                  <span class="op-row-montant" [class]="op.type">
+                    {{ op.type === "entree" ? "+" : "-"
+                    }}{{ op.montant | number: "1.0-0" }}
+                  </span>
+                  <span class="op-currency">FCFA</span>
+                </div>
+                <span
+                  class="status-badge"
+                  [class.status-validated]="op.statut === 'validee'"
+                  [class.status-pending]="op.statut === 'en_attente'"
+                  [class.status-rejected]="op.statut === 'rejetee'"
+                >
+                  <span class="status-icon">
+                    {{
+                      op.statut === "validee"
+                        ? "✓"
+                        : op.statut === "en_attente"
+                          ? "⏳"
+                          : "✗"
+                    }}
+                  </span>
+                  <span class="status-text">
+                    {{
+                      op.statut === "validee"
+                        ? "Validée"
+                        : op.statut === "en_attente"
+                          ? "En attente"
+                          : "Rejetée"
+                    }}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #noOps>
+          <div class="empty-state">
+            <div class="empty-icon-wrapper">
+              <div class="empty-icon">📭</div>
+            </div>
+            <h3>Aucune opération</h3>
+            <p>
+              Enregistrez votre première transaction pour suivre vos mouvements.
+            </p>
+            <a
+              routerLink="/operations/nouveau"
+              class="btn btn--primary btn--sm"
+            >
+              <span class="btn-icon">+</span> Nouvelle opération
+            </a>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Budgets en alerte -->
+    <div
+      class="dash-card budgets-alert-card animate-slide-in"
+      *ngIf="budgetsEnAlerte.length > 0"
+    >
+      <div class="dash-card-header">
+        <div class="header-left-group">
+          <div class="card-icon-badge warning-bg">
+            <span class="card-icon">📊</span>
+          </div>
+          <h3>Budgets en alerte</h3>
+          <span class="alert-count">{{ budgetsEnAlerte.length }}</span>
+        </div>
+        <a routerLink="/budgets" class="see-all-link">
+          Tous les budgets <span class="link-arrow">→</span>
+        </a>
+      </div>
+      <div class="budgets-list">
+        <div class="budget-mini-row" *ngFor="let b of budgetsEnAlerte">
+          <div class="budget-mini-header">
+            <div class="budget-info">
+              <span class="budget-mini-name">{{ b.nom }}</span>
+              <span class="budget-mini-period">{{
+                b.periode || "Ce mois"
+              }}</span>
+            </div>
+            <div class="budget-stats">
+              <span
+                class="budget-mini-pct"
+                [class.normal]="b.tauxConsommation < b.seuilAlerte"
+                [class.warning]="
+                  b.tauxConsommation >= b.seuilAlerte &&
+                  b.tauxConsommation < 100
+                "
+                [class.danger]="b.tauxConsommation >= 100"
+              >
+                {{ b.tauxConsommation }}%
+              </span>
+              <span class="budget-amounts">
+                {{ b.montantDepense | number: "1.0-0" }} /
+                {{ b.montantPrevu | number: "1.0-0" }} FCFA
+              </span>
+            </div>
+          </div>
+          <div class="progress-wrapper">
+            <div class="progress-bar">
+              <div
+                class="progress-bar__fill"
+                [class.progress-bar__fill--normal]="
+                  b.tauxConsommation < b.seuilAlerte
+                "
+                [class.progress-bar__fill--warning]="
+                  b.tauxConsommation >= b.seuilAlerte &&
+                  b.tauxConsommation < 100
+                "
+                [class.progress-bar__fill--danger]="b.tauxConsommation >= 100"
+                [style.width.%]="
+                  b.tauxConsommation > 100 ? 100 : b.tauxConsommation
+                "
+              ></div>
+              <div class="progress-bar__marker" [style.left.%]="b.seuilAlerte">
+                <div class="marker-tooltip">Seuil: {{ b.seuilAlerte }}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

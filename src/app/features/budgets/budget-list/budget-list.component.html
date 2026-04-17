@@ -1,0 +1,192 @@
+<div class="page-wrapper">
+
+  <app-page-header title="📊 Budgets" subtitle="Suivez vos budgets prévisionnels et détectez les dépassements">
+    <div class="header-actions" *ngIf="auth.isTresorier()">
+      <button class="btn btn--outline btn--sm" (click)="exportBudgets()" *ngIf="(budgets$ | async)?.length">
+        <span class="btn-icon">📥</span> Exporter
+      </button>
+      <a routerLink="nouveau" class="btn btn--primary btn--sm">
+        <span class="btn-icon">+</span> Nouveau budget
+      </a>
+    </div>
+  </app-page-header>
+
+  <!-- Filtres -->
+  <div class="filter-bar animate-fade-in" *ngIf="(budgets$ | async) as budgets">
+    <div class="filter-group">
+      <select class="filter-select" [(ngModel)]="filtrePeriode" (ngModelChange)="onFiltreChange(budgets)">
+        <option value="tous">📅 Toutes les périodes</option>
+        <option value="mensuel">📆 Mensuels</option>
+        <option value="annuel">📅 Annuels</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select class="filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="onFiltreChange(budgets)">
+        <option value="tous">🎯 Tous les statuts</option>
+        <option value="normal">✅ Normaux</option>
+        <option value="alerte">⚠️ En alerte</option>
+        <option value="depasse">🚨 Dépassés</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select class="filter-select" [(ngModel)]="filtreCaisseId" (ngModelChange)="onFiltreChange(budgets)">
+        <option value="toutes">🏦 Toutes les caisses</option>
+        <option *ngFor="let c of caisses" [value]="c.id">{{ c.nom }}</option>
+      </select>
+    </div>
+    <div class="filter-result" *ngIf="filteredBudgets.length !== budgets.length">
+      {{ filteredBudgets.length }} / {{ budgets.length }} budget(s)
+    </div>
+    <button class="btn-filter-reset" (click)="resetFiltres(budgets)" *ngIf="hasActiveFilters()">
+      <span class="reset-icon">↺</span> Réinitialiser
+    </button>
+  </div>
+
+  <!-- Alertes globales -->
+  <div class="alertes-section animate-slide-in" *ngIf="alertesBudgets.length > 0">
+    <div class="alerte-card" *ngFor="let b of alertesBudgets">
+      <div class="alerte-icon" [class.danger]="b.tauxConsommation >= 100">
+        {{ b.tauxConsommation >= 100 ? '🚨' : '⚠️' }}
+      </div>
+      <div class="alerte-content">
+        <div class="alerte-title">
+          <strong>{{ b.nom }}</strong>
+          <span class="alerte-badge" [class]="b.tauxConsommation >= 100 ? 'danger' : 'warning'">
+            {{ b.tauxConsommation >= 100 ? 'Dépassé' : 'Alerte' }}
+          </span>
+        </div>
+        <div class="alerte-detail">
+          {{ b.tauxConsommation }}% consommé ({{ b.montantDepense | number:'1.0-0' }} / {{ b.montantPrevu | number:'1.0-0' }} FCFA)
+        </div>
+      </div>
+      <a href="javascript:void(0)" class="alerte-link" (click)="scrollToBudget(b.id)">
+        Voir détails →
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-strip animate-fade-in" *ngIf="filteredBudgets.length > 0">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <span class="stat-label">Budget total</span>
+        <span class="stat-value">{{ totalBudgetPrevu | number:'1.0-0' }} FCFA</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💸</div>
+      <div class="stat-content">
+        <span class="stat-label">Dépenses engagées</span>
+        <span class="stat-value">{{ totalBudgetDepense | number:'1.0-0' }} FCFA</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <span class="stat-label">Taux global</span>
+        <span class="stat-value" [class]="getGlobalTauxClass()">{{ tauxGlobal }}%</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-content">
+        <span class="stat-label">Budgets en alerte</span>
+        <span class="stat-value" [class.warning]="alertesBudgets.length > 0">{{ alertesBudgets.length }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-center" *ngIf="loading">
+    <app-loading-spinner [size]="48"></app-loading-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="budgets$ | async as budgets">
+      <!-- Grille budgets -->
+      <div class="budgets-grid" *ngIf="filteredBudgets.length > 0; else noBudgets">
+        <div class="budget-card animate-card"
+             *ngFor="let b of filteredBudgets; let i = index"
+             [class.en-alerte]="b.estEnAlerte && b.tauxConsommation < 100"
+             [class.depasse]="b.tauxConsommation >= 100"
+             [style.animation-delay]="(i * 0.05) + 's'">
+
+          <div class="budget-card-header">
+            <div class="budget-info">
+              <h3>{{ b.nom }}</h3>
+              <div class="budget-meta">
+                <span class="periode-badge" [class]="b.periode">
+                  {{ getPeriodeLabel(b) }}
+                </span>
+                <span class="meta-sep">•</span>
+                <span class="caisse-name">{{ b.caisseNom || '—' }}</span>
+                <span class="categorie-name" *ngIf="b.categorieNom">• {{ b.categorieNom }}</span>
+              </div>
+            </div>
+            <div class="budget-actions" *ngIf="auth.isTresorier()">
+              <a [routerLink]="[b.id, 'modifier']" class="action-icon" title="Modifier">✏️</a>
+              <button class="action-icon danger" (click)="onDelete(b)" title="Supprimer">🗑️</button>
+            </div>
+          </div>
+
+          <!-- Progression -->
+          <div class="progress-section">
+            <div class="progress-header">
+              <div class="progress-pct" [class]="getBarreClass(b)">
+                {{ b.tauxConsommation }}%
+              </div>
+              <div class="progress-amounts">
+                <span class="depense">{{ b.montantDepense | number:'1.0-0' }}</span>
+                <span class="separator">/</span>
+                <span class="prevu">{{ b.montantPrevu | number:'1.0-0' }}</span>
+                <span class="currency">FCFA</span>
+              </div>
+            </div>
+
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill"
+                   [class]="getBarreClass(b)"
+                   [style.width.%]="b.tauxConsommation > 100 ? 100 : b.tauxConsommation">
+                <span class="fill-tooltip" *ngIf="b.tauxConsommation > 0">
+                  {{ b.tauxConsommation }}%
+                </span>
+              </div>
+              <div class="seuil-marker" [style.left.%]="b.seuilAlerte">
+                <div class="marker-tooltip">Seuil: {{ b.seuilAlerte }}%</div>
+              </div>
+            </div>
+
+            <div class="progress-footer">
+              <div class="restant" [class.negatif]="b.restant < 0">
+                <span class="restant-icon">{{ b.restant >= 0 ? '✅' : '⚠️' }}</span>
+                {{ b.restant >= 0 ? 'Restant' : 'Dépassement' }} :
+                <strong>{{ b.restant < 0 ? (b.restant * -1 | number:'1.0-0') : (b.restant | number:'1.0-0') }} FCFA</strong>
+              </div>
+              <div class="seuil-info">
+                Alerte à {{ b.seuilAlerte }}%
+              </div>
+            </div>
+          </div>
+
+          <!-- Mini graphique de tendance -->
+          <div class="budget-trend" *ngIf="b.tauxConsommation > 0">
+            <div class="trend-bar" [style.height.%]="Math.min(b.tauxConsommation, 100)"></div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noBudgets>
+        <div class="empty-state animate-fade-in">
+          <div class="empty-icon-wrapper">
+            <div class="empty-icon">📊</div>
+          </div>
+          <h3>Aucun budget défini</h3>
+          <p>Créez des budgets prévisionnels pour mieux contrôler vos dépenses et recevoir des alertes.</p>
+          <a routerLink="nouveau" class="btn btn--primary btn--lg" *ngIf="auth.isTresorier()">
+            <span class="btn-icon">+</span> Créer un budget
+          </a>
+        </div>
+      </ng-template>
+    </ng-container>
+  </ng-container>
+</div>

@@ -1,0 +1,130 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <button
+      class="menu-btn"
+      (click)="toggleSidebar.emit()"
+      [class.active]="!isSidebarOpen"
+      title="Menu"
+    >
+      <span class="menu-icon">☰</span>
+    </button>
+
+    <div class="breadcrumb" *ngIf="auth.currentUser$ | async as user">
+      <span class="bc-home">🏠</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-current"
+        >{{ greeting }},
+        {{ getUserDisplayName(user) }}
+      </span>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <!-- Date avec animation -->
+    <div class="topbar-date">
+      <span class="date-icon">📅</span>
+      <span class="date-text">{{
+        today | date: "EEE d MMM yyyy" : "" : "fr"
+      }}</span>
+      <span class="date-time">{{ today | date: "HH:mm" }}</span>
+    </div>
+
+    <!-- Notifications -->
+    <div
+      class="topbar-notif"
+      (click)="toggleNotifications()"
+      [class.has-notif]="hasNotifications"
+    >
+      <span class="notif-icon">🔔</span>
+      <span class="notif-dot" *ngIf="hasNotifications"></span>
+      <span class="notif-count" *ngIf="notificationsCount > 0">{{
+        notificationsCount > 9 ? "9+" : notificationsCount
+      }}</span>
+    </div>
+
+    <!-- User menu -->
+    <div class="user-menu" (click)="toggleUserMenu()">
+      <div class="user-avatar-sm">
+        <span>{{ getUserInitial() }}</span>
+      </div>
+      <span class="user-name-sm" *ngIf="auth.currentUser$ | async as user">
+        {{ getUserDisplayName(user) }}
+      </span>
+      <span class="dropdown-arrow">▼</span>
+    </div>
+
+    <!-- Dropdown user menu -->
+    <div
+      class="dropdown-menu"
+      *ngIf="showUserMenu"
+      (click)="$event.stopPropagation()"
+    >
+      <ng-container *ngIf="auth.currentUser$ | async as user">
+        <div class="dropdown-header">
+          <div class="dropdown-avatar">
+            {{ getUserInitial() }}
+          </div>
+          <div class="dropdown-info">
+            <span class="dropdown-name"> {{ getUserDisplayName(user) }} </span>
+            <span class="dropdown-role">{{ getRoleLabel(user.role) }}</span>
+          </div>
+        </div>
+      </ng-container>
+      <div class="dropdown-divider"></div>
+      <a class="dropdown-item" routerLink="/parametres/profil">
+        <span class="item-icon">👤</span>
+        Mon profil
+      </a>
+      <a class="dropdown-item" routerLink="/parametres">
+        <span class="item-icon">⚙️</span>
+        Paramètres
+      </a>
+      <div class="dropdown-divider"></div>
+      <button class="dropdown-item danger" (click)="onLogout()">
+        <span class="item-icon">🚪</span>
+        Déconnexion
+      </button>
+    </div>
+
+    <!-- Notifications panel -->
+    <div
+      class="notifications-panel"
+      *ngIf="showNotifications"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="notif-header">
+        <h3>Notifications</h3>
+        <button class="mark-all" (click)="markAllAsRead()">
+          Tout marquer comme lu
+        </button>
+      </div>
+      <div class="notif-list">
+        <div
+          class="notif-item"
+          *ngFor="let notif of notifications"
+          [class.unread]="!notif.read"
+        >
+          <div class="notif-icon" [class]="notif.type">
+            {{
+              notif.type === "warning"
+                ? "⚠️"
+                : notif.type === "success"
+                  ? "✓"
+                  : "ℹ️"
+            }}
+          </div>
+          <div class="notif-content">
+            <span class="notif-message">{{ notif.message }}</span>
+            <span class="notif-time">{{
+              notif.createdAt | date: "HH:mm"
+            }}</span>
+          </div>
+        </div>
+        <div class="notif-empty" *ngIf="notifications.length === 0">
+          <span class="empty-icon">🔔</span>
+          <span>Aucune notification</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

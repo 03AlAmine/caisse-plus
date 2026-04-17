@@ -1,0 +1,178 @@
+<div class="param-section">
+  <div class="param-section-header">
+    <h2>
+      <span class="section-icon">👥</span>
+      Utilisateurs
+    </h2>
+    <button class="btn btn--primary btn--sm" (click)="openInviteModal()" *ngIf="auth.isAdmin()">
+      <span class="btn-icon">+</span> Inviter un membre
+    </button>
+  </div>
+
+  <!-- Légende des rôles -->
+  <div class="roles-legend">
+    <div class="role-pill" *ngFor="let r of ROLES" [style.border-color]="r.color" [style.color]="r.color">
+      <span class="role-dot" [style.background]="r.color"></span>
+      <span>{{ r.label }}</span>
+      <span class="role-desc">— {{ r.desc }}</span>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-mini" *ngIf="(users$ | async) as users">
+    <div class="stat-mini">
+      <span class="stat-value">{{ users.length }}</span>
+      <span class="stat-label">membres</span>
+    </div>
+    <div class="stat-mini">
+      <span class="stat-value">{{ getAdminsCount(users) }}</span>
+      <span class="stat-label">administrateurs</span>
+    </div>
+    <div class="stat-mini">
+      <span class="stat-value">{{ getActiveUsersCount(users) }}</span>
+      <span class="stat-label">actifs</span>
+    </div>
+  </div>
+
+  <div class="loading-center" *ngIf="loading">
+    <app-loading-spinner [size]="32"></app-loading-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="users-list" *ngIf="(users$ | async) as users; else noUsers">
+      <div class="user-row" *ngFor="let user of users" [class.is-me]="estMoi(user)">
+        <div class="user-avatar-lg" [style.background]="getRoleInfo(user.role).color">
+          {{ getInitiales(user.displayName || user.email) }}
+        </div>
+
+        <div class="user-row-info">
+          <div class="user-row-name">
+            {{ user.displayName || user.email.split('@')[0] }}
+            <span class="you-badge" *ngIf="estMoi(user)">Vous</span>
+            <span class="status-badge" [class.active]="user.actif !== false">
+              {{ user.actif !== false ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+          <div class="user-row-email">{{ user.email }}</div>
+          <div class="user-row-meta" *ngIf="user.createdAt">
+            <span class="meta-icon">📅</span>
+            Membre depuis {{ user.createdAt | date:'MMM yyyy' }}
+          </div>
+        </div>
+
+        <ng-container *ngIf="!estMoi(user) && auth.isAdmin(); else moi">
+          <select class="role-select"
+                  [value]="user.role"
+                  (change)="onChangerRole(user, $any($event.target).value)"
+                  [disabled]="loadingRole === user.uid">
+            <option *ngFor="let r of ROLES" [value]="r.value">
+              {{ r.label }}
+            </option>
+          </select>
+          <button class="action-icon danger"
+                  (click)="onDesactiver(user)"
+                  [disabled]="loadingRole === user.uid"
+                  title="Désactiver">
+            🗑️
+          </button>
+        </ng-container>
+
+        <ng-template #moi>
+          <span class="role-tag" [style.background]="getRoleInfo(user.role).color + '15'"
+                [style.color]="getRoleInfo(user.role).color">
+            {{ getRoleInfo(user.role).label }}
+          </span>
+        </ng-template>
+      </div>
+    </div>
+
+    <ng-template #noUsers>
+      <div class="empty-state-sm">
+        <div class="empty-icon">👥</div>
+        <h4>Aucun utilisateur</h4>
+        <p>Invitez des membres pour commencer à collaborer</p>
+        <button class="btn btn--primary btn--sm" (click)="openInviteModal()" *ngIf="auth.isAdmin()">
+          + Inviter un membre
+        </button>
+      </div>
+    </ng-template>
+  </ng-container>
+</div>
+
+<!-- Modal invitation améliorée -->
+<div class="modal-overlay" *ngIf="showInviterModal" (click)="closeInviteModal()">
+  <div class="modal modal--medium" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <span class="icon">✉️</span>
+      </div>
+      <h2>Inviter un membre</h2>
+      <button class="modal-close" (click)="closeInviteModal()">✕</button>
+    </div>
+    <form [formGroup]="inviterForm" (ngSubmit)="onInviter()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label required">Nom complet</label>
+          <input type="text" class="form-control" formControlName="displayName"
+                 placeholder="Ex: Amadou Diallo" />
+          <div class="form-error" *ngIf="inviterForm.get('displayName')?.touched && inviterForm.get('displayName')?.hasError('required')">
+            ⚠️ Le nom est obligatoire
+          </div>
+          <div class="form-error" *ngIf="inviterForm.get('displayName')?.touched && inviterForm.get('displayName')?.hasError('minlength')">
+            ⚠️ Minimum 3 caractères
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">Adresse email</label>
+          <input type="email" class="form-control" formControlName="email"
+                 placeholder="membre@exemple.com" />
+          <div class="form-error" *ngIf="inviterForm.get('email')?.touched && inviterForm.get('email')?.hasError('required')">
+            ⚠️ L'email est obligatoire
+          </div>
+          <div class="form-error" *ngIf="inviterForm.get('email')?.touched && inviterForm.get('email')?.hasError('email')">
+            ⚠️ Email invalide
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">Rôle</label>
+          <select class="form-control" formControlName="role">
+            <option *ngFor="let r of ROLES" [value]="r.value">
+              {{ r.label }} — {{ r.desc }}
+            </option>
+          </select>
+          <div class="form-hint">
+            <span class="hint-icon">💡</span>
+            <span class="role-hint" *ngIf="inviterForm.get('role')?.value === 'admin'">
+              L'administrateur a un accès complet à toutes les fonctionnalités
+            </span>
+            <span class="role-hint" *ngIf="inviterForm.get('role')?.value === 'tresorier'">
+              Le trésorier gère les caisses, opérations et budgets
+            </span>
+            <span class="role-hint" *ngIf="inviterForm.get('role')?.value === 'auditeur'">
+              L'auditeur a un accès en lecture seule
+            </span>
+            <span class="role-hint" *ngIf="inviterForm.get('role')?.value === 'utilisateur'">
+              L'utilisateur peut saisir des opérations (validation requise pour montants ≥ 100k FCFA)
+            </span>
+          </div>
+        </div>
+
+        <div class="alert alert--info">
+          <span class="alert-icon">📧</span>
+          <span class="alert-text">
+            Un email de bienvenue sera envoyé avec un lien pour créer son mot de passe.
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--outline" (click)="closeInviteModal()">Annuler</button>
+        <button type="submit" class="btn btn--primary" [disabled]="loadingInviter || inviterForm.invalid">
+          <span *ngIf="!loadingInviter">✉️ Envoyer l'invitation</span>
+          <span *ngIf="loadingInviter" class="btn-spinner"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

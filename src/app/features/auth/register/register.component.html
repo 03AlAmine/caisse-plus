@@ -1,0 +1,118 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="logo">
+        <span class="logo-icon">💰</span>
+        <span class="logo-text">CAISSE<span class="logo-plus">+</span></span>
+      </div>
+      <h1>Créer votre compte</h1>
+      <p>Gérez vos finances en toute simplicité</p>
+    </div>
+
+    <!-- Indicateur d'étapes -->
+    <div class="steps-indicator">
+      <div class="step-item" [class.active]="step >= 1" [class.done]="step > 1">
+        <div class="step-dot">{{ step > 1 ? '✓' : '1' }}</div>
+        <span>Vos informations</span>
+      </div>
+      <div class="step-line" [class.done]="step > 1"></div>
+      <div class="step-item" [class.active]="step >= 2">
+        <div class="step-dot">2</div>
+        <span>Organisation</span>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+
+      <!-- Étape 1 : Infos personnelles -->
+      <ng-container *ngIf="step === 1">
+
+        <div class="form-group" [class.has-error]="displayName.invalid && displayName.touched">
+          <label for="displayName">Nom complet</label>
+          <input id="displayName" type="text" formControlName="displayName" placeholder="Amadou Diallo" />
+          <span class="error-msg" *ngIf="displayName.touched && displayName.hasError('required')">
+            Le nom est obligatoire.
+          </span>
+          <span class="error-msg" *ngIf="displayName.touched && displayName.hasError('minlength')">
+            Minimum 3 caractères.
+          </span>
+        </div>
+
+        <div class="form-group" [class.has-error]="email.invalid && email.touched">
+          <label for="email">Adresse email</label>
+          <input id="email" type="email" formControlName="email" placeholder="vous@exemple.com" />
+          <span class="error-msg" *ngIf="email.touched && email.hasError('required')">L'email est obligatoire.</span>
+          <span class="error-msg" *ngIf="email.touched && email.hasError('email')">Email invalide.</span>
+        </div>
+
+        <div class="form-group" [class.has-error]="password.invalid && password.touched">
+          <label for="password">Mot de passe</label>
+          <div class="input-with-toggle">
+            <input id="password" [type]="showPassword ? 'text' : 'password'"
+                   formControlName="password" placeholder="Minimum 6 caractères" />
+            <button type="button" class="toggle-pwd" (click)="showPassword = !showPassword">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <span class="error-msg" *ngIf="password.touched && password.hasError('minlength')">
+            Minimum 6 caractères.
+          </span>
+        </div>
+
+        <div class="form-group" [class.has-error]="confirmPassword.touched && form.hasError('passwordMismatch')">
+          <label for="confirmPassword">Confirmer le mot de passe</label>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" placeholder="••••••••" />
+          <span class="error-msg" *ngIf="confirmPassword.touched && form.hasError('passwordMismatch')">
+            Les mots de passe ne correspondent pas.
+          </span>
+        </div>
+
+        <div class="error-banner" *ngIf="errorMessage">
+          <span>⚠️</span> {{ errorMessage }}
+        </div>
+
+        <button type="button" class="btn-primary" (click)="nextStep()">
+          Continuer →
+        </button>
+
+      </ng-container>
+
+      <!-- Étape 2 : Organisation -->
+      <ng-container *ngIf="step === 2">
+
+        <div class="org-info-box">
+          <p>🏢 Vous allez créer une <strong>organisation</strong>. Vous en serez l'administrateur et pourrez inviter d'autres membres ensuite.</p>
+        </div>
+
+        <div class="form-group" [class.has-error]="organisationNom.invalid && organisationNom.touched">
+          <label for="orgNom">Nom de l'organisation</label>
+          <input id="orgNom" type="text" formControlName="organisationNom"
+                 placeholder="Association XYZ, PME Diallo..." />
+          <span class="error-msg" *ngIf="organisationNom.touched && organisationNom.hasError('required')">
+            Le nom de l'organisation est obligatoire.
+          </span>
+        </div>
+
+        <div class="error-banner" *ngIf="errorMessage">
+          <span>⚠️</span> {{ errorMessage }}
+        </div>
+
+        <div class="step2-actions">
+          <button type="button" class="btn-secondary" (click)="step = 1">← Retour</button>
+          <button type="submit" class="btn-primary" [disabled]="loading || form.invalid">
+            <span *ngIf="!loading">Créer mon compte</span>
+            <span *ngIf="loading" class="spinner"></span>
+          </button>
+        </div>
+
+      </ng-container>
+
+    </form>
+
+    <div class="auth-footer">
+      <p>Déjà un compte ? <a routerLink="/auth/login">Se connecter</a></p>
+    </div>
+
+  </div>
+</div>

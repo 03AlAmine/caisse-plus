@@ -1,0 +1,227 @@
+<div class="page-wrapper">
+
+  <app-page-header title="💸 Opérations" subtitle="Toutes les transactions de votre organisation">
+    <div class="header-actions">
+      <button class="btn btn--outline btn--sm" (click)="exportToCSV()" *canDo="'RAPPORT_EXPORTER'">
+        <span class="btn-icon">📥</span> Exporter CSV
+      </button>
+      <a routerLink="nouveau" class="btn btn--primary" *canDo="'OPERATION_CREER'">
+        <span class="btn-icon">+</span> Nouvelle opération
+      </a>
+    </div>
+  </app-page-header>
+
+  <!-- Stats strip améliorée -->
+  <div class="stats-strip animate-fade-in">
+    <div class="stat-pill entree">
+      <div class="stat-icon-wrap">📈</div>
+      <div class="stat-body">
+        <span class="stat-label">Total entrées</span>
+        <span class="stat-value">{{ totalEntrees | number:'1.0-0' }} FCFA</span>
+        <span class="stat-trend" *ngIf="evolutionEntrees !== null">
+          {{ evolutionEntrees > 0 ? '↑' : '↓' }} {{ Math.abs(evolutionEntrees) }}%
+        </span>
+      </div>
+    </div>
+    <div class="stat-pill sortie">
+      <div class="stat-icon-wrap">📉</div>
+      <div class="stat-body">
+        <span class="stat-label">Total sorties</span>
+        <span class="stat-value">{{ totalSorties | number:'1.0-0' }} FCFA</span>
+        <span class="stat-trend" *ngIf="evolutionSorties !== null">
+          {{ evolutionSorties > 0 ? '↑' : '↓' }} {{ Math.abs(evolutionSorties) }}%
+        </span>
+      </div>
+    </div>
+    <div class="stat-pill solde">
+      <div class="stat-icon-wrap">💰</div>
+      <div class="stat-body">
+        <span class="stat-label">Solde net</span>
+        <span class="stat-value" [class.positive]="soldeNet > 0" [class.negative]="soldeNet < 0">
+          {{ soldeNet | number:'1.0-0' }} FCFA
+        </span>
+      </div>
+    </div>
+    <div class="stat-pill attente" *ngIf="nbEnAttente > 0">
+      <div class="stat-icon-wrap">⏳</div>
+      <div class="stat-body">
+        <span class="stat-label">En attente</span>
+        <span class="stat-value">{{ nbEnAttente }}</span>
+        <span class="stat-unit">opération(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres améliorés -->
+  <div class="filter-panel animate-slide-in">
+    <div class="filter-row">
+      <div class="filter-group">
+        <div class="filter-input">
+          <span class="filter-icon">🔍</span>
+          <input type="text" [(ngModel)]="filtreSearch" (ngModelChange)="applyFiltres()"
+                 placeholder="Rechercher par libellé, responsable..." class="filter-search" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <select class="filter-select" [(ngModel)]="filtreType" (ngModelChange)="applyFiltres()">
+          <option value="tous">📋 Tous types</option>
+          <option value="entree">📈 Entrées</option>
+          <option value="sortie">📉 Sorties</option>
+          <option value="transfert">🔄 Transferts</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <select class="filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="applyFiltres()">
+          <option value="tous">🎯 Tous statuts</option>
+          <option value="validee">✓ Validées</option>
+          <option value="en_attente">⏳ En attente</option>
+          <option value="rejetee">✗ Rejetées</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <select class="filter-select" [(ngModel)]="filtreCaisseId" (ngModelChange)="applyFiltres()">
+          <option value="toutes">🏦 Toutes les caisses</option>
+          <option *ngFor="let c of caisses" [value]="c.id">{{ c.nom }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-group date-range">
+        <div class="date-input">
+          <span class="date-icon">📅</span>
+          <input type="date" [(ngModel)]="filtreDateDebut" (ngModelChange)="applyFiltres()"
+                 placeholder="Date début" />
+        </div>
+        <span class="date-sep">—</span>
+        <div class="date-input">
+          <span class="date-icon">📅</span>
+          <input type="date" [(ngModel)]="filtreDateFin" (ngModelChange)="applyFiltres()"
+                 placeholder="Date fin" />
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-filter-reset" (click)="resetFiltres()" *ngIf="hasActiveFilters()">
+          <span class="reset-icon">↺</span> Réinitialiser
+        </button>
+        <span class="filter-result">{{ operationsFiltered.length }} résultat(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-center" *ngIf="loading">
+    <app-loading-spinner [size]="48"></app-loading-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="table-container" *ngIf="operationsFiltered.length > 0; else noOps">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="col-date">Date</th>
+            <th class="col-libelle">Libellé</th>
+            <th class="col-caisse">Caisse</th>
+            <th class="col-categorie">Catégorie</th>
+            <th class="col-responsable">Responsable</th>
+            <th class="col-type">Type</th>
+            <th class="col-statut">Statut</th>
+            <th class="col-montant">Montant</th>
+            <th class="col-actions" *ngIf="auth.isTresorier()">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let op of operationsFiltered; let i = index"
+              [class.row-pending]="op.statut === 'en_attente'"
+              [class.row-rejected]="op.statut === 'rejetee'"
+              class="animate-row">
+            <td class="col-date">
+              <div class="date-cell">
+                <span class="date-day">{{ toDate(op.date) | date:'dd' }}</span>
+                <span class="date-month">{{ toDate(op.date) | date:'MMM' }}</span>
+              </div>
+            </td>
+            <td class="col-libelle">
+              <div class="libelle-cell">
+                <span class="libelle-main">{{ op.libelle }}</span>
+                <span class="libelle-notes" *ngIf="op.notes">{{ op.notes }}</span>
+              </div>
+            </td>
+            <td class="col-caisse">
+              <span class="caisse-badge" [style.background]="getCaisseColor(op.caisseId)">
+                {{ op.caisseNom || '—' }}
+              </span>
+            </td>
+            <td class="col-categorie">
+              <span class="categorie-badge" *ngIf="op.categorieNom">{{ op.categorieNom }}</span>
+              <span class="categorie-empty" *ngIf="!op.categorieNom">—</span>
+            </td>
+            <td class="col-responsable">
+              <span class="responsable-cell">
+                <span class="responsable-icon">👤</span>
+                {{ op.responsableNom || '—' }}
+              </span>
+            </td>
+            <td class="col-type">
+              <span class="type-badge" [class]="op.type">
+                {{ op.type === 'entree' ? '📈 Entrée' : op.type === 'sortie' ? '📉 Sortie' : '🔄 Transfert' }}
+              </span>
+            </td>
+            <td class="col-statut">
+              <span class="status-badge" [class]="op.statut">
+                <span class="status-icon">
+                  {{ op.statut === 'validee' ? '✓' : op.statut === 'en_attente' ? '⏳' : '✗' }}
+                </span>
+                {{ op.statut === 'validee' ? 'Validée' : op.statut === 'en_attente' ? 'Attente' : 'Rejetée' }}
+              </span>
+            </td>
+            <td class="col-montant">
+              <span class="montant-cell" [class]="op.type">
+                {{ op.type === 'entree' ? '+' : '-' }}{{ op.montant | number:'1.0-0' }}
+                <span class="currency">FCFA</span>
+              </span>
+            </td>
+            <td class="col-actions" *ngIf="auth.isTresorier()">
+              <div class="action-buttons" *ngIf="op.statut === 'en_attente'">
+                <button class="action-btn validate" (click)="onValider(op)" title="Valider">
+                  <span class="btn-icon">✓</span>
+                </button>
+                <button class="action-btn reject" (click)="onRejeter(op)" title="Rejeter">
+                  <span class="btn-icon">✗</span>
+                </button>
+                <a [routerLink]="[op.id, 'modifier']" class="action-btn edit" title="Modifier">
+                  <span class="btn-icon">✏️</span>
+                </a>
+              </div>
+              <a [routerLink]="[op.id, 'modifier']" class="action-btn edit" title="Modifier" *ngIf="op.statut !== 'en_attente'">
+                <span class="btn-icon">👁️</span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #noOps>
+      <div class="empty-state card animate-fade-in">
+        <div class="empty-icon-wrapper">
+          <div class="empty-icon">📭</div>
+        </div>
+        <h3>Aucune opération trouvée</h3>
+        <p>Aucune opération ne correspond à vos critères de recherche.</p>
+        <div class="empty-actions">
+          <button class="btn btn--outline" (click)="resetFiltres()" *ngIf="hasActiveFilters()">
+            <span class="btn-icon">↺</span> Réinitialiser les filtres
+          </button>
+          <a routerLink="nouveau" class="btn btn--primary" *canDo="'OPERATION_CREER'">
+            <span class="btn-icon">+</span> Nouvelle opération
+          </a>
+        </div>
+      </div>
+    </ng-template>
+  </ng-container>
+
+</div>

@@ -1,0 +1,330 @@
+// ─── Page Auth ────────────────────────────────────────────────
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Panneau gauche — illustration
+.auth-illustration {
+  background: var(--color-navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 900px) { display: none; }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(244,166,35,0.2) 0%, transparent 70%);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,168,107,0.15) 0%, transparent 70%);
+  }
+}
+
+.auth-illo-logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-illo-mark {
+  width: 52px; height: 52px;
+  background: var(--color-gold);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: var(--shadow-gold);
+}
+
+.auth-illo-name {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
+  span { color: var(--color-gold); }
+}
+
+.auth-illo-features {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 320px;
+}
+
+.illo-feature {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(8px);
+  animation: slideInLeft 0.4s ease both;
+
+  .feat-icon {
+    font-size: 1.25rem;
+    width: 40px; height: 40px;
+    background: rgba(244,166,35,0.15);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .feat-text {
+    .feat-title {
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.1rem;
+    }
+    .feat-desc {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+    }
+  }
+}
+
+// Panneau droit — formulaire
+.auth-form-panel {
+  background: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-form-inner {
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.4s ease;
+}
+
+.auth-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+
+  .auth-mobile-logo {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: 900px) { display: flex; }
+
+    .mobile-mark {
+      width: 44px; height: 44px;
+      background: var(--color-navy);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .mobile-name {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--color-navy);
+      span { color: var(--color-gold); }
+    }
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--color-navy);
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.input-with-icon {
+  position: relative;
+
+  .input-icon {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    color: var(--color-gray-400);
+    pointer-events: none;
+  }
+
+  .form-control { padding-left: 2.5rem; }
+
+  .input-action {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--color-gray-400);
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    &:hover { color: var(--color-navy); background: var(--color-gray-50); }
+  }
+}
+
+.forgot-link {
+  text-align: right;
+  margin-top: -0.75rem;
+  margin-bottom: 1rem;
+
+  button {
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--color-navy-500);
+    font-weight: 500;
+    padding: 0;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+  height: 48px;
+  font-size: 0.95rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--color-gray-400);
+  font-size: 0.8rem;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-gray-100);
+  }
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray-100);
+  font-size: 0.875rem;
+  color: var(--color-gray-600);
+
+  a {
+    color: var(--color-navy);
+    font-weight: 700;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// Steps register
+.steps-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 2rem;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+
+  .step-dot {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--color-gray-200);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-gray-400);
+    transition: all 0.3s;
+  }
+
+  .step-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-gray-400);
+    transition: color 0.3s;
+    white-space: nowrap;
+  }
+
+  &.active .step-dot {
+    border-color: var(--color-navy);
+    background: var(--color-navy);
+    color: #fff;
+  }
+  &.active .step-label { color: var(--color-navy); }
+
+  &.done .step-dot {
+    border-color: var(--color-green);
+    background: var(--color-green);
+    color: #fff;
+  }
+  &.done .step-label { color: var(--color-green); }
+}
+
+.step-connector {
+  height: 2px;
+  flex: 1;
+  background: var(--color-gray-100);
+  margin-bottom: 22px;
+  transition: background 0.3s;
+  &.done { background: var(--color-green); }
+}

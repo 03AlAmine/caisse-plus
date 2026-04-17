@@ -1,0 +1,211 @@
+<div class="form-page page-wrapper">
+
+  <div class="form-header animate-fade-in">
+    <div class="header-back">
+      <a routerLink="/caisses" class="back-link">
+        <span class="back-icon">←</span> Retour aux caisses
+      </a>
+    </div>
+    <div class="header-title">
+      <div class="title-icon" [class.edit-mode]="isEdit">
+        <span>{{ isEdit ? '✏️' : '🏦' }}</span>
+      </div>
+      <div class="title-content">
+        <h1>{{ isEdit ? 'Modifier la caisse' : 'Nouvelle caisse' }}</h1>
+        <p>{{ isEdit ? 'Mettez à jour les informations de votre caisse' : 'Créez une nouvelle caisse pour gérer un budget spécifique' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card animate-slide-in">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Nom de la caisse -->
+      <div class="form-group" [class.has-error]="nom.invalid && (nom.dirty || nom.touched)">
+        <label class="form-label required">
+          <span class="label-icon">🏷️</span>
+          Nom de la caisse
+        </label>
+        <input type="text"
+               formControlName="nom"
+               placeholder="Ex: Caisse Transport, Caisse Événement..."
+               [class.is-invalid]="nom.invalid && (nom.dirty || nom.touched)" />
+        <div class="form-hint" *ngIf="nom.pending">
+          <span class="hint-icon">⏳</span> Vérification...
+        </div>
+        <div class="form-error" *ngIf="nom.touched && nom.hasError('required')">
+          <span class="error-icon">⚠️</span> Le nom de la caisse est obligatoire
+        </div>
+        <div class="form-error" *ngIf="nom.touched && nom.hasError('minlength')">
+          <span class="error-icon">⚠️</span> Le nom doit contenir au moins 2 caractères
+        </div>
+        <div class="form-hint success" *ngIf="nom.valid && nom.dirty">
+          <span class="hint-icon">✓</span> Nom valide
+        </div>
+      </div>
+
+      <!-- Type de caisse -->
+      <div class="form-group">
+        <label class="form-label required">
+          <span class="label-icon">📋</span>
+          Type de caisse
+        </label>
+        <div class="type-selector">
+          <div class="type-option"
+               [class.selected]="form.get('type')?.value === 'principale'"
+               (click)="form.get('type')?.setValue('principale')">
+            <div class="type-radio">
+              <div class="radio-inner" [class.selected]="form.get('type')?.value === 'principale'"></div>
+            </div>
+            <div class="type-content">
+              <div class="type-icon">🏛️</div>
+              <div class="type-info">
+                <span class="type-label">Principale</span>
+                <span class="type-desc">Caisse centrale de l'organisation</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="type-option"
+               [class.selected]="form.get('type')?.value === 'secondaire'"
+               (click)="form.get('type')?.setValue('secondaire')">
+            <div class="type-radio">
+              <div class="radio-inner" [class.selected]="form.get('type')?.value === 'secondaire'"></div>
+            </div>
+            <div class="type-content">
+              <div class="type-icon">📦</div>
+              <div class="type-info">
+                <span class="type-label">Secondaire</span>
+                <span class="type-desc">Budget pour une activité spécifique</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-hint info" *ngIf="form.get('type')?.value === 'principale'">
+          <span class="hint-icon">💡</span> La caisse principale est unique et centralise les fonds de l'organisation
+        </div>
+        <div class="form-hint info" *ngIf="form.get('type')?.value === 'secondaire'">
+          <span class="hint-icon">💡</span> Les caisses secondaires permettent de gérer des budgets spécifiques
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">📝</span>
+          Description
+        </label>
+        <textarea formControlName="description"
+                  rows="3"
+                  placeholder="Décrivez l'utilisation de cette caisse..."></textarea>
+        <div class="form-hint" *ngIf="form.get('description')?.value?.length > 0">
+          <span class="hint-icon">📏</span> {{ form.get('description')?.value?.length }} caractères
+        </div>
+      </div>
+
+      <!-- Responsable -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">👤</span>
+          Responsable
+        </label>
+        <div class="input-with-icon">
+          <span class="input-icon">👤</span>
+          <input type="text"
+                 formControlName="responsableNom"
+                 placeholder="Nom du responsable (optionnel)" />
+        </div>
+        <div class="form-hint">
+          <span class="hint-icon">ℹ️</span> Personne responsable de cette caisse
+        </div>
+      </div>
+
+      <!-- Couleur -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">🎨</span>
+          Couleur
+        </label>
+        <div class="couleur-picker">
+          <button type="button"
+                  *ngFor="let c of COULEURS"
+                  class="couleur-btn"
+                  [style.background]="c"
+                  [class.selected]="form.get('couleur')?.value === c"
+                  (click)="form.get('couleur')?.setValue(c)"
+                  [attr.title]="c">
+            <span class="check-icon" *ngIf="form.get('couleur')?.value === c">✓</span>
+          </button>
+        </div>
+        <div class="form-hint">
+          <span class="hint-icon">🎨</span> Choisissez une couleur pour identifier facilement votre caisse
+        </div>
+      </div>
+
+      <!-- Aperçu -->
+      <div class="form-preview" *ngIf="form.valid && (form.get('nom')?.value || form.get('couleur')?.value)">
+        <div class="preview-title">Aperçu de la caisse</div>
+        <div class="preview-card" [style.border-left-color]="form.get('couleur')?.value">
+          <div class="preview-header">
+            <div class="preview-icon" [style.background]="form.get('couleur')?.value">
+              {{ form.get('type')?.value === 'principale' ? '🏛️' : '📦' }}
+            </div>
+            <div class="preview-info">
+              <div class="preview-name">{{ form.get('nom')?.value || 'Nom de la caisse' }}</div>
+              <div class="preview-type">
+                <span class="badge" [class]="form.get('type')?.value">
+                  {{ form.get('type')?.value === 'principale' ? 'Principale' : 'Secondaire' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="preview-desc" *ngIf="form.get('description')?.value">
+            {{ form.get('description')?.value }}
+          </div>
+          <div class="preview-responsible" *ngIf="form.get('responsableNom')?.value">
+            👤 {{ form.get('responsableNom')?.value }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a routerLink="/caisses" class="btn btn--outline btn--lg">
+          <span class="btn-icon">✕</span> Annuler
+        </a>
+        <button type="submit"
+                class="btn btn--primary btn--lg"
+                [disabled]="loading || form.invalid">
+          <span *ngIf="!loading">
+            <span class="btn-icon">{{ isEdit ? '💾' : '✨' }}</span>
+            {{ isEdit ? 'Enregistrer les modifications' : 'Créer la caisse' }}
+          </span>
+          <span *ngIf="loading" class="btn-spinner"></span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Modal de confirmation pour modification -->
+  <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+    <div class="modal modal--small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-icon warning">
+          <span class="icon">⚠️</span>
+        </div>
+        <h2>Confirmation</h2>
+        <button class="modal-close" (click)="closeConfirmModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Êtes-vous sûr de vouloir modifier cette caisse ?</p>
+        <p class="modal-hint">Les modifications seront appliquées immédiatement.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn--outline" (click)="closeConfirmModal()">Annuler</button>
+        <button class="btn btn--primary" (click)="confirmSubmit()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+</div>
