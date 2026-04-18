@@ -68,7 +68,7 @@
           </span>
         </div>
 
-        <div class="error-banner" *ngIf="errorMessage">
+        <div class="error-banner" *ngIf="errorMessage && step === 1">
           <span>⚠️</span> {{ errorMessage }}
         </div>
 
@@ -81,27 +81,82 @@
       <!-- Étape 2 : Organisation -->
       <ng-container *ngIf="step === 2">
 
-        <div class="org-info-box">
-          <p>🏢 Vous allez créer une <strong>organisation</strong>. Vous en serez l'administrateur et pourrez inviter d'autres membres ensuite.</p>
+        <!-- Type d'inscription -->
+        <div class="form-group">
+          <label>Type d'inscription</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" formControlName="typeInscription" value="nouvelle">
+              <span class="radio-custom"></span>
+              <span class="radio-text">
+                <strong>Créer une nouvelle organisation</strong>
+                <small>Vous serez administrateur et pourrez inviter d'autres membres</small>
+              </span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" formControlName="typeInscription" value="existante">
+              <span class="radio-custom"></span>
+              <span class="radio-text">
+                <strong>Rejoindre une organisation existante</strong>
+                <small>Vous avez reçu un ID d'organisation ou un code d'invitation</small>
+              </span>
+            </label>
+          </div>
         </div>
 
-        <div class="form-group" [class.has-error]="organisationNom.invalid && organisationNom.touched">
-          <label for="orgNom">Nom de l'organisation</label>
-          <input id="orgNom" type="text" formControlName="organisationNom"
-                 placeholder="Association XYZ, PME Diallo..." />
-          <span class="error-msg" *ngIf="organisationNom.touched && organisationNom.hasError('required')">
-            Le nom de l'organisation est obligatoire.
-          </span>
-        </div>
+        <!-- Formulaire pour nouvelle organisation -->
+        <ng-container *ngIf="typeInscription.value === 'nouvelle'">
+          <div class="org-info-box">
+            <p>🏢 Vous allez créer une <strong>organisation</strong>. Vous en serez l'administrateur et pourrez inviter d'autres membres ensuite.</p>
+          </div>
 
-        <div class="error-banner" *ngIf="errorMessage">
+          <div class="form-group" [class.has-error]="organisationNom.invalid && organisationNom.touched">
+            <label for="orgNom">Nom de l'organisation</label>
+            <input id="orgNom" type="text" formControlName="organisationNom"
+                   placeholder="Association XYZ, PME Diallo..." />
+            <span class="error-msg" *ngIf="organisationNom.touched && organisationNom.hasError('required')">
+              Le nom de l'organisation est obligatoire.
+            </span>
+            <span class="error-msg" *ngIf="organisationNom.touched && organisationNom.hasError('minlength')">
+              Minimum 3 caractères.
+            </span>
+          </div>
+        </ng-container>
+
+        <!-- Formulaire pour rejoindre une organisation existante -->
+        <ng-container *ngIf="typeInscription.value === 'existante'">
+          <div class="org-info-box info-warning">
+            <p>🔑 Vous allez rejoindre une <strong>organisation existante</strong>. Demandez l'ID de l'organisation à votre administrateur.</p>
+          </div>
+
+          <div class="form-group" [class.has-error]="organisationId.invalid && organisationId.touched">
+            <label for="orgId">ID de l'organisation</label>
+            <input id="orgId" type="text" formControlName="organisationId"
+                   placeholder="ex: ABC123XYZ..." />
+            <span class="error-msg" *ngIf="organisationId.touched && organisationId.hasError('required')">
+              L'ID de l'organisation est obligatoire.
+            </span>
+            <small class="help-text">L'ID est disponible dans les paramètres de l'organisation</small>
+          </div>
+
+          <div class="form-group">
+            <label for="invitationCode">Code d'invitation (optionnel)</label>
+            <input id="invitationCode" type="text" formControlName="invitationCode"
+                   placeholder="Code supplémentaire si requis" />
+            <small class="help-text">Certaines organisations peuvent demander un code d'invitation</small>
+          </div>
+        </ng-container>
+
+        <div class="error-banner" *ngIf="errorMessage && step === 2">
           <span>⚠️</span> {{ errorMessage }}
         </div>
 
         <div class="step2-actions">
-          <button type="button" class="btn-secondary" (click)="step = 1">← Retour</button>
+          <button type="button" class="btn-secondary" (click)="previousStep()">← Retour</button>
           <button type="submit" class="btn-primary" [disabled]="loading || form.invalid">
-            <span *ngIf="!loading">Créer mon compte</span>
+            <span *ngIf="!loading">
+              {{ typeInscription.value === 'nouvelle' ? 'Créer mon compte' : 'Rejoindre l\'organisation' }}
+            </span>
             <span *ngIf="loading" class="spinner"></span>
           </button>
         </div>

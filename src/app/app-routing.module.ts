@@ -8,7 +8,7 @@ const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () =>
-      import('./features/auth/auth.module').then(m => m.AuthModule),
+      import('./modules/auth.module').then((m) => m.AuthModule),
   },
   {
     path: '',
@@ -18,39 +18,49 @@ const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () =>
-          import('./features/dashboard/dashboard.module').then(m => m.DashboardModule),
+          import('./modules/dashboard.module').then((m) => m.DashboardModule),
       },
       {
         path: 'caisses',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'tresorier', 'auditeur', 'utilisateur'] },
         loadChildren: () =>
-          import('./features/caisses/caisses.module').then(m => m.CaissesModule),
+          import('./modules/caisses.module').then((m) => m.CaissesModule),
       },
       {
         path: 'operations',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'tresorier', 'auditeur', 'utilisateur'] },
         loadChildren: () =>
-          import('./features/operations/operations.module').then(m => m.OperationsModule),
+          import('./modules/operations.module').then((m) => m.OperationsModule),
       },
       {
         path: 'budgets',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'tresorier', 'auditeur', 'utilisateur'] },
         loadChildren: () =>
-          import('./features/budgets/budgets.module').then(m => m.BudgetsModule),
+          import('./modules/budgets.module').then((m) => m.BudgetsModule),
       },
       {
         path: 'rapports',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'tresorier', 'auditeur'] }, // utilisateur exclu
         loadChildren: () =>
-          import('./features/rapports/rapports.module').then(m => m.RapportsModule),
+          import('./modules/rapports.module').then((m) => m.RapportsModule),
       },
       {
         path: 'parametres',
         canActivate: [RoleGuard],
         data: { roles: ['admin'] },
         loadChildren: () =>
-          import('./features/parametres/parametres.module').then(m => m.ParametresModule),
+          import('./modules/parametres.module').then((m) => m.ParametresModule),
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '404', loadChildren: () => import('./modules/not-found.module').then(m => m.NotFoundModule) },
+      { path: '**', redirectTo: '404' },
     ],
   },
-  { path: '**', redirectTo: 'dashboard' },
+  { path: '**', redirectTo: '/404' },
 ];
 
 @NgModule({

@@ -1,17 +1,9 @@
 import { Component, Output, EventEmitter, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, filter, take } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { NotificationService, Notification } from '../../services/notification.service';
 import { ToastrService } from 'ngx-toastr';
-
-// Interface pour les notifications (à créer si nécessaire)
-interface Notification {
-  id?: string;
-  message: string;
-  type: 'info' | 'warning' | 'success';
-  read: boolean;
-  createdAt: Date;
-}
 
 @Component({
   selector: 'app-topbar',
@@ -23,6 +15,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
   @Input() isSidebarOpen = true;
 
   auth = inject(AuthService);
+  private notifService = inject(NotificationService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
 
@@ -30,24 +23,34 @@ export class TopbarComponent implements OnInit, OnDestroy {
   showUserMenu = false;
   showNotifications = false;
   notifications: Notification[] = [];
-  hasNotifications = false;
-  notificationsCount = 0;
   private intervalId: any;
+  private notifSub?: Subscription;
+
+  get hasNotifications(): boolean {
+    return this.notifications.some(n => !n.read);
+  }
+
+  get notificationsCount(): number {
+    return this.notifications.filter(n => !n.read).length;
+  }
 
   ngOnInit(): void {
-    // Mettre à jour l'heure toutes les minutes
     this.intervalId = setInterval(() => {
       this.today = new Date();
     }, 60000);
 
-    // Simuler des notifications (à remplacer par un vrai service)
-    this.loadNotifications();
+    // Charger les vraies notifications Firestore dès que le user est prêt
+    this.auth.currentUser$
+      .pipe(filter(user => user !== null && !!user.organisationId), take(1))
+      .subscribe(() => {
+        this.notifSub = this.notifService.getNotifications()
+          .subscribe(notifs => this.notifications = notifs);
+      });
   }
 
   ngOnDestroy(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
+    if (this.intervalId) clearInterval(this.intervalId);
+    this.notifSub?.unsubscribe();
   }
 
   get greeting(): string {
@@ -60,24 +63,15 @@ export class TopbarComponent implements OnInit, OnDestroy {
   getUserInitial(): string {
     const user = this.auth.currentUser;
     if (!user) return '?';
-    if (user.displayName && user.displayName.length > 0) {
-      return user.displayName.charAt(0).toUpperCase();
-    }
-    if (user.email && user.email.length > 0) {
-      return user.email.charAt(0).toUpperCase();
-    }
+    if (user.displayName?.length > 0) return user.displayName.charAt(0).toUpperCase();
+    if (user.email?.length > 0) return user.email.charAt(0).toUpperCase();
     return 'U';
   }
 
   getUserDisplayName(user: any): string {
     if (!user) return 'Utilisateur';
-    if (user.displayName) {
-      const firstName = user.displayName.split(' ')[0];
-      return firstName;
-    }
-    if (user.email) {
-      return user.email.split('@')[0];
-    }
+    if (user.displayName) return user.displayName;
+    if (user.email) return user.email.split('@')[0];
     return 'Utilisateur';
   }
 
@@ -86,42 +80,47 @@ export class TopbarComponent implements OnInit, OnDestroy {
       admin: 'Administrateur',
       tresorier: 'Trésorier',
       auditeur: 'Auditeur',
-      utilisateur: 'Utilisateur'
+      utilisateur: 'Utilisateur',
     };
     return roles[role || 'utilisateur'];
   }
 
+  getNotifIcon(type: string): string {
+    if (type === 'warning') return '⚠️';
+    if (type === 'success') return '✓';
+    return 'ℹ️';
+  }
+
+  toDate(val: any): Date {
+    if (val instanceof Date) return val;
+    return val?.toDate?.() ?? new Date();
+  }
+
   toggleUserMenu(): void {
     this.showUserMenu = !this.showUserMenu;
-    if (this.showUserMenu) {
-      this.showNotifications = false;
-    }
+    if (this.showUserMenu) this.showNotifications = false;
   }
 
   toggleNotifications(): void {
     this.showNotifications = !this.showNotifications;
-    if (this.showNotifications) {
-      this.showUserMenu = false;
-      this.markAsRead();
+    if (this.showUserMenu) this.showUserMenu = false;
+  }
+
+  async markAllAsRead(): Promise<void> {
+    await this.notifService.markAllAsRead();
+    this.toastr.info('Toutes les notifications ont été marquées comme lues');
+    this.showNotifications = false;
+  }
+
+  async onNotifClick(notif: Notification): Promise<void> {
+    if (!notif.read && notif.id) {
+      await this.notifService.markAsRead(notif.id);
     }
   }
 
-  private loadNotifications(): void {
-    // Simulation - à remplacer par un vrai service
-    this.notifications = [];
-    this.hasNotifications = false;
-    this.notificationsCount = 0;
-  }
-
-  markAsRead(): void {
-    this.hasNotifications = false;
-    this.notificationsCount = 0;
-    this.notifications.forEach(n => n.read = true);
-  }
-
-  markAllAsRead(): void {
-    this.markAsRead();
-    this.toastr.info('Toutes les notifications ont été marquées comme lues');
+  closeMenus(): void {
+    this.showUserMenu = false;
+    this.showNotifications = false;
   }
 
   async onLogout(): Promise<void> {
@@ -131,11 +130,5 @@ export class TopbarComponent implements OnInit, OnDestroy {
       this.toastr.success('Déconnecté avec succès');
       this.router.navigate(['/auth/login']);
     }
-  }
-
-  // Fermer les menus quand on clique ailleurs
-  closeMenus(): void {
-    this.showUserMenu = false;
-    this.showNotifications = false;
   }
 }

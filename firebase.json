@@ -5,7 +5,7 @@
     }
   },
   "hosting": {
-    "public": "dist/caisse-plus",
+    "public": "dist/caisse-plus/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -24,7 +24,6 @@
   "firestore": {
     "database": "(default)",
     "location": "nam5",
-    "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   }
 }

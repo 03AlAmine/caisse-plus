@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { SharedModule } from '../../shared/shared.module';
-import { CaisseListComponent } from './caisse-list/caisse-list.component';
-import { CaisseFormComponent } from './caisse-form/caisse-form.component';
-import { CaisseDetailComponent } from './caisse-detail/caisse-detail.component';
+import { SharedModule } from './shared.module';
+import { CaisseListComponent } from '../features/caisses/caisse-list/caisse-list.component';
+import { CaisseFormComponent } from '../features/caisses/caisse-form/caisse-form.component';
+import { CaisseDetailComponent } from '../features/caisses/caisse-detail/caisse-detail.component';
 
 const routes: Routes = [
   { path: '', component: CaisseListComponent },
@@ -13,7 +13,11 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [CaisseListComponent, CaisseFormComponent, CaisseDetailComponent],
+  declarations: [
+    CaisseListComponent,
+    CaisseFormComponent,
+    CaisseDetailComponent,
+  ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })
 export class CaissesModule {}

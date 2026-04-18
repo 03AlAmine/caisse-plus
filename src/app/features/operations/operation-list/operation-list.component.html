@@ -179,8 +179,8 @@
               </span>
             </td>
             <td class="col-montant">
-              <span class="montant-cell" [class]="op.type">
-                {{ op.type === 'entree' ? '+' : '-' }}{{ op.montant | number:'1.0-0' }}
+              <span class="montant-cell" [class]="op.type === 'transfert' ? (op.sens === 'entree' ? 'entree' : 'sortie') : op.type">
+                {{ (op.type === 'entree' || (op.type === 'transfert' && op.sens === 'entree')) ? '+' : '-' }}{{ op.montant | number:'1.0-0' }}
                 <span class="currency">FCFA</span>
               </span>
             </td>

@@ -1,8 +1,10 @@
-// notification.service.ts
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, query, where, orderBy, addDoc, updateDoc, doc, Timestamp } from '@angular/fire/firestore';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {
+  Firestore, collection, collectionData, query, where, orderBy,
+  addDoc, updateDoc, doc, writeBatch, Timestamp, getDocs,
+} from '@angular/fire/firestore';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 export interface Notification {
@@ -12,7 +14,7 @@ export interface Notification {
   read: boolean;
   userId: string;
   organisationId: string;
-  createdAt: Date;
+  createdAt: any;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,23 +22,25 @@ export class NotificationService {
   private firestore = inject(Firestore);
   private auth = inject(AuthService);
 
-  private notificationsSubject = new BehaviorSubject<Notification[]>([]);
-  notifications$ = this.notificationsSubject.asObservable();
-
   getNotifications(): Observable<Notification[]> {
     const userId = this.auth.currentUser?.uid;
-    if (!userId) return new Observable();
+    if (!userId) return of([]);
 
     const q = query(
       collection(this.firestore, 'notifications'),
       where('userId', '==', userId),
       where('organisationId', '==', this.auth.organisationId),
       orderBy('createdAt', 'desc'),
-      orderBy('read', 'asc')
     );
 
-    return collectionData(q, { idField: 'id' }).pipe(
-      map(data => data as Notification[])
+    return (collectionData(q, { idField: 'id' }) as Observable<Notification[]>).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  getUnreadCount(): Observable<number> {
+    return this.getNotifications().pipe(
+      map(notifs => notifs.filter(n => !n.read).length)
     );
   }
 
@@ -50,23 +54,30 @@ export class NotificationService {
       read: false,
       userId: user.uid,
       organisationId: this.auth.organisationId,
-      createdAt: Timestamp.now()
+      createdAt: Timestamp.now(),
     });
   }
 
   async markAsRead(notificationId: string): Promise<void> {
-    await updateDoc(doc(this.firestore, `notifications/${notificationId}`), {
-      read: true
-    });
+    await updateDoc(doc(this.firestore, `notifications/${notificationId}`), { read: true });
   }
 
   async markAllAsRead(): Promise<void> {
-    const notifications = await this.getNotifications().toPromise();
-    if (!notifications) return;
+    const userId = this.auth.currentUser?.uid;
+    if (!userId) return;
 
-    const promises = notifications.map(n =>
-      updateDoc(doc(this.firestore, `notifications/${n.id}`), { read: true })
+    const q = query(
+      collection(this.firestore, 'notifications'),
+      where('userId', '==', userId),
+      where('read', '==', false),
     );
-    await Promise.all(promises);
+
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+
+    // Utiliser un batch pour toutes les mises à jour en une seule opération
+    const batch = writeBatch(this.firestore);
+    snap.docs.forEach(d => batch.update(d.ref, { read: true }));
+    await batch.commit();
   }
 }

@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
-import { FcfaPipe } from './pipes/fcfa.pipe';
-import { AlertesPipe } from './pipes/alertes.pipe';
-import { HasRoleDirective } from './directives/has-role.directive';
-import { CanDoDirective } from './directives/can-do.directive';
-import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
-import { PageHeaderComponent } from './components/page-header/page-header.component';
+import { FcfaPipe } from '../shared/pipes/fcfa.pipe';
+import { AlertesPipe } from '../shared/pipes/alertes.pipe';
+import { HasRoleDirective } from '../shared/directives/has-role.directive';
+import { CanDoDirective } from '../shared/directives/can-do.directive';
+import { LoadingSpinnerComponent } from '../shared/components/loading-spinner/loading-spinner.component';
+import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
 
 @NgModule({
   declarations: [

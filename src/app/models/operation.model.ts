@@ -1,11 +1,13 @@
 export type OperationType = 'entree' | 'sortie' | 'transfert';
 export type OperationStatut = 'validee' | 'en_attente' | 'rejetee';
+export type OperationSens = 'entree' | 'sortie'; // direction réelle d'un transfert
 
 export interface Operation {
   id?: string;
   libelle: string;
   montant: number;
   type: OperationType;
+  sens?: OperationSens; // 'sortie' sur la caisse source, 'entree' sur la caisse destination
   statut: OperationStatut;
   caisseId: string;
   caisseNom?: string;

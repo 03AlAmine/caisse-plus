@@ -1,12 +1,12 @@
 import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { registerLocaleData } from '@angular/common';
+import { CommonModule, registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 
 import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
-import { LayoutModule } from './layout/layout.module';
+import { LayoutModule } from './modules/layout.module';
 import { AppComponent } from './app.component';
 import { environment } from '../environments/environment';
 
@@ -24,6 +24,7 @@ registerLocaleData(localeFr);
   declarations: [AppComponent],
   imports: [
     BrowserModule,
+    CommonModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     CoreModule,

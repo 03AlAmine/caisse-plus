@@ -1,4 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 import { OperationService } from '../../../services/operation.service';
 import { CaisseService } from '../../../services/caisse.service';
 import { AuthService } from '../../../services/auth.service';
@@ -11,7 +13,7 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './operation-list.component.html',
   styleUrls: ['./operation-list.component.scss'],
 })
-export class OperationListComponent implements OnInit {
+export class OperationListComponent implements OnInit, OnDestroy {
   private opService = inject(OperationService);
   private caisseService = inject(CaisseService);
   auth = inject(AuthService);
@@ -34,18 +36,42 @@ export class OperationListComponent implements OnInit {
   evolutionEntrees: number | null = null;
   evolutionSorties: number | null = null;
 
+  private opsSub?: Subscription;
+  private userSub?: Subscription;
+
   ngOnInit(): void {
-    this.loadData();
-    this.loadCaisses();
+    // Attendre que le profil utilisateur soit chargé avant de lancer les requêtes Firestore
+    this.userSub = this.auth.currentUser$
+      .pipe(
+        filter(user => user !== null && !!user.organisationId),
+        take(1)
+      )
+      .subscribe(() => {
+        this.loadData();
+        this.loadCaisses();
+      });
   }
 
-  private async loadData(): Promise<void> {
+  ngOnDestroy(): void {
+    this.opsSub?.unsubscribe();
+    this.userSub?.unsubscribe();
+  }
+
+  private loadData(): void {
     this.loading = true;
-    this.opService.getAll().subscribe(ops => {
-      this.operationsRaw = ops;
-      this.applyFiltres();
-      this.calculateEvolution();
-      this.loading = false;
+    this.opsSub?.unsubscribe();
+    this.opsSub = this.opService.getAll().subscribe({
+      next: ops => {
+        this.operationsRaw = ops;
+        this.applyFiltres();
+        this.calculateEvolution();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement opérations:', err);
+        this.toastr.error('Impossible de charger les opérations');
+        this.loading = false;
+      }
     });
   }
 
@@ -55,13 +81,17 @@ export class OperationListComponent implements OnInit {
 
   get totalEntrees(): number {
     return this.operationsFiltered
-      .filter(o => o.type === 'entree' && o.statut === 'validee')
+      .filter(o => o.statut === 'validee' &&
+        (o.type === 'entree' ||
+        (o.type === 'transfert' && (o.sens === 'entree'))))
       .reduce((s, o) => s + o.montant, 0);
   }
 
   get totalSorties(): number {
     return this.operationsFiltered
-      .filter(o => o.type === 'sortie' && o.statut === 'validee')
+      .filter(o => o.statut === 'validee' &&
+        (o.type === 'sortie' ||
+        (o.type === 'transfert' && (o.sens === 'sortie'))))
       .reduce((s, o) => s + o.montant, 0);
   }
 
@@ -99,7 +129,6 @@ export class OperationListComponent implements OnInit {
   }
 
   private calculateEvolution(): void {
-    // Calcul de l'évolution par rapport au mois précédent
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -112,15 +141,29 @@ export class OperationListComponent implements OnInit {
 
     const lastMonthEntrees = this.operationsRaw
       .filter(o => o.type === 'entree' && o.statut === 'validee' &&
-            this.toDate(o.date).getMonth() === currentMonth - 1 &&
-            this.toDate(o.date).getFullYear() === currentYear)
+            this.toDate(o.date).getMonth() === (currentMonth === 0 ? 11 : currentMonth - 1) &&
+            this.toDate(o.date).getFullYear() === (currentMonth === 0 ? currentYear - 1 : currentYear))
       .reduce((s, o) => s + o.montant, 0);
 
     if (lastMonthEntrees > 0) {
       this.evolutionEntrees = Math.round((currentEntrees - lastMonthEntrees) / lastMonthEntrees * 100);
     }
 
-    // Calcul similaire pour les sorties...
+    const currentSorties = this.operationsRaw
+      .filter(o => o.type === 'sortie' && o.statut === 'validee' &&
+            this.toDate(o.date).getMonth() === currentMonth &&
+            this.toDate(o.date).getFullYear() === currentYear)
+      .reduce((s, o) => s + o.montant, 0);
+
+    const lastMonthSorties = this.operationsRaw
+      .filter(o => o.type === 'sortie' && o.statut === 'validee' &&
+            this.toDate(o.date).getMonth() === (currentMonth === 0 ? 11 : currentMonth - 1) &&
+            this.toDate(o.date).getFullYear() === (currentMonth === 0 ? currentYear - 1 : currentYear))
+      .reduce((s, o) => s + o.montant, 0);
+
+    if (lastMonthSorties > 0) {
+      this.evolutionSorties = Math.round((currentSorties - lastMonthSorties) / lastMonthSorties * 100);
+    }
   }
 
   hasActiveFilters(): boolean {
@@ -157,7 +200,6 @@ export class OperationListComponent implements OnInit {
     try {
       await this.opService.valider(op);
       this.toastr.success(`✓ "${op.libelle}" a été validée avec succès`);
-      await this.loadData();
     } catch (err: any) {
       this.toastr.error(err.message ?? 'Erreur lors de la validation');
     }
@@ -170,7 +212,6 @@ export class OperationListComponent implements OnInit {
     try {
       await this.opService.rejeter(op.id!);
       this.toastr.warning(`Opération "${op.libelle}" rejetée${reason ? ` : ${reason}` : ''}`);
-      await this.loadData();
     } catch {
       this.toastr.error('Erreur lors du rejet');
     }

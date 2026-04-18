@@ -104,44 +104,51 @@ export class CaisseService {
       const dstRef = doc(this.firestore, `caisses/${caisseDestId}`);
 
       const srcSnap = await tx.get(srcRef);
+      const dstSnap = await tx.get(dstRef);
+
       if ((srcSnap.data()?.['solde'] ?? 0) < montant) {
         throw new Error('Solde insuffisant dans la caisse source.');
       }
 
-      tx.update(srcRef, {
-        solde: increment(-montant),
-        updatedAt: serverTimestamp(),
-      });
-      tx.update(dstRef, {
-        solde: increment(montant),
-        updatedAt: serverTimestamp(),
-      });
+      const sourceNom = srcSnap.data()?.['nom'] ?? 'Caisse source';
+      const destNom   = dstSnap.data()?.['nom'] ?? 'Caisse destination';
+
+      tx.update(srcRef, { solde: increment(-montant), updatedAt: serverTimestamp() });
+      tx.update(dstRef, { solde: increment(montant),  updatedAt: serverTimestamp() });
 
       const now = serverTimestamp();
-      // Opération sortie sur source
+
+      // Opération SORTIE sur la caisse source
       tx.set(doc(opsCol), {
         libelle,
         montant,
         type: 'transfert',
+        sens: 'sortie',
         statut: 'validee',
         caisseId: caisseSourceId,
+        caisseNom: sourceNom,
+        transfertCaisseDestId: caisseDestId,
+        transfertCaisseDestNom: destNom,
         responsableId,
         responsableNom,
-        transfertCaisseDestId: caisseDestId,
         organisationId: this.orgId,
         date: now,
         createdAt: now,
       });
-      // Opération entrée sur destination
+
+      // Opération ENTRÉE sur la caisse destination
       tx.set(doc(opsCol), {
         libelle,
         montant,
         type: 'transfert',
+        sens: 'entree',
         statut: 'validee',
         caisseId: caisseDestId,
+        caisseNom: destNom,
+        transfertCaisseDestId: caisseSourceId,
+        transfertCaisseDestNom: sourceNom,
         responsableId,
         responsableNom,
-        transfertCaisseDestId: caisseSourceId,
         organisationId: this.orgId,
         date: now,
         createdAt: now,

@@ -1,6 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+// caisse-list.component.ts (version corrigée)
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subscription, of } from 'rxjs';
+import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { CaisseService } from '../../../services/caisse.service';
 import { AuthService } from '../../../services/auth.service';
 import { Caisse } from '../../../models/caisse.model';
@@ -11,7 +13,7 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './caisse-list.component.html',
   styleUrls: ['./caisse-list.component.scss'],
 })
-export class CaisseListComponent implements OnInit {
+export class CaisseListComponent implements OnInit, OnDestroy {
   caisseService = inject(CaisseService);
   auth = inject(AuthService);
   private router = inject(Router);
@@ -22,10 +24,42 @@ export class CaisseListComponent implements OnInit {
   showAlimenterModal = false;
   alimenterData = { sourceId: '', destId: '', montant: 0, libelle: '' };
   loadingTransfert = false;
+  isLoading = true;
+  private subscription: Subscription | null = null;
 
   ngOnInit(): void {
-    this.caisses$ = this.caisseService.getAll();
-    this.caisses$.subscribe(c => this.caissesList = c);
+    // Attendre que l'utilisateur soit chargé AVANT de charger les caisses
+    this.subscription = this.auth.currentUser$
+      .pipe(
+        filter(user => user !== null && !!user.organisationId),
+        take(1),
+        switchMap(() => {
+          this.isLoading = false;
+          this.caisses$ = this.caisseService.getAll().pipe(
+            catchError(err => {
+              console.error('Erreur chargement caisses:', err);
+              this.toastr.error('Impossible de charger les caisses');
+              return of([]);
+            })
+          );
+          return this.caisses$;
+        })
+      )
+      .subscribe({
+        next: (caisses) => {
+          this.caissesList = caisses || [];
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Erreur:', err);
+          this.toastr.error('Erreur lors du chargement des données');
+          this.isLoading = false;
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
   get caissePrincipale(): Caisse | undefined {
@@ -48,7 +82,6 @@ export class CaisseListComponent implements OnInit {
     return this.caissesList.find(c => c.id === this.alimenterData.destId);
   }
 
-  // Méthode pour obtenir la valeur max (évite undefined)
   getMaxMontant(): number | null {
     if (this.selectedSource && this.selectedSource.solde) {
       return this.selectedSource.solde;
@@ -56,9 +89,7 @@ export class CaisseListComponent implements OnInit {
     return null;
   }
 
-  validateMontant(): void {
-    // Validation silencieuse, l'erreur s'affiche via le template
-  }
+  validateMontant(): void {}
 
   isTransfertValid(): boolean {
     const { sourceId, destId, montant, libelle } = this.alimenterData;
@@ -80,8 +111,9 @@ export class CaisseListComponent implements OnInit {
     try {
       await this.caisseService.deactivate(caisse.id!);
       this.toastr.success(`La caisse "${caisse.nom}" a été désactivée.`);
+      // L'Observable Firestore se met à jour automatiquement, pas besoin de recharger manuellement
     } catch {
-      this.toastr.error('Impossible de désactiver cette caisse. Vérifiez qu\'elle ne contient pas d\'opérations.');
+      this.toastr.error('Impossible de désactiver cette caisse.');
     }
   }
 
@@ -110,6 +142,7 @@ export class CaisseListComponent implements OnInit {
         'Succès'
       );
       this.closeModal();
+      // L'Observable Firestore se met à jour automatiquement
     } catch (err: any) {
       this.toastr.error(err.message ?? 'Erreur lors du transfert. Vérifiez les soldes.');
     } finally {

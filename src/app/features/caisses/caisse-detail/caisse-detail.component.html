@@ -1,6 +1,5 @@
 <div class="page-wrapper">
   <ng-container *ngIf="caisse$ | async as caisse; else loadingTpl">
-
     <!-- En-tête avec actions -->
     <div class="detail-header animate-fade-in">
       <div class="header-back">
@@ -9,19 +8,32 @@
         </a>
       </div>
       <div class="header-title-section">
-        <div class="caisse-icon" [style.background]="caisse.couleur || 'var(--color-navy)'">
-          <span class="icon">{{ caisse.type === 'principale' ? '🏛️' : '📦' }}</span>
+        <div
+          class="caisse-icon"
+          [style.background]="caisse.couleur || 'var(--color-navy)'"
+        >
+          <span class="icon">{{
+            caisse.type === "principale" ? "🏛️" : "📦"
+          }}</span>
         </div>
         <div class="title-info">
           <h1 class="caisse-name">{{ caisse.nom }}</h1>
-          <p class="caisse-description" *ngIf="caisse.description">{{ caisse.description }}</p>
+          <p class="caisse-description" *ngIf="caisse.description">
+            {{ caisse.description }}
+          </p>
         </div>
       </div>
       <div class="header-actions" *ngIf="auth.isTresorier()">
-        <a [routerLink]="['/caisses', caisseId, 'modifier']" class="btn btn--outline btn--sm">
+        <a
+          [routerLink]="['/caisses', caisseId, 'modifier']"
+          class="btn btn--outline btn--sm"
+        >
           <span class="btn-icon">✏️</span> Modifier
         </a>
-        <button class="btn btn--primary btn--sm" (click)="goNouvelleOperation()">
+        <button
+          class="btn btn--primary btn--sm"
+          (click)="goNouvelleOperation()"
+        >
           <span class="btn-icon">+</span> Nouvelle opération
         </button>
       </div>
@@ -29,12 +41,15 @@
 
     <!-- Cartes statistiques -->
     <div class="stats-grid animate-slide-in">
-      <div class="stat-card solde-card" [style.border-bottom-color]="caisse.couleur || 'var(--color-navy)'">
+      <div
+        class="stat-card solde-card"
+        [style.border-bottom-color]="caisse.couleur || 'var(--color-navy)'"
+      >
         <div class="stat-icon">💰</div>
         <div class="stat-content">
           <span class="stat-label">Solde actuel</span>
           <div class="stat-value" [class.negatif]="caisse.solde < 0">
-            {{ caisse.solde | number:'1.0-0' }}
+            {{ caisse.solde | number: "1.0-0" }}
             <span class="stat-currency">FCFA</span>
           </div>
         </div>
@@ -45,7 +60,7 @@
         <div class="stat-content">
           <span class="stat-label">Total entrées</span>
           <div class="stat-value positive">
-            {{ totalEntrees | number:'1.0-0' }}
+            {{ totalEntrees | number: "1.0-0" }}
             <span class="stat-currency">FCFA</span>
           </div>
         </div>
@@ -56,7 +71,7 @@
         <div class="stat-content">
           <span class="stat-label">Total sorties</span>
           <div class="stat-value negative">
-            {{ totalSorties | number:'1.0-0' }}
+            {{ totalSorties | number: "1.0-0" }}
             <span class="stat-currency">FCFA</span>
           </div>
         </div>
@@ -77,13 +92,17 @@
     <!-- Badges info -->
     <div class="info-badges animate-fade-in">
       <span class="badge" [class]="caisse.type">
-        {{ caisse.type === 'principale' ? '⭐ Caisse principale' : '📦 Caisse secondaire' }}
+        {{
+          caisse.type === "principale"
+            ? "⭐ Caisse principale"
+            : "📦 Caisse secondaire"
+        }}
       </span>
       <span class="badge badge--info" *ngIf="caisse.responsableNom">
         👤 Responsable : {{ caisse.responsableNom }}
       </span>
       <span class="badge badge--date" *ngIf="caisse.createdAt">
-        🕒 Créée le {{ caisse.createdAt | date:'dd/MM/yyyy' }}
+        🕒 Créée le {{ caisse.createdAt | date: "dd/MM/yyyy" }}
       </span>
     </div>
 
@@ -95,7 +114,9 @@
           <h3>Historique des opérations</h3>
         </div>
         <div class="section-stats">
-          <span class="ops-count">{{ (operations$ | async)?.length || 0 }} opération(s)</span>
+          <span class="ops-count"
+            >{{ (operations$ | async)?.length || 0 }} opération(s)</span
+          >
         </div>
       </div>
 
@@ -108,24 +129,32 @@
               Type
             </label>
             <div class="filter-buttons">
-              <button class="filter-chip"
-                      [class.active]="filtreType === 'tous'"
-                      (click)="filtreType = 'tous'">
+              <button
+                class="filter-chip"
+                [class.active]="filtreType === 'tous'"
+                (click)="filtreType = 'tous'"
+              >
                 Tous
               </button>
-              <button class="filter-chip filter-chip--entree"
-                      [class.active]="filtreType === 'entree'"
-                      (click)="filtreType = 'entree'">
+              <button
+                class="filter-chip filter-chip--entree"
+                [class.active]="filtreType === 'entree'"
+                (click)="filtreType = 'entree'"
+              >
                 📈 Entrées
               </button>
-              <button class="filter-chip filter-chip--sortie"
-                      [class.active]="filtreType === 'sortie'"
-                      (click)="filtreType = 'sortie'">
+              <button
+                class="filter-chip filter-chip--sortie"
+                [class.active]="filtreType === 'sortie'"
+                (click)="filtreType = 'sortie'"
+              >
                 📉 Sorties
               </button>
-              <button class="filter-chip filter-chip--transfert"
-                      [class.active]="filtreType === 'transfert'"
-                      (click)="filtreType = 'transfert'">
+              <button
+                class="filter-chip filter-chip--transfert"
+                [class.active]="filtreType === 'transfert'"
+                (click)="filtreType = 'transfert'"
+              >
                 🔄 Transferts
               </button>
             </div>
@@ -137,31 +166,42 @@
               Statut
             </label>
             <div class="filter-buttons">
-              <button class="filter-chip"
-                      [class.active]="filtreStatut === 'tous'"
-                      (click)="filtreStatut = 'tous'">
+              <button
+                class="filter-chip"
+                [class.active]="filtreStatut === 'tous'"
+                (click)="filtreStatut = 'tous'"
+              >
                 Tous
               </button>
-              <button class="filter-chip filter-chip--validee"
-                      [class.active]="filtreStatut === 'validee'"
-                      (click)="filtreStatut = 'validee'">
+              <button
+                class="filter-chip filter-chip--validee"
+                [class.active]="filtreStatut === 'validee'"
+                (click)="filtreStatut = 'validee'"
+              >
                 ✓ Validées
               </button>
-              <button class="filter-chip filter-chip--en_attente"
-                      [class.active]="filtreStatut === 'en_attente'"
-                      (click)="filtreStatut = 'en_attente'">
+              <button
+                class="filter-chip filter-chip--en_attente"
+                [class.active]="filtreStatut === 'en_attente'"
+                (click)="filtreStatut = 'en_attente'"
+              >
                 ⏳ En attente
               </button>
-              <button class="filter-chip filter-chip--rejetee"
-                      [class.active]="filtreStatut === 'rejetee'"
-                      (click)="filtreStatut = 'rejetee'">
+              <button
+                class="filter-chip filter-chip--rejetee"
+                [class.active]="filtreStatut === 'rejetee'"
+                (click)="filtreStatut = 'rejetee'"
+              >
                 ✗ Rejetées
               </button>
             </div>
           </div>
         </div>
 
-        <div class="filter-reset" *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'">
+        <div
+          class="filter-reset"
+          *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'"
+        >
           <button class="btn-reset" (click)="resetFilters()">
             ↺ Réinitialiser
           </button>
@@ -170,7 +210,10 @@
 
       <!-- Liste des opérations -->
       <ng-container *ngIf="operations$ | async as ops; else loadingOpsTpl">
-        <div class="operations-list" *ngIf="filteredOperations(ops).length > 0; else noOps">
+        <div
+          class="operations-list"
+          *ngIf="filteredOperations(ops).length > 0; else noOps"
+        >
           <div class="ops-table">
             <div class="ops-table-header">
               <span class="col-date">Date</span>
@@ -181,15 +224,23 @@
               <span class="col-actions"></span>
             </div>
 
-            <div class="ops-row"
-                 *ngFor="let op of filteredOperations(ops); let i = index"
-                 [class.pending]="op.statut === 'en_attente'">
+            <div
+              class="ops-row"
+              *ngFor="let op of filteredOperations(ops); let i = index"
+              [class.pending]="op.statut === 'en_attente'"
+            >
               <span class="col-date">
-                <span class="date-day">{{ op.date | date:'dd' }}</span>
-                <span class="date-month">{{ op.date | date:'MMM' }}</span>
+                <span class="date-day">{{ op.date | date: "dd" }}</span>
+                <span class="date-month">{{ op.date | date: "MMM" }}</span>
               </span>
               <span class="col-libelle">
                 <span class="libelle-main">{{ op.libelle }}</span>
+                <span class="libelle-meta" *ngIf="op.type === 'transfert' && op.sens === 'sortie' && op.transfertCaisseDestNom">
+                  🔄 vers {{ op.transfertCaisseDestNom }}
+                </span>
+                <span class="libelle-meta" *ngIf="op.type === 'transfert' && op.sens === 'entree' && op.transfertCaisseDestNom">
+                  🔄 depuis {{ op.transfertCaisseDestNom }}
+                </span>
                 <span class="libelle-meta" *ngIf="op.categorieNom">
                   📁 {{ op.categorieNom }}
                 </span>
@@ -198,30 +249,50 @@
                 </span>
               </span>
               <span class="col-type">
-                <span class="type-badge" [class]="op.type">
-                  {{ op.type === 'entree' ? '📈 Entrée' : op.type === 'sortie' ? '📉 Sortie' : '🔄 Transfert' }}
+                <span class="type-badge" [class]="op.type === 'transfert' ? (estEntree(op) ? 'entree' : 'sortie') : op.type">
+                  {{
+                    op.type === "entree"
+                      ? "📈 Entrée"
+                      : op.type === "sortie"
+                        ? "📉 Sortie"
+                        : estEntree(op) ? "🔄 ↓ Reçu" : "🔄 ↑ Envoyé"
+                  }}
                 </span>
               </span>
               <span class="col-statut">
                 <span class="status-badge" [class]="op.statut">
                   <span class="status-icon">
-                    {{ op.statut === 'validee' ? '✓' : op.statut === 'en_attente' ? '⏳' : '✗' }}
+                    {{
+                      op.statut === "validee"
+                        ? "✓"
+                        : op.statut === "en_attente"
+                          ? "⏳"
+                          : "✗"
+                    }}
                   </span>
                   <span class="status-text">
-                    {{ op.statut === 'validee' ? 'Validée' : op.statut === 'en_attente' ? 'En attente' : 'Rejetée' }}
+                    {{
+                      op.statut === "validee"
+                        ? "Validée"
+                        : op.statut === "en_attente"
+                          ? "En attente"
+                          : "Rejetée"
+                    }}
                   </span>
                 </span>
               </span>
               <span class="col-montant text-right">
-                <span class="montant" [class]="op.type">
-                  {{ op.type === 'entree' ? '+' : '-' }}{{ op.montant | number:'1.0-0' }}
+                <span class="montant" [class]="op.type === 'transfert' ? (estEntree(op) ? 'entree' : 'sortie') : op.type">
+                  {{ estEntree(op) ? '+' : '-' }}{{ op.montant | number: "1.0-0" }}
                 </span>
                 <span class="currency">FCFA</span>
               </span>
               <span class="col-actions">
-                <button class="action-icon"
-                        (click)="viewOperationDetails(op)"
-                        title="Voir détails">
+                <button
+                  class="action-icon"
+                  (click)="viewOperationDetails(op)"
+                  title="Voir détails"
+                >
                   👁️
                 </button>
               </span>
@@ -235,11 +306,24 @@
               <div class="empty-icon">📭</div>
             </div>
             <h3>Aucune opération</h3>
-            <p>Aucune opération ne correspond à vos critères de filtrage.</p>
-            <button class="btn btn--outline btn--sm" (click)="resetFilters()" *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'">
+            <p *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'">
+              Aucune opération ne correspond à vos critères de filtrage.
+            </p>
+            <p *ngIf="filtreType === 'tous' && filtreStatut === 'tous'">
+              Cette caisse ne contient encore aucune opération.
+            </p>
+            <button
+              class="btn btn--outline btn--sm"
+              (click)="resetFilters()"
+              *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'"
+            >
               ↺ Réinitialiser les filtres
             </button>
-            <button class="btn btn--primary btn--sm" (click)="goNouvelleOperation()" *ngIf="auth.isTresorier()">
+            <button
+              class="btn btn--primary btn--sm"
+              (click)="goNouvelleOperation()"
+              *ngIf="auth.isTresorier()"
+            >
               + Nouvelle opération
             </button>
           </div>
@@ -253,7 +337,6 @@
         </div>
       </ng-template>
     </div>
-
   </ng-container>
 
   <ng-template #loadingTpl>
@@ -263,11 +346,21 @@
   </ng-template>
 
   <!-- Modal détails opération -->
-  <div class="modal-overlay" *ngIf="selectedOperation" (click)="closeOperationDetails()">
+  <div
+    class="modal-overlay"
+    *ngIf="selectedOperation"
+    (click)="closeOperationDetails()"
+  >
     <div class="modal modal--small" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-header-icon" [class]="selectedOperation.type">
-          <span class="icon">{{ selectedOperation.type === 'entree' ? '📈' : selectedOperation.type === 'sortie' ? '📉' : '🔄' }}</span>
+          <span class="icon">{{
+            selectedOperation.type === "entree"
+              ? "📈"
+              : selectedOperation.type === "sortie"
+                ? "📉"
+                : "🔄"
+          }}</span>
         </div>
         <h2>Détails de l'opération</h2>
         <button class="modal-close" (click)="closeOperationDetails()">✕</button>
@@ -279,19 +372,41 @@
         </div>
         <div class="detail-group">
           <label>Montant</label>
-          <p class="detail-value montant" [class]="selectedOperation.type">
-            {{ selectedOperation.type === 'entree' ? '+' : '-' }}{{ selectedOperation.montant | number:'1.0-0' }} FCFA
+          <p class="detail-value montant" [class]="selectedOperation.type === 'transfert' ? (estEntree(selectedOperation) ? 'entree' : 'sortie') : selectedOperation.type">
+            {{ estEntree(selectedOperation) ? '+' : '-'
+            }}{{ selectedOperation.montant | number: "1.0-0" }} FCFA
           </p>
         </div>
         <div class="detail-group">
           <label>Type</label>
-          <p class="detail-value">{{ selectedOperation.type === 'entree' ? 'Entrée' : selectedOperation.type === 'sortie' ? 'Sortie' : 'Transfert' }}</p>
+          <p class="detail-value">
+            {{
+              selectedOperation.type === "entree"
+                ? "Entrée"
+                : selectedOperation.type === "sortie"
+                  ? "Sortie"
+                  : estEntree(selectedOperation) ? "Transfert entrant" : "Transfert sortant"
+            }}
+          </p>
+        </div>
+        <div class="detail-group" *ngIf="selectedOperation.type === 'transfert' && selectedOperation.transfertCaisseDestNom">
+          <label>{{ selectedOperation.sens === 'sortie' ? 'Caisse destinataire' : 'Caisse émettrice' }}</label>
+          <p class="detail-value">
+            {{ selectedOperation.sens === 'sortie' ? '→' : '←' }}
+            {{ selectedOperation.transfertCaisseDestNom }}
+          </p>
         </div>
         <div class="detail-group">
           <label>Statut</label>
           <p class="detail-value">
             <span class="status-badge" [class]="selectedOperation.statut">
-              {{ selectedOperation.statut === 'validee' ? '✓ Validée' : selectedOperation.statut === 'en_attente' ? '⏳ En attente' : '✗ Rejetée' }}
+              {{
+                selectedOperation.statut === "validee"
+                  ? "✓ Validée"
+                  : selectedOperation.statut === "en_attente"
+                    ? "⏳ En attente"
+                    : "✗ Rejetée"
+              }}
             </span>
           </p>
         </div>
@@ -301,7 +416,9 @@
         </div>
         <div class="detail-group">
           <label>Date</label>
-          <p class="detail-value">{{ selectedOperation.date | date:'dd/MM/yyyy à HH:mm' }}</p>
+          <p class="detail-value">
+            {{ selectedOperation.date | date: "dd/MM/yyyy à HH:mm" }}
+          </p>
         </div>
         <div class="detail-group" *ngIf="selectedOperation.responsableNom">
           <label>Créé par</label>
@@ -313,7 +430,9 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn--outline" (click)="closeOperationDetails()">Fermer</button>
+        <button class="btn btn--outline" (click)="closeOperationDetails()">
+          Fermer
+        </button>
       </div>
     </div>
   </div>

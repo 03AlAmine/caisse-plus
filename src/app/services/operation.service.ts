@@ -1,8 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import {
-  Firestore, collection, collectionData, doc, docData,
-  addDoc, updateDoc, query, where, orderBy, limit,
-  serverTimestamp, increment, runTransaction,
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  docData,
+  addDoc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  serverTimestamp,
+  increment,
+  runTransaction,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
@@ -17,8 +28,12 @@ export class OperationService {
   private caisseService = inject(CaisseService);
   private budgetService = inject(BudgetService);
 
-  private get orgId(): string { return this.auth.organisationId; }
-  private get col() { return collection(this.firestore, 'operations'); }
+  private get orgId(): string {
+    return this.auth.organisationId;
+  }
+  private get col() {
+    return collection(this.firestore, 'operations');
+  }
 
   // Récupérer une opération par ID
   getById(id: string): Observable<Operation> {
@@ -27,15 +42,21 @@ export class OperationService {
     }) as Observable<Operation>;
   }
 
+  // Récupérer les opérations d'une caisse (filtre organisationId obligatoire selon les règles Firestore)
   getByCaisse(caisseId: string): Observable<Operation[]> {
     const q = query(
       this.col,
       where('caisseId', '==', caisseId),
       where('organisationId', '==', this.orgId),
       orderBy('createdAt', 'desc'),
-      limit(50),
+      limit(100),
     );
     return collectionData(q, { idField: 'id' }) as Observable<Operation[]>;
+  }
+
+  // Alias pour compatibilité (même logique que getByCaisse)
+  getAllByCaisse(caisseId: string): Observable<Operation[]> {
+    return this.getByCaisse(caisseId);
   }
 
   getAll(statut?: string): Observable<Operation[]> {
@@ -45,19 +66,40 @@ export class OperationService {
       limit(100),
     ];
     if (statut) conditions.splice(1, 0, where('statut', '==', statut));
-    return collectionData(query(this.col, ...conditions), { idField: 'id' }) as Observable<Operation[]>;
+    return collectionData(query(this.col, ...conditions), {
+      idField: 'id',
+    }) as Observable<Operation[]>;
   }
 
-  async create(data: Omit<Operation, 'id' | 'organisationId' | 'createdAt'>): Promise<string> {
+  async create(
+    data: Omit<Operation, 'id' | 'organisationId' | 'createdAt'>,
+  ): Promise<string> {
     const user = this.auth.currentUser!;
     const needsValidation = data.montant >= 100000 && !this.auth.isTresorier();
     const statut = needsValidation ? 'en_attente' : 'validee';
+
+    // Utiliser displayName du profil Firestore (plus fiable que Firebase Auth)
+    const responsableNom = user.displayName || user.email?.split('@')[0] || 'Utilisateur';
+
+    // Pour un transfert : utiliser alimenter() qui gère les deux caisses atomiquement
+    if (data.type === 'transfert' && data.transfertCaisseDestId) {
+      await this.caisseService.alimenter(
+        data.caisseId,
+        data.transfertCaisseDestId,
+        data.montant,
+        data.libelle,
+        user.uid,
+        responsableNom,
+      );
+      // alimenter() crée ses propres opérations — retourner un ID fictif
+      return 'transfert-ok';
+    }
 
     const ref = await addDoc(this.col, {
       ...data,
       statut,
       responsableId: user.uid,
-      responsableNom: user.displayName,
+      responsableNom,
       organisationId: this.orgId,
       createdAt: serverTimestamp(),
     });
@@ -83,16 +125,36 @@ export class OperationService {
       tx.update(opRef, { statut: 'validee', updatedAt: serverTimestamp() });
 
       const caisseRef = doc(this.firestore, `caisses/${op.caisseId}`);
-      const delta = op.type === 'entree' ? op.montant : -op.montant;
-      tx.update(caisseRef, { solde: increment(delta), updatedAt: serverTimestamp() });
+
+      if (op.type === 'transfert' && op.transfertCaisseDestId) {
+        // Débiter la source ET créditer la destination dans la même transaction
+        tx.update(caisseRef, {
+          solde: increment(-op.montant),
+          updatedAt: serverTimestamp(),
+        });
+        const destRef = doc(this.firestore, `caisses/${op.transfertCaisseDestId}`);
+        tx.update(destRef, {
+          solde: increment(op.montant),
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        const delta = op.type === 'entree' ? op.montant : -op.montant;
+        tx.update(caisseRef, {
+          solde: increment(delta),
+          updatedAt: serverTimestamp(),
+        });
+      }
     });
 
-    await this.budgetService.mettreAJourDepense(
-      op.caisseId,
-      op.categorieId ?? '',
-      op.montant,
-      op.type as 'entree' | 'sortie',
-    );
+    // Pas de mise à jour budget pour les transferts (neutre entre caisses)
+    if (op.type !== 'transfert') {
+      await this.budgetService.mettreAJourDepense(
+        op.caisseId,
+        op.categorieId ?? '',
+        op.montant,
+        op.type as 'entree' | 'sortie',
+      );
+    }
   }
 
   async rejeter(id: string): Promise<void> {

@@ -2,8 +2,11 @@ import { Component, OnInit, inject } from '@angular/core';
 import {
   Firestore, collection, query, where, orderBy, limit, getDocs,
 } from '@angular/fire/firestore';
+import { ActivatedRoute } from '@angular/router';
+import { filter, take } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { BudgetService, BudgetAvecStats } from '../../services/budget.service';
+import { ToastrService } from 'ngx-toastr';
 import { Operation } from '../../models/operation.model';
 import { Caisse } from '../../models/caisse.model';
 
@@ -15,6 +18,8 @@ import { Caisse } from '../../models/caisse.model';
 export class DashboardComponent implements OnInit {
   private firestore = inject(Firestore);
   private budgetService = inject(BudgetService);
+  private route = inject(ActivatedRoute);
+  private toastr = inject(ToastrService);
   auth = inject(AuthService);
 
   loading = true;
@@ -30,7 +35,6 @@ export class DashboardComponent implements OnInit {
 
   Math = Math;
 
-  // Getter sécurisé avec valeur par défaut
   get userName(): string {
     const user = this.auth.currentUser;
     if (!user) return 'Utilisateur';
@@ -78,14 +82,27 @@ export class DashboardComponent implements OnInit {
     ];
   }
 
-  async ngOnInit(): Promise<void> {
-    await Promise.all([
-      this.loadCaisses(),
-      this.loadOperationsMois(),
-      this.loadDernieresOperations(),
-    ]);
-    this.loadBudgetsAlerte();
-    this.loading = false;
+  ngOnInit(): void {
+    // Afficher un message si redirigé pour accès refusé
+    if (this.route.snapshot.queryParamMap.get('accesRefuse') === 'true') {
+      this.toastr.error('Vous n\'avez pas les droits pour accéder à cette page.', 'Accès refusé');
+    }
+
+    // Attendre que le profil utilisateur soit chargé avant les requêtes Firestore
+    this.auth.currentUser$
+      .pipe(
+        filter(user => user !== null && !!user.organisationId),
+        take(1)
+      )
+      .subscribe(async () => {
+        await Promise.all([
+          this.loadCaisses(),
+          this.loadOperationsMois(),
+          this.loadDernieresOperations(),
+        ]);
+        this.loadBudgetsAlerte();
+        this.loading = false;
+      });
   }
 
   private async loadCaisses(): Promise<void> {

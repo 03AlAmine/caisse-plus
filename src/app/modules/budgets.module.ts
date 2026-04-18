@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { SharedModule } from '../../shared/shared.module';
-import { BudgetListComponent } from './budget-list/budget-list.component';
-import { BudgetFormComponent } from './budget-form/budget-form.component';
+import { SharedModule } from './shared.module';
+import { BudgetListComponent } from '../features/budgets/budget-list/budget-list.component';
+import { BudgetFormComponent } from '../features/budgets/budget-form/budget-form.component';
 
 const routes: Routes = [
   { path: '', component: BudgetListComponent },
