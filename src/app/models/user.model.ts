@@ -9,6 +9,10 @@ export interface User {
   photoURL?: string;
   createdAt: Date;
   actif: boolean;
+  // Champs d'invitation
+  invitedBy?: string;      // UID de l'utilisateur qui a invité
+  invitedAt?: Date;        // Date de l'invitation
+  emailVerified?: boolean; // Si l'email a été vérifié
 }
 
 export interface Organisation {
@@ -20,6 +24,10 @@ export interface Organisation {
   email?: string;
   createdAt: Date;
   ownerId: string;
+  membres?: string[];      // UIDs des membres
+  actif?: boolean;
+  invitationCode?: string;
+  invitationCodeExpiresAt?: Date;
 }
 
 // ─── Matrice complète des permissions ───────────────────────────────────────
@@ -50,6 +58,7 @@ export const PERMISSIONS = {
   PARAM_UTILISATEURS:['admin'],
   PARAM_CATEGORIES:  ['admin', 'tresorier'],
   PARAM_ORGANISATION:['admin'],
+  PARAM_PREFERENCES: ['admin'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -64,21 +73,21 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, { label: string; description: s
   admin: {
     label: 'Administrateur',
     description: 'Accès complet. Gère les utilisateurs, valide tout, configure l\'organisation.',
-    couleur: '#0f4c75',
+    couleur: '#0F172A',
   },
   tresorier: {
     label: 'Trésorier',
     description: 'Gère les caisses et opérations. Valide les dépenses. Génère les rapports.',
-    couleur: '#10B981',
+    couleur: '#059669',
   },
   auditeur: {
     label: 'Auditeur',
     description: 'Lecture seule. Consulte les caisses, opérations et rapports sans modifier.',
-    couleur: '#8B5CF6',
+    couleur: '#7C3AED',
   },
   utilisateur: {
     label: 'Utilisateur',
     description: 'Saisit des opérations uniquement. Les montants ≥ 100 000 FCFA passent en attente.',
-    couleur: '#6b7280',
+    couleur: '#6B7280',
   },
 };

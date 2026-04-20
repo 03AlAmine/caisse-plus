@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CategorieService } from '../../services/categorie.service';
-import { AuthService } from '../../services/auth.service';
-import { Categorie, CategorieType } from '../../models/categorie.model';
+import { CategorieService } from '../../../services/categorie.service';
+import { AuthService } from '../../../services/auth.service';
+import { Categorie, CategorieType } from '../../../models/categorie.model';
 import { ToastrService } from 'ngx-toastr';
 import { Observable } from 'rxjs';
 
@@ -135,14 +135,22 @@ export class CategoriesParamComponent implements OnInit {
   }
 
   async onInitDefaut(): Promise<void> {
-    const confirmed = confirm('Initialiser les catégories par défaut ?\n\nCette action ajoutera les catégories standard si elles n\'existent pas déjà.');
+    const confirmed = confirm(
+      'Mettre à jour les catégories par défaut ?\n\n' +
+      'Seules les catégories manquantes seront ajoutées.\n' +
+      'Vos catégories personnalisées ne seront pas modifiées.'
+    );
     if (!confirmed) return;
 
     try {
-      await this.catService.initCategories();
-      this.toastr.success('Catégories par défaut initialisées avec succès');
+      const ajoutees = await this.catService.initCategories();
+      if (ajoutees === 0) {
+        this.toastr.info('Toutes les catégories par défaut sont déjà présentes.');
+      } else {
+        this.toastr.success(`${ajoutees} catégorie(s) ajoutée(s) avec succès.`);
+      }
     } catch (error) {
-      this.toastr.error('Erreur lors de l\'initialisation');
+      this.toastr.error('Erreur lors de la mise à jour des catégories');
     }
   }
 }

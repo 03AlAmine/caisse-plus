@@ -1,130 +1,240 @@
 <header class="topbar">
-  <div class="topbar-left">
+
+  <!-- Gauche : toggle + titre de page -->
+  <div class="topbar__left">
     <button
-      class="menu-btn"
+      class="topbar__menu-btn"
       (click)="toggleSidebar.emit()"
-      [class.active]="!isSidebarOpen"
-      title="Menu"
+      [title]="isSidebarOpen ? 'Réduire' : 'Ouvrir'"
+      aria-label="Basculer le menu"
     >
-      <span class="menu-icon">☰</span>
+      <svg *ngIf="isSidebarOpen" width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M2 4.5h14M2 9h10M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <svg *ngIf="!isSidebarOpen" width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
     </button>
 
-    <div class="breadcrumb" *ngIf="auth.currentUser$ | async as user">
-      <span class="bc-home">🏠</span>
-      <span class="bc-sep">›</span>
-      <span class="bc-current"
-        >{{ greeting }},
-        {{ getUserDisplayName(user) }}
-      </span>
+    <div class="topbar__page-title" *ngIf="auth.currentUser$ | async as user">
+      <span class="topbar__greeting">Bonjour, {{ getUserDisplayName(user) }}</span>
     </div>
   </div>
 
-  <div class="topbar-right">
-    <!-- Date avec animation -->
-    <div class="topbar-date">
-      <span class="date-icon">📅</span>
-      <span class="date-text">{{
-        today | date: "EEE d MMM yyyy" : "" : "fr"
-      }}</span>
-      <span class="date-time">{{ today | date: "HH:mm" }}</span>
+  <!-- Centre : Recherche globale -->
+  <div class="topbar__search" (click)="$event.stopPropagation()">
+    <div class="search-wrap" [class.search-wrap--active]="showSearch">
+      <svg class="search-wrap__icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input
+        type="text"
+        class="search-wrap__input"
+        placeholder="Rechercher..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (focus)="onSearchFocus()"
+        autocomplete="off"
+      />
+      <button class="search-wrap__clear" *ngIf="searchQuery" (click)="closeSearch()" aria-label="Effacer">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
 
-    <!-- Notifications -->
-    <div
-      class="topbar-notif"
-      (click)="toggleNotifications()"
-      [class.has-notif]="hasNotifications"
-    >
-      <span class="notif-icon">🔔</span>
-      <span class="notif-dot" *ngIf="hasNotifications"></span>
-      <span class="notif-count" *ngIf="notificationsCount > 0">{{
-        notificationsCount > 9 ? "9+" : notificationsCount
-      }}</span>
-    </div>
+    <!-- Panneau résultats -->
+    <div class="search-panel" *ngIf="showSearch">
 
-    <!-- User menu -->
-    <div class="user-menu" (click)="toggleUserMenu()">
-      <div class="user-avatar-sm">
-        <span>{{ getUserInitial() }}</span>
+      <div class="search-panel__loading" *ngIf="searchLoading">
+        <span class="spinner" style="width:14px;height:14px;border-width:2px"></span>
+        Recherche...
       </div>
-      <span class="user-name-sm" *ngIf="auth.currentUser$ | async as user">
-        {{ getUserDisplayName(user) }}
-      </span>
-      <span class="dropdown-arrow">▼</span>
-    </div>
 
-    <!-- Dropdown user menu -->
-    <div
-      class="dropdown-menu"
-      *ngIf="showUserMenu"
-      (click)="$event.stopPropagation()"
-    >
-      <ng-container *ngIf="auth.currentUser$ | async as user">
-        <div class="dropdown-header">
-          <div class="dropdown-avatar">
-            {{ getUserInitial() }}
-          </div>
-          <div class="dropdown-info">
-            <span class="dropdown-name"> {{ getUserDisplayName(user) }} </span>
-            <span class="dropdown-role">{{ getRoleLabel(user.role) }}</span>
+      <ng-container *ngIf="!searchLoading && searchResultats">
+
+        <div class="search-panel__empty" *ngIf="!hasResultats">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M19 19L25 25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p>Aucun résultat pour <strong>"{{ searchQuery }}"</strong></p>
+        </div>
+
+        <!-- Opérations -->
+        <div class="search-group" *ngIf="searchResultats.operations.length > 0">
+          <p class="search-group__label">Opérations</p>
+          <div class="search-result"
+               *ngFor="let r of searchResultats.operations"
+               (click)="naviguerVers(r)">
+            <span class="search-result__badge" [class]="r.badgeClass">{{ r.badge }}</span>
+            <div class="search-result__info">
+              <span class="search-result__title">{{ r.titre }}</span>
+              <span class="search-result__sub">{{ r.sous_titre }}</span>
+            </div>
+            <span class="search-result__amount" [class]="r.badgeClass" *ngIf="r.montant">
+              {{ r.montant | number:'1.0-0' }} FCFA
+            </span>
           </div>
         </div>
+
+        <!-- Caisses -->
+        <div class="search-group" *ngIf="searchResultats.caisses.length > 0">
+          <p class="search-group__label">Caisses</p>
+          <div class="search-result"
+               *ngFor="let r of searchResultats.caisses"
+               (click)="naviguerVers(r)">
+            <span class="search-result__badge caisse">{{ r.badge }}</span>
+            <div class="search-result__info">
+              <span class="search-result__title">{{ r.titre }}</span>
+              <span class="search-result__sub">{{ r.sous_titre }}</span>
+            </div>
+            <span class="search-result__amount caisse" *ngIf="r.montant !== undefined">
+              {{ r.montant | number:'1.0-0' }} FCFA
+            </span>
+          </div>
+        </div>
+
+        <!-- Budgets -->
+        <div class="search-group" *ngIf="searchResultats.budgets.length > 0">
+          <p class="search-group__label">Budgets</p>
+          <div class="search-result"
+               *ngFor="let r of searchResultats.budgets"
+               (click)="naviguerVers(r)">
+            <span class="search-result__badge budget">{{ r.badge }}</span>
+            <div class="search-result__info">
+              <span class="search-result__title">{{ r.titre }}</span>
+              <span class="search-result__sub">{{ r.sous_titre }}</span>
+            </div>
+            <span class="search-result__amount budget" *ngIf="r.montant">
+              {{ r.montant | number:'1.0-0' }} FCFA
+            </span>
+          </div>
+        </div>
+
+        <div class="search-panel__footer" *ngIf="hasResultats">
+          {{ searchResultats!.total }} résultat(s)
+        </div>
+
       </ng-container>
-      <div class="dropdown-divider"></div>
-      <a class="dropdown-item" routerLink="/parametres/profil">
-        <span class="item-icon">👤</span>
+    </div>
+  </div>
+
+  <!-- Droite : notifications + user -->
+  <div class="topbar__right">
+
+    <!-- Notifications -->
+    <button
+      class="topbar__icon-btn"
+      (click)="toggleNotifications()"
+      [class.topbar__icon-btn--active]="hasNotifications"
+      aria-label="Notifications"
+    >
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+        <path d="M8.5 1.5a5.5 5.5 0 0 1 5.5 5.5v2.5l1 2H2l1-2V7a5.5 5.5 0 0 1 5.5-5.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M7 14a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="notif-dot" *ngIf="hasNotifications"></span>
+      <span class="notif-count" *ngIf="notificationsCount > 0">
+        {{ notificationsCount > 9 ? '9+' : notificationsCount }}
+      </span>
+    </button>
+
+    <!-- User -->
+    <button class="topbar__user" (click)="toggleUserMenu()" *ngIf="auth.currentUser$ | async as user">
+      <div class="topbar__avatar">{{ getUserInitial() }}</div>
+      <span class="topbar__user-name">{{ getUserDisplayName(user) }}</span>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="topbar__chevron">
+        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <!-- Dropdown user -->
+    <div class="dropdown" *ngIf="showUserMenu" (click)="$event.stopPropagation()">
+      <div class="dropdown__header" *ngIf="auth.currentUser$ | async as user">
+        <div class="dropdown__avatar">{{ getUserInitial() }}</div>
+        <div class="dropdown__info">
+          <span class="dropdown__name">{{ getUserDisplayName(user) }}</span>
+          <span class="dropdown__role">{{ getRoleLabel(user.role) }}</span>
+        </div>
+      </div>
+      <div class="dropdown__divider"></div>
+      <a class="dropdown__item" routerLink="/parametres/profil">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M1.5 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
         Mon profil
       </a>
-      <a class="dropdown-item" routerLink="/parametres">
-        <span class="item-icon">⚙️</span>
+      <a class="dropdown__item" routerLink="/parametres">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.96 2.96l1.06 1.06M10.98 10.98l1.06 1.06M11.04 2.96l-1.06 1.06M4.02 10.98l-1.06 1.06" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
         Paramètres
       </a>
-      <div class="dropdown-divider"></div>
-      <button class="dropdown-item danger" (click)="onLogout()">
-        <span class="item-icon">🚪</span>
+      <div class="dropdown__divider"></div>
+      <button class="dropdown__item dropdown__item--danger" (click)="onLogout()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M5.5 13H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M10 10.5l3-3-3-3M13 7.5H6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         Déconnexion
       </button>
     </div>
 
-    <!-- Notifications panel -->
-    <div
-      class="notifications-panel"
-      *ngIf="showNotifications"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="notif-header">
-        <h3>Notifications</h3>
-        <button class="mark-all" (click)="markAllAsRead()">
-          Tout marquer comme lu
-        </button>
+    <!-- Panneau notifications -->
+    <div class="notif-panel" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+      <div class="notif-panel__header">
+        <h3>
+          Notifications
+          <span class="notif-panel__count" *ngIf="notificationsCount > 0">{{ notificationsCount }}</span>
+        </h3>
+        <div class="notif-panel__actions">
+          <button class="notif-panel__action" (click)="markAllAsRead()" *ngIf="notificationsCount > 0">
+            Tout lire
+          </button>
+          <button class="notif-panel__action notif-panel__action--danger" (click)="deleteAll()" *ngIf="notifications.length > 0">
+            Vider
+          </button>
+        </div>
       </div>
-      <div class="notif-list">
+
+      <div class="notif-panel__list">
         <div
           class="notif-item"
           *ngFor="let notif of notifications"
-          [class.unread]="!notif.read"
+          [class.notif-item--unread]="!notif.read"
+          [class.notif-item--clickable]="!!notif.link"
+          (click)="onNotifClick(notif)"
         >
-          <div class="notif-icon" [class]="notif.type">
-            {{
-              notif.type === "warning"
-                ? "⚠️"
-                : notif.type === "success"
-                  ? "✓"
-                  : "ℹ️"
-            }}
+          <div class="notif-item__bar" [class]="'notif-item__bar--' + notif.type"></div>
+          <div class="notif-item__body">
+            <span class="notif-item__message">{{ notif.message }}</span>
+            <span class="notif-item__detail" *ngIf="notif.detail">{{ notif.detail }}</span>
+            <div class="notif-item__meta">
+              <span class="notif-item__time">{{ toDate(notif.createdAt) | date:'dd/MM HH:mm' }}</span>
+              <span class="notif-item__link" *ngIf="notif.link">Voir</span>
+            </div>
           </div>
-          <div class="notif-content">
-            <span class="notif-message">{{ notif.message }}</span>
-            <span class="notif-time">{{
-              notif.createdAt | date: "HH:mm"
-            }}</span>
-          </div>
+          <button class="notif-item__delete" (click)="deleteNotif($event, notif)" aria-label="Supprimer">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <path d="M1.5 1.5l8 8M9.5 1.5l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
         </div>
-        <div class="notif-empty" *ngIf="notifications.length === 0">
-          <span class="empty-icon">🔔</span>
-          <span>Aucune notification</span>
+
+        <div class="notif-panel__empty" *ngIf="notifications.length === 0">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M16 3a9 9 0 0 1 9 9v4l2 4H5l2-4V12a9 9 0 0 1 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M13 25a3 3 0 0 0 6 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p>Aucune notification</p>
+          <span>Vous êtes à jour</span>
         </div>
       </div>
     </div>
+
   </div>
 </header>

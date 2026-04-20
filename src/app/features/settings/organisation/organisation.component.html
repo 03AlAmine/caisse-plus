@@ -1,0 +1,111 @@
+<div class="param-section card">
+  <div class="param-section__header">
+    <h2 class="param-section__title">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="5" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M6 5V3M12 5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Organisation
+    </h2>
+    <div class="param-section__actions" *ngIf="!isEditing && auth.isAdmin()">
+      <button class="btn btn--secondary btn--sm" (click)="enableEditing()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 10L10 2L12 4L4 12L1 13L2 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Modifier
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-center" *ngIf="loading">
+    <span class="spinner"></span>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="org-content">
+      <!-- Logo / Avatar -->
+      <div class="org-header">
+        <div class="org-header__logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="10" width="24" height="16" rx="3" stroke="white" stroke-width="2"/>
+            <path d="M10 10V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" stroke="white" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="org-header__info">
+          <h3>{{ organisation?.nom || 'Mon organisation' }}</h3>
+          <span class="org-header__id">{{ auth.organisationId.slice(0, 8) }}...</span>
+        </div>
+      </div>
+
+      <!-- Mode affichage -->
+      <div class="org-fields" *ngIf="!isEditing">
+        <div class="org-field">
+          <span class="org-field__label">Description</span>
+          <p class="org-field__value">{{ organisation?.description || '—' }}</p>
+        </div>
+
+        <div class="org-grid">
+          <div class="org-field">
+            <span class="org-field__label">Adresse</span>
+            <p class="org-field__value">{{ organisation?.adresse || '—' }}</p>
+          </div>
+          <div class="org-field">
+            <span class="org-field__label">Téléphone</span>
+            <p class="org-field__value">{{ organisation?.telephone || '—' }}</p>
+          </div>
+          <div class="org-field">
+            <span class="org-field__label">Email</span>
+            <p class="org-field__value">{{ organisation?.email || '—' }}</p>
+          </div>
+          <div class="org-field">
+            <span class="org-field__label">Créée le</span>
+            <p class="org-field__value">{{ organisation?.createdAt | date:'dd/MM/yyyy' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode édition -->
+      <form [formGroup]="form" (ngSubmit)="onSave()" *ngIf="isEditing">
+        <div class="form-group">
+          <label class="form-label">
+            Nom de l'organisation
+            <span class="form-label__required">*</span>
+          </label>
+          <input type="text" class="form-control" formControlName="nom" placeholder="Association XYZ, PME Diallo..." />
+          <div class="form-error" *ngIf="form.get('nom')?.touched && form.get('nom')?.hasError('required')">
+            Le nom est obligatoire
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" formControlName="description" rows="3" placeholder="Description de votre organisation..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Adresse</label>
+            <input type="text" class="form-control" formControlName="adresse" placeholder="Dakar, Sénégal" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input type="tel" class="form-control" formControlName="telephone" placeholder="+221 77 000 00 00" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email de contact</label>
+          <input type="email" class="form-control" formControlName="email" placeholder="contact@organisation.sn" />
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn--secondary" (click)="cancelEditing()">Annuler</button>
+          <button type="submit" class="btn btn--primary" [disabled]="saving || form.invalid">
+            <span *ngIf="!saving">Enregistrer</span>
+            <span *ngIf="saving" class="btn-spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+</div>

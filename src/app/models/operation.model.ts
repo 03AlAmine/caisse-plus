@@ -4,6 +4,7 @@ export type OperationSens = 'entree' | 'sortie'; // direction réelle d'un trans
 
 export interface Operation {
   id?: string;
+  numeroPiece?: string; // ex: "CA-18976" pour caisse, "CP-0559" pour grands comptes
   libelle: string;
   montant: number;
   type: OperationType;

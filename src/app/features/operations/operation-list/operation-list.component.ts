@@ -33,6 +33,9 @@ export class OperationListComponent implements OnInit, OnDestroy {
   filtreDateDebut = '';
   filtreDateFin = '';
 
+  // Modal de détail
+  selectedOperation: Operation | null = null;
+
   evolutionEntrees: number | null = null;
   evolutionSorties: number | null = null;
 
@@ -110,7 +113,8 @@ export class OperationListComponent implements OnInit, OnDestroy {
       const caisseOk = this.filtreCaisseId === 'toutes' || op.caisseId === this.filtreCaisseId;
       const searchOk = !this.filtreSearch ||
         op.libelle?.toLowerCase().includes(this.filtreSearch.toLowerCase()) ||
-        (op.responsableNom ?? '').toLowerCase().includes(this.filtreSearch.toLowerCase());
+        (op.responsableNom ?? '').toLowerCase().includes(this.filtreSearch.toLowerCase()) ||
+        (op.numeroPiece ?? '').toLowerCase().includes(this.filtreSearch.toLowerCase());
       const dateOk = this.checkDate(op);
       return statutOk && typeOk && caisseOk && searchOk && dateOk;
     });
@@ -215,6 +219,25 @@ export class OperationListComponent implements OnInit, OnDestroy {
     } catch {
       this.toastr.error('Erreur lors du rejet');
     }
+  }
+
+  // ─── Modal détail ────────────────────────────────────────────────────────────
+  openDetail(op: Operation): void {
+    this.selectedOperation = {
+      ...op,
+      date:      this.toDate(op.date),
+      createdAt: this.toDate(op.createdAt),
+    };
+  }
+
+  closeDetail(): void {
+    this.selectedOperation = null;
+  }
+
+  estEntree(op: Operation): boolean {
+    if (op.type === 'entree') return true;
+    if (op.type === 'transfert') return op.sens === 'entree';
+    return false;
   }
 
   exportToCSV(): void {

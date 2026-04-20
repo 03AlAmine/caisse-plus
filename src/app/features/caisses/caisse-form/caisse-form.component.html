@@ -1,208 +1,250 @@
-<div class="form-page page-wrapper">
+<div class="page-wrapper">
 
-  <div class="form-header animate-fade-in">
-    <div class="header-back">
-      <a routerLink="/caisses" class="back-link">
-        <span class="back-icon">←</span> Retour aux caisses
-      </a>
-    </div>
-    <div class="header-title">
-      <div class="title-icon" [class.edit-mode]="isEdit">
-        <span>{{ isEdit ? '✏️' : '🏦' }}</span>
+  <!-- En-tête -->
+  <header class="form-header animate-fade-in">
+    <a routerLink="/caisses" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Retour aux caisses
+    </a>
+
+    <div class="form-header__title">
+      <div class="form-header__icon" [class.form-header__icon--edit]="isEdit">
+        <svg *ngIf="!isEdit" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="8" width="18" height="13" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="12" cy="14.5" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+        <svg *ngIf="isEdit" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M4 20L20 4L20 20L4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M8 16L16 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
       </div>
-      <div class="title-content">
+      <div class="form-header__text">
         <h1>{{ isEdit ? 'Modifier la caisse' : 'Nouvelle caisse' }}</h1>
         <p>{{ isEdit ? 'Mettez à jour les informations de votre caisse' : 'Créez une nouvelle caisse pour gérer un budget spécifique' }}</p>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="form-card animate-slide-in">
+  <!-- Formulaire -->
+  <div class="card form-card animate-slide-in">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-      <!-- Nom de la caisse -->
-      <div class="form-group" [class.has-error]="nom.invalid && (nom.dirty || nom.touched)">
-        <label class="form-label required">
-          <span class="label-icon">🏷️</span>
+      <!-- Nom -->
+      <div class="form-group" [class.form-group--error]="nom.invalid && (nom.dirty || nom.touched)">
+        <label class="form-label">
           Nom de la caisse
+          <span class="form-label__required">*</span>
         </label>
-        <input type="text"
-               formControlName="nom"
-               placeholder="Ex: Caisse Transport, Caisse Événement..."
-               [class.is-invalid]="nom.invalid && (nom.dirty || nom.touched)" />
-        <div class="form-hint" *ngIf="nom.pending">
-          <span class="hint-icon">⏳</span> Vérification...
-        </div>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="nom"
+          placeholder="Ex: Caisse Transport, Caisse Événement..."
+          [class.is-invalid]="nom.invalid && (nom.dirty || nom.touched)"
+        />
         <div class="form-error" *ngIf="nom.touched && nom.hasError('required')">
-          <span class="error-icon">⚠️</span> Le nom de la caisse est obligatoire
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Le nom de la caisse est obligatoire
         </div>
         <div class="form-error" *ngIf="nom.touched && nom.hasError('minlength')">
-          <span class="error-icon">⚠️</span> Le nom doit contenir au moins 2 caractères
+          Le nom doit contenir au moins 2 caractères
         </div>
-        <div class="form-hint success" *ngIf="nom.valid && nom.dirty">
-          <span class="hint-icon">✓</span> Nom valide
+        <div class="form-hint form-hint--success" *ngIf="nom.valid && nom.dirty">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Nom valide
         </div>
       </div>
 
-      <!-- Type de caisse -->
+      <!-- Type -->
       <div class="form-group">
-        <label class="form-label required">
-          <span class="label-icon">📋</span>
+        <label class="form-label">
           Type de caisse
+          <span class="form-label__required">*</span>
         </label>
         <div class="type-selector">
-          <div class="type-option"
-               [class.selected]="form.get('type')?.value === 'principale'"
-               (click)="form.get('type')?.setValue('principale')">
-            <div class="type-radio">
-              <div class="radio-inner" [class.selected]="form.get('type')?.value === 'principale'"></div>
+          <div
+            class="type-option"
+            [class.type-option--selected]="type.value === 'principale'"
+            (click)="type.setValue('principale')"
+          >
+            <div class="type-option__radio">
+              <div class="radio-dot" *ngIf="type.value === 'principale'"></div>
             </div>
-            <div class="type-content">
-              <div class="type-icon">🏛️</div>
-              <div class="type-info">
-                <span class="type-label">Principale</span>
-                <span class="type-desc">Caisse centrale de l'organisation</span>
+            <div class="type-option__content">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="2.5" y="6.5" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 6.5V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2.5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <div class="type-option__info">
+                <span class="type-option__label">Principale</span>
+                <span class="type-option__desc">Caisse centrale de l'organisation</span>
               </div>
             </div>
           </div>
 
-          <div class="type-option"
-               [class.selected]="form.get('type')?.value === 'secondaire'"
-               (click)="form.get('type')?.setValue('secondaire')">
-            <div class="type-radio">
-              <div class="radio-inner" [class.selected]="form.get('type')?.value === 'secondaire'"></div>
+          <div
+            class="type-option"
+            [class.type-option--selected]="type.value === 'secondaire'"
+            (click)="type.setValue('secondaire')"
+          >
+            <div class="type-option__radio">
+              <div class="radio-dot" *ngIf="type.value === 'secondaire'"></div>
             </div>
-            <div class="type-content">
-              <div class="type-icon">📦</div>
-              <div class="type-info">
-                <span class="type-label">Secondaire</span>
-                <span class="type-desc">Budget pour une activité spécifique</span>
+            <div class="type-option__content">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3.5 7.5h13M7.5 7.5v-2a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="2.5" y="7.5" width="15" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <div class="type-option__info">
+                <span class="type-option__label">Secondaire</span>
+                <span class="type-option__desc">Budget pour une activité spécifique</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="form-hint info" *ngIf="form.get('type')?.value === 'principale'">
-          <span class="hint-icon">💡</span> La caisse principale est unique et centralise les fonds de l'organisation
+        <div class="form-hint" *ngIf="type.value === 'principale'">
+          La caisse principale est unique et centralise les fonds de l'organisation
         </div>
-        <div class="form-hint info" *ngIf="form.get('type')?.value === 'secondaire'">
-          <span class="hint-icon">💡</span> Les caisses secondaires permettent de gérer des budgets spécifiques
+        <div class="form-hint" *ngIf="type.value === 'secondaire'">
+          Les caisses secondaires permettent de gérer des budgets spécifiques
         </div>
       </div>
 
       <!-- Description -->
       <div class="form-group">
-        <label class="form-label">
-          <span class="label-icon">📝</span>
-          Description
-        </label>
-        <textarea formControlName="description"
-                  rows="3"
-                  placeholder="Décrivez l'utilisation de cette caisse..."></textarea>
-        <div class="form-hint" *ngIf="form.get('description')?.value?.length > 0">
-          <span class="hint-icon">📏</span> {{ form.get('description')?.value?.length }} caractères
+        <label class="form-label">Description</label>
+        <textarea
+          class="form-control"
+          formControlName="description"
+          rows="3"
+          placeholder="Décrivez l'utilisation de cette caisse..."
+        ></textarea>
+        <div class="form-hint" *ngIf="form.get('description')?.value?.length">
+          {{ form.get('description')?.value?.length }} caractères
         </div>
       </div>
 
       <!-- Responsable -->
       <div class="form-group">
-        <label class="form-label">
-          <span class="label-icon">👤</span>
-          Responsable
-        </label>
-        <div class="input-with-icon">
-          <span class="input-icon">👤</span>
-          <input type="text"
-                 formControlName="responsableNom"
-                 placeholder="Nom du responsable (optionnel)" />
-        </div>
-        <div class="form-hint">
-          <span class="hint-icon">ℹ️</span> Personne responsable de cette caisse
+        <label class="form-label">Responsable</label>
+        <div class="input-icon-wrapper">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <input
+            type="text"
+            class="form-control form-control--with-icon"
+            formControlName="responsableNom"
+            placeholder="Nom du responsable (optionnel)"
+          />
         </div>
       </div>
 
       <!-- Couleur -->
       <div class="form-group">
-        <label class="form-label">
-          <span class="label-icon">🎨</span>
-          Couleur
-        </label>
-        <div class="couleur-picker">
-          <button type="button"
-                  *ngFor="let c of COULEURS"
-                  class="couleur-btn"
-                  [style.background]="c"
-                  [class.selected]="form.get('couleur')?.value === c"
-                  (click)="form.get('couleur')?.setValue(c)"
-                  [attr.title]="c">
-            <span class="check-icon" *ngIf="form.get('couleur')?.value === c">✓</span>
+        <label class="form-label">Couleur</label>
+        <div class="color-picker">
+          <button
+            type="button"
+            *ngFor="let c of COULEURS"
+            class="color-picker__btn"
+            [style.background]="c"
+            [class.color-picker__btn--selected]="form.get('couleur')?.value === c"
+            (click)="form.get('couleur')?.setValue(c)"
+          >
+            <svg
+              *ngIf="form.get('couleur')?.value === c"
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+            >
+              <path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
           </button>
-        </div>
-        <div class="form-hint">
-          <span class="hint-icon">🎨</span> Choisissez une couleur pour identifier facilement votre caisse
         </div>
       </div>
 
       <!-- Aperçu -->
-      <div class="form-preview" *ngIf="form.valid && (form.get('nom')?.value || form.get('couleur')?.value)">
-        <div class="preview-title">Aperçu de la caisse</div>
-        <div class="preview-card" [style.border-left-color]="form.get('couleur')?.value">
-          <div class="preview-header">
-            <div class="preview-icon" [style.background]="form.get('couleur')?.value">
-              {{ form.get('type')?.value === 'principale' ? '🏛️' : '📦' }}
+      <div class="preview-card" *ngIf="form.valid && form.get('nom')?.value">
+        <span class="preview-card__label">Aperçu</span>
+        <div class="preview-card__content" [style.border-left-color]="form.get('couleur')?.value">
+          <div class="preview-card__header">
+            <div
+              class="preview-card__icon"
+              [style.background]="form.get('couleur')?.value"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="2" y="5" width="12" height="9" rx="1.5" stroke="white" stroke-width="1.2"/>
+              </svg>
             </div>
-            <div class="preview-info">
-              <div class="preview-name">{{ form.get('nom')?.value || 'Nom de la caisse' }}</div>
-              <div class="preview-type">
-                <span class="badge" [class]="form.get('type')?.value">
-                  {{ form.get('type')?.value === 'principale' ? 'Principale' : 'Secondaire' }}
-                </span>
-              </div>
+            <div class="preview-card__info">
+              <span class="preview-card__name">{{ form.get('nom')?.value }}</span>
+              <span class="badge" [class.badge--navy]="type.value === 'principale'" [class.badge--gray]="type.value === 'secondaire'">
+                {{ type.value === 'principale' ? 'Principale' : 'Secondaire' }}
+              </span>
             </div>
           </div>
-          <div class="preview-desc" *ngIf="form.get('description')?.value">
+          <p class="preview-card__desc" *ngIf="form.get('description')?.value">
             {{ form.get('description')?.value }}
-          </div>
-          <div class="preview-responsible" *ngIf="form.get('responsableNom')?.value">
-            👤 {{ form.get('responsableNom')?.value }}
+          </p>
+          <div class="preview-card__meta" *ngIf="form.get('responsableNom')?.value">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            {{ form.get('responsableNom')?.value }}
           </div>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="form-actions">
-        <a routerLink="/caisses" class="btn btn--outline btn--lg">
-          <span class="btn-icon">✕</span> Annuler
-        </a>
-        <button type="submit"
-                class="btn btn--primary btn--lg"
-                [disabled]="loading || form.invalid">
-          <span *ngIf="!loading">
-            <span class="btn-icon">{{ isEdit ? '💾' : '✨' }}</span>
-            {{ isEdit ? 'Enregistrer les modifications' : 'Créer la caisse' }}
-          </span>
+        <a routerLink="/caisses" class="btn btn--secondary btn--lg">Annuler</a>
+        <button
+          type="submit"
+          class="btn btn--primary btn--lg"
+          [disabled]="loading || form.invalid"
+        >
+          <span *ngIf="!loading">{{ isEdit ? 'Enregistrer' : 'Créer la caisse' }}</span>
           <span *ngIf="loading" class="btn-spinner"></span>
         </button>
       </div>
-
     </form>
   </div>
 
-  <!-- Modal de confirmation pour modification -->
+  <!-- Modal confirmation -->
   <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
     <div class="modal modal--small" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-header-icon warning">
-          <span class="icon">⚠️</span>
+        <div class="modal-header__icon modal-header__icon--warning">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L18 17H2L10 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 8v4M10 14v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
         </div>
         <h2>Confirmation</h2>
-        <button class="modal-close" (click)="closeConfirmModal()">✕</button>
+        <button class="modal-close" (click)="closeConfirmModal()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
       <div class="modal-body">
         <p>Êtes-vous sûr de vouloir modifier cette caisse ?</p>
-        <p class="modal-hint">Les modifications seront appliquées immédiatement.</p>
+        <p class="modal-body__hint">Les modifications seront appliquées immédiatement.</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn--outline" (click)="closeConfirmModal()">Annuler</button>
+        <button class="btn btn--secondary" (click)="closeConfirmModal()">Annuler</button>
         <button class="btn btn--primary" (click)="confirmSubmit()">Confirmer</button>
       </div>
     </div>

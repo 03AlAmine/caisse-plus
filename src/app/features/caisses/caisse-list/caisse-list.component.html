@@ -1,183 +1,188 @@
 <div class="page-wrapper">
-  <app-page-header
-    title="🏦 Caisses"
-    subtitle="Gérez vos caisses et leurs soldes"
-  >
-    <div class="header-actions" *ngIf="auth.isTresorier()">
+
+  <!-- En-tête -->
+  <header class="page-header">
+    <div class="page-header__content">
+      <h1 class="page-header__title">Caisses</h1>
+      <p class="page-header__subtitle">Gérez vos caisses et leurs soldes</p>
+    </div>
+    <div class="page-header__actions" *ngIf="auth.isTresorier()">
       <button
-        class="btn btn--outline"
+        class="btn btn--secondary"
         (click)="showAlimenterModal = true"
         *ngIf="caissesList.length >= 2"
       >
-        <span class="btn-icon">🔄</span> Transférer
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7h8M8 4l3 3-3 3M10 8H4M4 10l3-3-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Transférer
       </button>
       <a routerLink="nouveau" class="btn btn--primary">
-        <span class="btn-icon">+</span> Nouvelle caisse
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Nouvelle caisse
       </a>
     </div>
-  </app-page-header>
+  </header>
 
   <!-- Bannière solde global -->
   <div class="solde-banner animate-fade-in" *ngIf="caissesList.length > 0">
-    <div class="solde-info">
-      <div class="solde-label">Solde global de l'organisation</div>
-      <div class="solde-montant">
-        {{ soldeTotal | number: "1.0-0" }}
-        <span class="solde-currency">FCFA</span>
+    <div class="solde-banner__content">
+      <span class="solde-banner__label">Solde global de l'organisation</span>
+      <div class="solde-banner__amount">
+        {{ soldeTotal | number:'1.0-0' }}
+        <span class="solde-banner__currency">FCFA</span>
       </div>
-      <div class="solde-sub">
-        <span class="stat-badge"
-          >{{ caissesList.length }} caisse(s) active(s)</span
-        >
+      <div class="solde-banner__meta">
+        <span class="badge badge--navy">{{ caissesList.length }} caisse(s) active(s)</span>
       </div>
     </div>
-    <div class="solde-icon">
-      <span class="icon-large">🏛️</span>
+    <div class="solde-banner__icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect x="6" y="14" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2" opacity="0.25"/>
+        <path d="M14 14V10a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v4" stroke="currentColor" stroke-width="2" opacity="0.25"/>
+        <circle cx="24" cy="27" r="4" stroke="currentColor" stroke-width="2" opacity="0.25"/>
+      </svg>
     </div>
   </div>
 
   <ng-container *ngIf="caisses$ | async as caisses; else loadingTpl">
-    <!-- Vide -->
-    <div class="empty-state card animate-fade-in" *ngIf="caisses.length === 0">
-      <div class="empty-icon-wrapper">
-        <div class="empty-icon">🏦</div>
+    <!-- État vide -->
+    <div class="card empty-state animate-fade-in" *ngIf="caisses.length === 0">
+      <div class="empty-state__icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect x="4" y="10" width="24" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="16" cy="19" r="3" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
       </div>
       <h3>Aucune caisse créée</h3>
-      <p>
-        Commencez par créer votre caisse principale pour gérer vos finances.
-      </p>
-      <a
-        routerLink="nouveau"
-        class="btn btn--primary btn--lg"
-        *ngIf="auth.isTresorier()"
-      >
-        <span class="btn-icon">+</span> Créer la caisse principale
+      <p>Commencez par créer votre caisse principale pour gérer vos finances.</p>
+      <a routerLink="nouveau" class="btn btn--primary btn--sm" *ngIf="auth.isTresorier()">
+        Créer la caisse principale
       </a>
     </div>
 
     <ng-container *ngIf="caisses.length > 0">
-      <!-- Caisse principale -->
+      <!-- Section caisse principale -->
       <div class="section-header" *ngIf="caissePrincipale">
-        <div class="section-title">
-          <span class="title-icon">⭐</span>
-          <span>Caisse principale</span>
-        </div>
-        <div class="section-line"></div>
+        <span class="section-header__label">Caisse principale</span>
+        <div class="section-header__line"></div>
       </div>
 
       <div
-        class="caisse-main-card card-hover"
+        class="caisse-card caisse-card--principal"
         *ngIf="caissePrincipale"
         [routerLink]="[caissePrincipale.id]"
-        [style.border-left-color]="
-          caissePrincipale.couleur || 'var(--color-navy)'
-        "
+        [style.--caisse-color]="caissePrincipale.couleur || 'var(--navy-600)'"
       >
-        <div class="main-card-left">
-          <div class="main-card-badge">
+        <div class="caisse-card__indicator"></div>
+        <div class="caisse-card__content">
+          <div class="caisse-card__header">
             <span class="badge badge--navy">Principale</span>
+            <h2 class="caisse-card__name">{{ caissePrincipale.nom }}</h2>
           </div>
-          <h2>{{ caissePrincipale.nom }}</h2>
-          <p class="main-card-desc" *ngIf="caissePrincipale.description">
+          <p class="caisse-card__desc" *ngIf="caissePrincipale.description">
             {{ caissePrincipale.description }}
           </p>
-          <div class="main-card-meta" *ngIf="caissePrincipale.responsableNom">
-            <span class="meta-icon">👤</span>
-            <span>{{ caissePrincipale.responsableNom }}</span>
+          <div class="caisse-card__meta" *ngIf="caissePrincipale.responsableNom">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            {{ caissePrincipale.responsableNom }}
           </div>
         </div>
-        <div class="main-card-right">
-          <div
-            class="main-card-solde"
-            [class.negatif]="caissePrincipale.solde < 0"
-          >
-            {{ caissePrincipale.solde | number: "1.0-0" }}
-            <span class="currency">FCFA</span>
+        <div class="caisse-card__right">
+          <div class="caisse-card__solde" [class.caisse-card__solde--neg]="caissePrincipale.solde < 0">
+            {{ caissePrincipale.solde | number:'1.0-0' }}
+            <span class="caisse-card__currency">FCFA</span>
           </div>
-          <div class="main-card-actions" (click)="$event.stopPropagation()">
-            <a
-              [routerLink]="[caissePrincipale.id, 'modifier']"
-              class="action-btn"
-              title="Modifier"
-            >
-              ✏️
+          <div class="caisse-card__actions" (click)="$event.stopPropagation()">
+            <a [routerLink]="[caissePrincipale.id, 'modifier']" class="icon-btn" title="Modifier">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 10L10 2L12 4L4 12L1 13L2 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
             </a>
             <button
-              class="action-btn danger"
+              class="icon-btn icon-btn--danger"
               (click)="onDeactivate(caissePrincipale)"
               *ngIf="auth.isAdmin()"
               title="Désactiver"
             >
-              🗑️
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M3 4h8M5 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M11 4v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Caisses secondaires -->
+      <!-- Section caisses secondaires -->
       <div class="section-header" *ngIf="caissesSecondaires.length > 0">
-        <div class="section-title">
-          <span class="title-icon">📦</span>
-          <span>Caisses secondaires</span>
-        </div>
-        <span class="section-count">{{ caissesSecondaires.length }}</span>
-        <div class="section-line"></div>
+        <span class="section-header__label">Caisses secondaires</span>
+        <span class="section-header__count">{{ caissesSecondaires.length }}</span>
+        <div class="section-header__line"></div>
       </div>
 
       <div class="caisses-grid">
         <div
-          class="caisse-card card-hover"
-          *ngFor="let c of caissesSecondaires; let i = index"
+          class="caisse-card caisse-card--secondary"
+          *ngFor="let c of caissesSecondaires"
           [routerLink]="[c.id]"
-          [style.--caisse-color]="c.couleur || 'var(--color-purple)'"
+          [style.--caisse-color]="c.couleur || 'var(--navy-600)'"
         >
-          <div class="cc-header">
-            <div class="cc-badge">
-              <span class="badge badge--purple">Secondaire</span>
+          <div class="caisse-card__indicator"></div>
+          <div class="caisse-card__content">
+            <div class="caisse-card__header">
+              <span class="badge badge--gray">Secondaire</span>
+              <div class="caisse-card__actions-sm" (click)="$event.stopPropagation()">
+                <a [routerLink]="[c.id, 'modifier']" class="icon-btn icon-btn--sm" title="Modifier">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M1.5 8.5L8.5 1.5L10.5 3.5L3.5 10.5L1 11L1.5 8.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                  </svg>
+                </a>
+                <button
+                  class="icon-btn icon-btn--sm icon-btn--danger"
+                  (click)="onDeactivate(c)"
+                  *ngIf="auth.isAdmin()"
+                  title="Désactiver"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 3.5h7M4 3.5v-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M9.5 3.5v6a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-6" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
-            <div class="cc-actions" (click)="$event.stopPropagation()">
-              <a
-                [routerLink]="[c.id, 'modifier']"
-                class="action-btn-sm"
-                title="Modifier"
-                >✏️</a
-              >
-              <button
-                class="action-btn-sm danger"
-                (click)="onDeactivate(c)"
-                *ngIf="auth.isAdmin()"
-                title="Désactiver"
-              >
-                🗑️
-              </button>
+            <h3 class="caisse-card__name caisse-card__name--sm">{{ c.nom }}</h3>
+            <p class="caisse-card__desc" *ngIf="c.description">{{ c.description }}</p>
+            <div class="caisse-card__meta" *ngIf="c.responsableNom">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+              {{ c.responsableNom }}
             </div>
           </div>
-          <div class="cc-body">
-            <div class="cc-name">{{ c.nom }}</div>
-            <div class="cc-desc" *ngIf="c.description">{{ c.description }}</div>
-            <div class="cc-responsible" *ngIf="c.responsableNom">
-              <span class="responsible-icon">👤</span>
-              <span>{{ c.responsableNom }}</span>
-            </div>
-          </div>
-          <div class="cc-footer">
-            <div class="cc-solde" [class.negatif]="c.solde < 0">
-              {{ c.solde | number: "1.0-0" }}
-              <span class="currency">FCFA</span>
+          <div class="caisse-card__footer">
+            <div class="caisse-card__solde caisse-card__solde--sm" [class.caisse-card__solde--neg]="c.solde < 0">
+              {{ c.solde | number:'1.0-0' }}
+              <span class="caisse-card__currency">FCFA</span>
             </div>
           </div>
         </div>
 
-        <div
-          class="caisse-add-card"
-          routerLink="nouveau"
-          *ngIf="auth.isTresorier()"
-        >
-          <div class="add-icon-wrapper">
-            <span class="add-icon">+</span>
+        <!-- Carte d'ajout -->
+        <div class="caisse-add-card" routerLink="nouveau" *ngIf="auth.isTresorier()">
+          <div class="caisse-add-card__icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <path d="M14 8v12M8 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
           </div>
-          <span class="add-text">Nouvelle caisse</span>
-          <span class="add-hint">Cliquez pour ajouter</span>
+          <span class="caisse-add-card__text">Nouvelle caisse</span>
+          <span class="caisse-add-card__hint">Cliquez pour ajouter</span>
         </div>
       </div>
     </ng-container>
@@ -185,26 +190,30 @@
 
   <ng-template #loadingTpl>
     <div class="loading-center">
-      <app-loading-spinner [size]="48"></app-loading-spinner>
+      <span class="spinner"></span>
     </div>
   </ng-template>
 
-  <!-- Modal transfert amélioré -->
+  <!-- Modal transfert -->
   <div class="modal-overlay" *ngIf="showAlimenterModal" (click)="closeModal()">
-    <div class="modal modal--medium" (click)="$event.stopPropagation()">
+    <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-header-icon">
-          <span class="icon">🔄</span>
+        <div class="modal-header__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M5 10h10M11 6l4 4-4 4M14 14H6M6 16l-4-4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
         <h2>Transfert entre caisses</h2>
-        <button class="modal-close" (click)="closeModal()">✕</button>
+        <button class="modal-close" (click)="closeModal()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
+
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label">
-            <span class="label-icon">📤</span>
-            Caisse source
-          </label>
+          <label class="form-label">Caisse source</label>
           <select class="form-control" [(ngModel)]="alimenterData.sourceId">
             <option value="">-- Sélectionner la caisse source --</option>
             <option
@@ -212,23 +221,22 @@
               [value]="c.id"
               [disabled]="c.id === alimenterData.destId"
             >
-              {{ c.nom }}
-              <span class="option-solde"
-                >({{ c.solde | number: "1.0-0" }} FCFA)</span
-              >
+              {{ c.nom }} ({{ c.solde | number:'1.0-0' }} FCFA)
             </option>
           </select>
           <div class="form-hint" *ngIf="selectedSource">
-            Solde disponible:
-            <strong>{{ selectedSource.solde | number: "1.0-0" }} FCFA</strong>
+            Solde disponible : <strong>{{ selectedSource.solde | number:'1.0-0' }} FCFA</strong>
           </div>
         </div>
 
+        <div class="transfer-direction" *ngIf="alimenterData.sourceId && alimenterData.destId">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 3v14M6 13l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
         <div class="form-group">
-          <label class="form-label">
-            <span class="label-icon">📥</span>
-            Caisse destination
-          </label>
+          <label class="form-label">Caisse destination</label>
           <select class="form-control" [(ngModel)]="alimenterData.destId">
             <option value="">-- Sélectionner la caisse destination --</option>
             <option
@@ -241,18 +249,8 @@
           </select>
         </div>
 
-        <div
-          class="transfer-arrow"
-          *ngIf="alimenterData.sourceId && alimenterData.destId"
-        >
-          <div class="arrow-animation">↓</div>
-        </div>
-
         <div class="form-group">
-          <label class="form-label">
-            <span class="label-icon">💰</span>
-            Montant (FCFA)
-          </label>
+          <label class="form-label">Montant (FCFA)</label>
           <input
             type="number"
             class="form-control"
@@ -260,82 +258,55 @@
             min="1"
             [max]="getMaxMontant()"
             placeholder="0"
-            (keyup)="validateMontant()"
           />
-          <div
-            class="form-hint"
-            *ngIf="
-              selectedSource && alimenterData.montant > selectedSource.solde
-            "
-            class="error"
-          >
-            ⚠️ Montant supérieur au solde disponible ({{
-              selectedSource.solde | number: "1.0-0"
-            }}
-            FCFA) !
-          </div>
-          <div
-            class="form-hint success"
-            *ngIf="
-              selectedSource &&
-              alimenterData.montant <= selectedSource.solde &&
-              alimenterData.montant > 0
-            "
-          >
-            ✓ Solde suffisant
+          <div class="form-error" *ngIf="selectedSource && alimenterData.montant > selectedSource.solde">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Montant supérieur au solde disponible
           </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label">
-            <span class="label-icon">📝</span>
-            Libellé
-          </label>
+          <label class="form-label">Libellé</label>
           <input
             type="text"
             class="form-control"
             [(ngModel)]="alimenterData.libelle"
-            placeholder="Ex: Virement mensuel, Approvisionnement..."
+            placeholder="Ex: Virement mensuel..."
           />
         </div>
 
-        <div
-          class="transfer-summary"
-          *ngIf="
-            alimenterData.sourceId &&
-            alimenterData.destId &&
-            alimenterData.montant > 0
-          "
-        >
-          <div class="summary-title">Récapitulatif du transfert</div>
-          <div class="summary-details">
-            <div class="summary-item">
-              <span>De :</span>
-              <strong>{{ selectedSource?.nom }}</strong>
-            </div>
-            <div class="summary-item">
-              <span>Vers :</span>
-              <strong>{{ selectedDest?.nom }}</strong>
-            </div>
-            <div class="summary-item highlight">
-              <span>Montant :</span>
-              <strong
-                >{{ alimenterData.montant | number: "1.0-0" }} FCFA</strong
-              >
-            </div>
+        <div class="transfer-summary" *ngIf="alimenterData.sourceId && alimenterData.destId && alimenterData.montant > 0">
+          <span class="transfer-summary__title">Récapitulatif</span>
+          <div class="transfer-summary__row">
+            <span>De</span>
+            <strong>{{ selectedSource?.nom }}</strong>
+          </div>
+          <div class="transfer-summary__row">
+            <span>Vers</span>
+            <strong>{{ selectedDest?.nom }}</strong>
+          </div>
+          <div class="transfer-summary__row transfer-summary__row--highlight">
+            <span>Montant</span>
+            <strong>{{ alimenterData.montant | number:'1.0-0' }} FCFA</strong>
           </div>
         </div>
       </div>
+
       <div class="modal-footer">
-        <button class="btn btn--outline" (click)="closeModal()">Annuler</button>
+        <button class="btn btn--secondary" (click)="closeModal()">Annuler</button>
         <button
           class="btn btn--primary"
           (click)="onAlimenter()"
           [disabled]="loadingTransfert || !isTransfertValid()"
         >
-          <span *ngIf="!loadingTransfert">✓ Confirmer le transfert</span>
+          <span *ngIf="!loadingTransfert">Confirmer le transfert</span>
           <span *ngIf="loadingTransfert" class="btn-spinner"></span>
         </button>
       </div>
     </div>
   </div>
+
 </div>

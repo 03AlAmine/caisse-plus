@@ -1,267 +1,253 @@
 <div class="dashboard page-wrapper">
+
+  <!-- Loading -->
   <div class="loading-center" *ngIf="loading">
-    <app-loading-spinner [size]="48"></app-loading-spinner>
+    <span class="spinner"></span>
   </div>
 
   <ng-container *ngIf="!loading">
-    <!-- En-tête du tableau de bord -->
-    <div class="dashboard-header animate-fade-in">
-      <div class="header-left">
-        <!--  <div class="greeting-badge">
-          <span class="greeting-icon">👋</span>
-          <span class="greeting-text"> Bonjour, {{ userName }} </span>
-        </div>-->
-        <h1 class="dashboard-title">Tableau de bord</h1>
-        <p class="dashboard-subtitle">
-          Vue d'ensemble de votre activité financière
-        </p>
-      </div>
-      <!--   <div class="header-right">
-        <div class="date-chip">
-          <span class="date-icon">📅</span>
-          <span class="date-text">{{ today | date: "EEEE d MMMM yyyy" }}</span>
-        </div>
-      </div>-->
-    </div>
 
-    <!-- KPI Grid avec animations -->
-    <div class="kpi-grid">
-      <div
-        class="kpi-card stagger-{{ i + 1 }}"
+    <!-- En-tête -->
+    <header class="dash-header animate-fade-in">
+      <div class="dash-header__left">
+        <p class="dash-header__eyebrow">Vue d'ensemble</p>
+        <h1 class="dash-header__title">Tableau de bord</h1>
+      </div>
+      <div class="dash-header__right">
+        <span class="dash-header__date">{{ today | date: 'EEEE d MMMM yyyy' }}</span>
+      </div>
+    </header>
+
+    <!-- KPI Grid -->
+    <section class="kpi-grid">
+      <article
+        class="kpi-card animate-fade-in stagger-{{ i + 1 }}"
         *ngFor="let kpi of kpis; let i = index"
-        [style.--kpi-color]="kpi.color"
-        [style.--kpi-bg]="kpi.bgColor"
       >
-        <div class="kpi-icon-wrap">
-          <span class="kpi-icon">{{ kpi.icon }}</span>
-        </div>
-        <div class="kpi-content">
-          <span class="kpi-label">{{ kpi.label }}</span>
-          <div class="kpi-value-wrapper">
-            <span class="kpi-value" *ngIf="kpi.isMontant">
-              {{ kpi.value | number: "1.0-0" }}
+        <div class="kpi-card__indicator" [style.background]="kpi.color"></div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">{{ kpi.label }}</span>
+          <div class="kpi-card__value-row">
+            <span class="kpi-card__value" *ngIf="kpi.isMontant">
+              {{ kpi.value | number: '1.0-0' }}
+              <span class="kpi-card__unit">FCFA</span>
             </span>
-            <span class="kpi-value" *ngIf="!kpi.isMontant">{{
-              kpi.value
-            }}</span>
-            <span class="kpi-unit" *ngIf="kpi.isMontant">FCFA</span>
+            <span class="kpi-card__value" *ngIf="!kpi.isMontant">{{ kpi.value }}</span>
           </div>
         </div>
-        <div class="kpi-trend" *ngIf="kpi.trend">
-          <span [class]="kpi.trend > 0 ? 'trend-up' : 'trend-down'">
-            {{ kpi.trend > 0 ? "↑" : "↓" }} {{ Math.abs(kpi.trend) }}%
+        <div class="kpi-card__trend" *ngIf="kpi.trend !== undefined">
+          <span class="trend-pill" [class.trend-pill--up]="kpi.trend > 0" [class.trend-pill--down]="kpi.trend < 0">
+            <svg *ngIf="kpi.trend > 0" width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M5 2L9 8H1L5 2Z" fill="currentColor"/>
+            </svg>
+            <svg *ngIf="kpi.trend < 0" width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M5 8L1 2H9L5 8Z" fill="currentColor"/>
+            </svg>
+            {{ Math.abs(kpi.trend) }}%
           </span>
         </div>
-      </div>
-    </div>
+      </article>
+    </section>
 
-    <!-- Alertes opérations en attente -->
-    <div
-      class="alert alert--warning animate-slide-in"
-      *ngIf="operationsEnAttente.length > 0"
-    >
-      <div class="alert-icon-wrapper">
-        <span class="alert-icon">⏳</span>
-      </div>
-      <div class="alert-content">
-        <span class="alert-text">
-          <strong>{{ operationsEnAttente.length }} opération(s)</strong> en
-          attente de validation
-        </span>
-      </div>
-      <a
-        routerLink="/operations"
-        [queryParams]="{ statut: 'en_attente' }"
-        class="alert-link"
-      >
-        Voir détails <span class="link-arrow">→</span>
-      </a>
-    </div>
-
-    <!-- Alertes budgets -->
-    <ng-container *ngFor="let b of budgetsEnAlerte">
-      <div
-        class="alert animate-slide-in"
-        [class.alert--danger]="b.tauxConsommation >= 100"
-        [class.alert--warning]="b.tauxConsommation < 100"
-      >
-        <div class="alert-icon-wrapper">
-          <span class="alert-icon">{{
-            b.tauxConsommation >= 100 ? "🚨" : "⚠️"
-          }}</span>
-        </div>
-        <div class="alert-content">
-          <span class="alert-text">
-            <strong>Budget {{ b.nom }}</strong> —
-            {{
-              b.tauxConsommation >= 100
-                ? "Dépassé !"
-                : b.tauxConsommation + "% consommé"
-            }}
-            <span class="alert-details">
-              ({{ b.montantDepense | number: "1.0-0" }} /
-              {{ b.montantPrevu | number: "1.0-0" }} FCFA)
-            </span>
+    <!-- Notifications inline -->
+    <section class="notifications-section" *ngIf="operationsEnAttente.length > 0 || budgetsEnAlerte.length > 0">
+      <!-- Opérations en attente -->
+      <div class="inline-alert inline-alert--warning animate-slide-in" *ngIf="operationsEnAttente.length > 0">
+        <div class="inline-alert__bar"></div>
+        <div class="inline-alert__body">
+          <span class="inline-alert__text">
+            <strong>{{ operationsEnAttente.length }} opération(s)</strong> en attente de validation
           </span>
         </div>
-        <a routerLink="/budgets" class="alert-link">
-          Voir détails <span class="link-arrow">→</span>
+        <a routerLink="/operations" [queryParams]="{ statut: 'en_attente' }" class="inline-alert__link">
+          Traiter
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </a>
       </div>
-    </ng-container>
+
+      <!-- Budgets en alerte -->
+      <ng-container *ngFor="let b of budgetsEnAlerte">
+        <div
+          class="inline-alert animate-slide-in"
+          [class.inline-alert--danger]="b.tauxConsommation >= 100"
+          [class.inline-alert--warning]="b.tauxConsommation < 100"
+        >
+          <div class="inline-alert__bar"></div>
+          <div class="inline-alert__body">
+            <span class="inline-alert__text">
+              <strong>Budget {{ b.nom }}</strong> —
+              {{ b.tauxConsommation >= 100 ? 'Dépassé' : b.tauxConsommation + '% consommé' }}
+              <span class="inline-alert__detail">({{ b.montantDepense | number: '1.0-0' }} / {{ b.montantPrevu | number: '1.0-0' }} FCFA)</span>
+            </span>
+          </div>
+          <a routerLink="/budgets" class="inline-alert__link">
+            Voir
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </ng-container>
+    </section>
+
+    <!-- Graphique 6 mois avec Chart.js -->
+    <section class="chart-section animate-fade-in" *ngIf="!chartLoading">
+      <div class="section-head">
+        <div>
+          <h2 class="section-head__title">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 14L6 9l4 3 4-5 2 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="2" y="2" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            Évolution sur 6 mois
+          </h2>
+          <p class="section-head__sub">Entrées et sorties validées</p>
+        </div>
+        <div class="chart-legend">
+          <span class="chart-legend__item chart-legend__item--entree">Entrées</span>
+          <span class="chart-legend__item chart-legend__item--sortie">Sorties</span>
+        </div>
+      </div>
+
+      <div class="chart-body">
+        <app-chart
+          [type]="'bar'"
+          [data]="chartData"
+          [options]="chartOptions"
+          [height]="220">
+        </app-chart>
+      </div>
+
+      <!-- Résumé -->
+      <div class="chart-summary">
+        <div class="chart-summary__item">
+          <span class="chart-summary__label">Total entrées</span>
+          <span class="chart-summary__val chart-summary__val--entree">
+            {{ totalChartEntrees | number: '1.0-0' }} FCFA
+          </span>
+        </div>
+        <div class="chart-summary__sep"></div>
+        <div class="chart-summary__item">
+          <span class="chart-summary__label">Total sorties</span>
+          <span class="chart-summary__val chart-summary__val--sortie">
+            {{ totalChartSorties | number: '1.0-0' }} FCFA
+          </span>
+        </div>
+        <div class="chart-summary__sep"></div>
+        <div class="chart-summary__item">
+          <span class="chart-summary__label">Solde net</span>
+          <span class="chart-summary__val"
+            [class.chart-summary__val--entree]="(totalChartEntrees - totalChartSorties) >= 0"
+            [class.chart-summary__val--sortie]="(totalChartEntrees - totalChartSorties) < 0">
+            {{ (totalChartEntrees - totalChartSorties) | number: '1.0-0' }} FCFA
+          </span>
+        </div>
+      </div>
+    </section>
 
     <!-- Grille principale -->
     <div class="dashboard-grid">
-      <!-- Caisses -->
-      <div class="dash-card card-hover">
-        <div class="dash-card-header">
-          <div class="header-left-group">
-            <div class="card-icon-badge">
-              <span class="card-icon">🏦</span>
+      <!-- Répartition des dépenses par catégorie (Chart.js Doughnut) -->
+      <section class="dash-panel animate-fade-in stagger-1" *ngIf="topCategories.length > 0">
+        <div class="dash-panel__header">
+          <div class="dash-panel__title-group">
+            <div class="panel-icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M8 3v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
             </div>
-            <h3>Mes caisses</h3>
+            <h2 class="dash-panel__title">Répartition des dépenses</h2>
           </div>
-          <a routerLink="/caisses" class="see-all-link">
-            Gérer <span class="link-arrow">→</span>
+          <a routerLink="/rapports" class="panel-link">
+            Rapports
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </a>
         </div>
 
-        <ng-container *ngIf="caisses.length > 0; else noCaisses">
-          <div class="caisses-list">
-            <a
-              class="caisse-row"
-              *ngFor="let c of caisses"
-              [routerLink]="['/caisses', c.id]"
-            >
-              <div class="caisse-row-left">
-                <div
-                  class="caisse-color-dot"
-                  [style.background]="
-                    c.couleur ||
-                    (c.type === 'principale'
-                      ? 'var(--color-navy)'
-                      : 'var(--color-purple)')
-                  "
-                ></div>
-                <div class="caisse-row-info">
-                  <span class="caisse-row-name">{{ c.nom }}</span>
-                  <span class="caisse-row-type">
-                    <span class="type-badge" [class]="c.type">
-                      {{
-                        c.type === "principale"
-                          ? "Principale"
-                          : c.type === "secondaire"
-                            ? "Secondaire"
-                            : c.type
-                      }}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <div class="caisse-row-right">
-                <span class="caisse-row-solde" [class.negatif]="c.solde < 0">
-                  {{ c.solde | number: "1.0-0" }}
-                </span>
-                <span class="caisse-currency">FCFA</span>
-              </div>
-            </a>
-          </div>
-          <div class="caisses-footer">
-            <div class="total-solde">
-              <span class="total-label">Solde total</span>
-              <span class="total-amount"
-                >{{ soldePrincipal | number: "1.0-0" }} FCFA</span
-              >
-            </div>
-          </div>
-        </ng-container>
+        <div class="pie-chart-wrapper">
+          <app-chart
+            [type]="'doughnut'"
+            [data]="pieChartData"
+            [options]="pieChartOptions"
+            [height]="220">
+          </app-chart>
+        </div>
 
-        <ng-template #noCaisses>
-          <div class="empty-state">
-            <div class="empty-icon-wrapper">
-              <div class="empty-icon">🏦</div>
-            </div>
-            <h3>Aucune caisse</h3>
-            <p>
-              Créez votre première caisse pour commencer à gérer vos finances.
-            </p>
-            <a routerLink="/caisses/nouveau" class="btn btn--primary btn--sm">
-              <span class="btn-icon">+</span> Créer une caisse
-            </a>
+        <!-- Légende personnalisée -->
+        <div class="pie-legend">
+          <div class="pie-legend__item" *ngFor="let cat of topCategories; let i = index">
+            <span class="pie-legend__color" [style.background]="chartColors[i % chartColors.length]"></span>
+            <span class="pie-legend__name">{{ cat.nom }}</span>
+            <span class="pie-legend__value">{{ cat.total | number: '1.0-0' }} FCFA</span>
+            <span class="pie-legend__percent">{{ cat.pct }}%</span>
           </div>
-        </ng-template>
-      </div>
+        </div>
+      </section>
 
       <!-- Dernières opérations -->
-      <div class="dash-card card-hover">
-        <div class="dash-card-header">
-          <div class="header-left-group">
-            <div class="card-icon-badge">
-              <span class="card-icon">💸</span>
+      <section class="dash-panel animate-fade-in stagger-2">
+        <div class="dash-panel__header">
+          <div class="dash-panel__title-group">
+            <div class="panel-icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
             </div>
-            <h3>Dernières opérations</h3>
+            <h2 class="dash-panel__title">Dernières opérations</h2>
           </div>
-          <a routerLink="/operations" class="see-all-link">
-            Voir tout <span class="link-arrow">→</span>
+          <a routerLink="/operations" class="panel-link">
+            Voir tout
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </a>
         </div>
 
         <ng-container *ngIf="dernieresOperations.length > 0; else noOps">
-          <div class="operations-list">
+          <div class="ops-list">
             <div class="op-row" *ngFor="let op of dernieresOperations">
-              <div class="op-row-left">
-                <div class="op-type-indicator" [class]="op.type">
-                  {{
-                    op.type === "entree"
-                      ? "↑"
-                      : op.type === "sortie"
-                        ? "↓"
-                        : "⇄"
-                  }}
-                </div>
-                <div class="op-row-info">
-                  <span class="op-row-libelle">{{ op.libelle }}</span>
-                  <div class="op-row-meta">
-                    <span class="meta-caisse">{{ op.caisseNom }}</span>
-                    <span class="meta-separator">•</span>
-                    <span class="meta-date">{{
-                      toDate(op.date) | date: "dd/MM/yy"
-                    }}</span>
-                  </div>
+              <div class="op-row__type-badge"
+                [class.op-row__type-badge--entree]="op.type === 'entree'"
+                [class.op-row__type-badge--sortie]="op.type === 'sortie'"
+                [class.op-row__type-badge--transfert]="op.type === 'transfert'">
+                <svg *ngIf="op.type === 'entree'" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 10V2M2 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg *ngIf="op.type === 'sortie'" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 2v8M2 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg *ngIf="op.type === 'transfert'" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 4h8M8 2l2 2-2 2M10 8H2M4 6l-2 2 2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <div class="op-row__info">
+                <span class="op-row__libelle">{{ op.libelle }}</span>
+                <div class="op-row__meta">
+                  <span>{{ op.caisseNom }}</span>
+                  <span class="op-row__meta-dot"></span>
+                  <span>{{ toDate(op.date) | date: 'dd/MM/yy' }}</span>
                 </div>
               </div>
-              <div class="op-row-right">
-                <div class="op-amount-wrapper">
-                  <span class="op-row-montant" [class]="op.type">
-                    {{ op.type === "entree" ? "+" : "-"
-                    }}{{ op.montant | number: "1.0-0" }}
-                  </span>
-                  <span class="op-currency">FCFA</span>
-                </div>
-                <span
-                  class="status-badge"
-                  [class.status-validated]="op.statut === 'validee'"
-                  [class.status-pending]="op.statut === 'en_attente'"
-                  [class.status-rejected]="op.statut === 'rejetee'"
-                >
-                  <span class="status-icon">
-                    {{
-                      op.statut === "validee"
-                        ? "✓"
-                        : op.statut === "en_attente"
-                          ? "⏳"
-                          : "✗"
-                    }}
-                  </span>
-                  <span class="status-text">
-                    {{
-                      op.statut === "validee"
-                        ? "Validée"
-                        : op.statut === "en_attente"
-                          ? "En attente"
-                          : "Rejetée"
-                    }}
-                  </span>
+
+              <div class="op-row__right">
+                <span class="op-row__montant"
+                  [class.op-row__montant--entree]="op.type === 'entree'"
+                  [class.op-row__montant--sortie]="op.type === 'sortie'"
+                  [class.op-row__montant--transfert]="op.type === 'transfert'">
+                  {{ op.type === 'entree' ? '+' : '-' }}{{ op.montant | number: '1.0-0' }}
+                  <span class="op-row__currency">FCFA</span>
+                </span>
+                <span class="op-status"
+                  [class.op-status--valid]="op.statut === 'validee'"
+                  [class.op-status--pending]="op.statut === 'en_attente'"
+                  [class.op-status--rejected]="op.statut === 'rejetee'">
+                  {{ op.statut === 'validee' ? 'Validée' : op.statut === 'en_attente' ? 'En attente' : 'Rejetée' }}
                 </span>
               </div>
             </div>
@@ -270,91 +256,145 @@
 
         <ng-template #noOps>
           <div class="empty-state">
-            <div class="empty-icon-wrapper">
-              <div class="empty-icon">📭</div>
+            <div class="empty-state__icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M4 6h14M4 10h10M4 14h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
             </div>
             <h3>Aucune opération</h3>
-            <p>
-              Enregistrez votre première transaction pour suivre vos mouvements.
-            </p>
-            <a
-              routerLink="/operations/nouveau"
-              class="btn btn--primary btn--sm"
-            >
-              <span class="btn-icon">+</span> Nouvelle opération
+            <p>Enregistrez votre première transaction pour suivre vos mouvements.</p>
+            <a routerLink="/operations/nouveau" class="btn btn--primary btn--sm" style="margin-top: var(--space-2)">
+              Nouvelle opération
             </a>
           </div>
         </ng-template>
-      </div>
+      </section>
     </div>
 
-    <!-- Budgets en alerte -->
-    <div
-      class="dash-card budgets-alert-card animate-slide-in"
-      *ngIf="budgetsEnAlerte.length > 0"
-    >
-      <div class="dash-card-header">
-        <div class="header-left-group">
-          <div class="card-icon-badge warning-bg">
-            <span class="card-icon">📊</span>
+    <!-- Caisses -->
+    <section class="dash-panel caisses-panel animate-fade-in">
+      <div class="dash-panel__header">
+        <div class="dash-panel__title-group">
+          <div class="panel-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="8" cy="9" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
           </div>
-          <h3>Budgets en alerte</h3>
-          <span class="alert-count">{{ budgetsEnAlerte.length }}</span>
+          <h2 class="dash-panel__title">Mes caisses</h2>
         </div>
-        <a routerLink="/budgets" class="see-all-link">
-          Tous les budgets <span class="link-arrow">→</span>
+        <a routerLink="/caisses" class="panel-link">
+          Gérer
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </a>
       </div>
-      <div class="budgets-list">
-        <div class="budget-mini-row" *ngFor="let b of budgetsEnAlerte">
-          <div class="budget-mini-header">
-            <div class="budget-info">
-              <span class="budget-mini-name">{{ b.nom }}</span>
-              <span class="budget-mini-period">{{
-                b.periode || "Ce mois"
-              }}</span>
+
+      <ng-container *ngIf="caisses.length > 0; else noCaisses">
+        <div class="caisses-list">
+          <a
+            class="caisse-row"
+            *ngFor="let c of caisses"
+            [routerLink]="['/caisses', c.id]"
+          >
+            <div class="caisse-row__left">
+              <span class="caisse-dot" [style.background]="c.couleur || (c.type === 'principale' ? 'var(--navy-600)' : 'var(--gray-400)')"></span>
+              <div class="caisse-row__info">
+                <span class="caisse-row__name">{{ c.nom }}</span>
+                <span class="caisse-row__type"
+                  [class.caisse-row__type--principale]="c.type === 'principale'"
+                  [class.caisse-row__type--secondaire]="c.type === 'secondaire'">
+                  {{ c.type === 'principale' ? 'Principale' : c.type === 'secondaire' ? 'Secondaire' : c.type }}
+                </span>
+              </div>
             </div>
-            <div class="budget-stats">
-              <span
-                class="budget-mini-pct"
-                [class.normal]="b.tauxConsommation < b.seuilAlerte"
-                [class.warning]="
-                  b.tauxConsommation >= b.seuilAlerte &&
-                  b.tauxConsommation < 100
-                "
-                [class.danger]="b.tauxConsommation >= 100"
-              >
+            <div class="caisse-row__right">
+              <span class="caisse-row__solde" [class.caisse-row__solde--neg]="c.solde < 0">
+                {{ c.solde | number: '1.0-0' }}
+              </span>
+              <span class="caisse-row__currency">FCFA</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="caisses-total">
+          <span class="caisses-total__label">Solde total</span>
+          <span class="caisses-total__amount">{{ soldeTotal | number: '1.0-0' }} FCFA</span>
+        </div>
+      </ng-container>
+
+      <ng-template #noCaisses>
+        <div class="empty-state">
+          <div class="empty-state__icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <rect x="2" y="6" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M7 6V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="11" cy="13" r="2" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3>Aucune caisse</h3>
+          <p>Créez votre première caisse pour commencer à gérer vos finances.</p>
+          <a routerLink="/caisses/nouveau" class="btn btn--primary btn--sm" style="margin-top: var(--space-2)">
+            Créer une caisse
+          </a>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- Budgets en alerte -->
+    <section class="dash-panel budgets-panel animate-fade-in" *ngIf="budgetsEnAlerte.length > 0">
+      <div class="dash-panel__header">
+        <div class="dash-panel__title-group">
+          <div class="panel-icon panel-icon--warning">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M8 6v3M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h2 class="dash-panel__title">Budgets en alerte</h2>
+          <span class="alert-count-pill">{{ budgetsEnAlerte.length }}</span>
+        </div>
+        <a routerLink="/budgets" class="panel-link">
+          Tous les budgets
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+
+      <div class="budgets-list">
+        <div class="budget-row" *ngFor="let b of budgetsEnAlerte">
+          <div class="budget-row__header">
+            <div class="budget-row__info">
+              <span class="budget-row__name">{{ b.nom }}</span>
+              <span class="budget-row__period">{{ b.periode || 'Ce mois' }}</span>
+            </div>
+            <div class="budget-row__stats">
+              <span class="budget-row__pct"
+                [class.budget-row__pct--ok]="b.tauxConsommation < b.seuilAlerte"
+                [class.budget-row__pct--warn]="b.tauxConsommation >= b.seuilAlerte && b.tauxConsommation < 100"
+                [class.budget-row__pct--danger]="b.tauxConsommation >= 100">
                 {{ b.tauxConsommation }}%
               </span>
-              <span class="budget-amounts">
-                {{ b.montantDepense | number: "1.0-0" }} /
-                {{ b.montantPrevu | number: "1.0-0" }} FCFA
+              <span class="budget-row__amounts">
+                {{ b.montantDepense | number: '1.0-0' }} / {{ b.montantPrevu | number: '1.0-0' }} FCFA
               </span>
             </div>
           </div>
-          <div class="progress-wrapper">
-            <div class="progress-bar">
-              <div
-                class="progress-bar__fill"
-                [class.progress-bar__fill--normal]="
-                  b.tauxConsommation < b.seuilAlerte
-                "
-                [class.progress-bar__fill--warning]="
-                  b.tauxConsommation >= b.seuilAlerte &&
-                  b.tauxConsommation < 100
-                "
-                [class.progress-bar__fill--danger]="b.tauxConsommation >= 100"
-                [style.width.%]="
-                  b.tauxConsommation > 100 ? 100 : b.tauxConsommation
-                "
-              ></div>
-              <div class="progress-bar__marker" [style.left.%]="b.seuilAlerte">
-                <div class="marker-tooltip">Seuil: {{ b.seuilAlerte }}%</div>
-              </div>
+          <div class="progress-bar">
+            <div
+              class="progress-bar__fill"
+              [class.progress-bar__fill--normal]="b.tauxConsommation < b.seuilAlerte"
+              [class.progress-bar__fill--warning]="b.tauxConsommation >= b.seuilAlerte && b.tauxConsommation < 100"
+              [class.progress-bar__fill--danger]="b.tauxConsommation >= 100"
+              [style.width.%]="b.tauxConsommation > 100 ? 100 : b.tauxConsommation">
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
   </ng-container>
 </div>

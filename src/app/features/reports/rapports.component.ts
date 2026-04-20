@@ -167,6 +167,30 @@ export class RapportsComponent implements OnInit {
     this.toastr.success('Export CSV téléchargé');
   }
 
+  async onExportExcel(): Promise<void> {
+    if (!this.rapport) return;
+    try {
+      const caisseName = this.getSelectedCaisseName() || undefined;
+      await this.rapportService.exportExcel(this.rapport, caisseName);
+      this.toastr.success('Export Excel téléchargé');
+    } catch (err) {
+      console.error(err);
+      this.toastr.error('Erreur lors de l\'export Excel');
+    }
+  }
+
+  async onExportPDF(): Promise<void> {
+    if (!this.rapport) return;
+    try {
+      const caisseName = this.getSelectedCaisseName() || undefined;
+      await this.rapportService.exportPDF(this.rapport, caisseName);
+      this.toastr.success('Export PDF téléchargé');
+    } catch (err) {
+      console.error(err);
+      this.toastr.error('Erreur lors de l\'export PDF');
+    }
+  }
+
   onExportJSON(): void {
     if (!this.rapport) return;
     this.rapportService.exportJSON(this.rapport);

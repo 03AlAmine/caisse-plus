@@ -1,0 +1,650 @@
+<div class="param-section card">
+  <div class="param-section__header">
+    <h2 class="param-section__title">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle
+          cx="9"
+          cy="9"
+          r="2.5"
+          stroke="currentColor"
+          stroke-width="1.5"
+        />
+        <path
+          d="M9 1v2M9 15v2M1 9h2M15 9h2M3.22 3.22l1.42 1.42M13.36 13.36l1.42 1.42M14.78 3.22l-1.42 1.42M4.64 13.36l-1.42 1.42"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+      Préférences
+    </h2>
+    <div class="param-section__actions" *ngIf="hasChanges">
+      <button class="btn btn--secondary btn--sm" (click)="resetChanges()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path
+            d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+        </svg>
+        Annuler
+      </button>
+      <button
+        class="btn btn--primary btn--sm"
+        (click)="savePreferences()"
+        [disabled]="saving"
+      >
+        <span *ngIf="!saving">Enregistrer</span>
+        <span *ngIf="saving" class="btn-spinner"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-center" *ngIf="loading">
+    <span class="spinner"></span>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="preferences-content">
+      <form [formGroup]="form">
+        <!-- Section Affichage -->
+        <div class="preferences-section">
+          <div class="preferences-section__header">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect
+                x="2"
+                y="2"
+                width="14"
+                height="14"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="9"
+                cy="9"
+                r="2"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+            </svg>
+            <h3>Affichage</h3>
+          </div>
+
+          <div class="preferences-section__body">
+            <!-- Thème -->
+            <!-- Thème -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Thème</span>
+                <span class="preference-item__desc"
+                  >Apparence de l'application</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <div class="theme-selector">
+                  <button
+                    type="button"
+                    class="theme-option"
+                    [class.theme-option--active]="
+                      form.get('theme')?.value === 'light'
+                    "
+                    (click)="
+                      form.get('theme')?.setValue('light');
+                      previewTheme('light')
+                    "
+                  >
+                    <!-- SVG soleil -->
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <circle
+                        cx="10"
+                        cy="10"
+                        r="4"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      />
+                      <path
+                        d="M10 1v2M10 17v2M1 10h2M17 10h2"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    <span>Clair</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="theme-option"
+                    [class.theme-option--active]="
+                      form.get('theme')?.value === 'dark'
+                    "
+                    (click)="
+                      form.get('theme')?.setValue('dark'); previewTheme('dark')
+                    "
+                  >
+                    <!-- SVG lune -->
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path
+                        d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      />
+                      <path
+                        d="M10 3c3.5 0 6 2.5 6 6s-2.5 6-6 6"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    <span>Sombre</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="theme-option"
+                    [class.theme-option--active]="
+                      form.get('theme')?.value === 'system'
+                    "
+                    (click)="
+                      form.get('theme')?.setValue('system');
+                      previewTheme('system')
+                    "
+                  >
+                    <!-- SVG écran -->
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <rect
+                        x="2"
+                        y="3"
+                        width="16"
+                        height="12"
+                        rx="2"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      />
+                      <path
+                        d="M6 17h8"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    <span>Système</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Densité -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Densité d'affichage</span>
+                <span class="preference-item__desc"
+                  >Espacement entre les éléments</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <select
+                  class="form-control form-control--sm"
+                  formControlName="density"
+                >
+                  <option value="comfortable">Confortable</option>
+                  <option value="compact">Compact</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Menu latéral -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Menu latéral</span>
+                <span class="preference-item__desc"
+                  >État par défaut de la barre latérale</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <label class="switch">
+                  <input type="checkbox" formControlName="sidebarCollapsed" />
+                  <span class="switch__slider"></span>
+                </label>
+                <span class="preference-item__hint">
+                  {{
+                    form.get("sidebarCollapsed")?.value ? "Réduit" : "Étendu"
+                  }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Notifications -->
+        <div class="preferences-section">
+          <div class="preferences-section__header">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path
+                d="M9 2a5 5 0 0 1 5 5v3l1 2H3l1-2V7a5 5 0 0 1 5-5z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M7 14a2 2 0 0 0 4 0"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <h3>Notifications</h3>
+          </div>
+
+          <div class="preferences-section__body">
+            <!-- Notifications par email -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label"
+                  >Notifications par email</span
+                >
+                <span class="preference-item__desc"
+                  >Recevoir des alertes par email</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <label class="switch">
+                  <input type="checkbox" formControlName="emailNotifications" />
+                  <span class="switch__slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Notifications dans l'application -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Notifications in-app</span>
+                <span class="preference-item__desc"
+                  >Alertes dans l'application</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <label class="switch">
+                  <input type="checkbox" formControlName="inAppNotifications" />
+                  <span class="switch__slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Types de notifications -->
+            <div
+              class="preference-item preference-item--vertical"
+              *ngIf="form.get('inAppNotifications')?.value"
+            >
+              <span class="preference-item__sub-label">Types d'alertes</span>
+              <div class="checkbox-group">
+                <label class="checkbox-item">
+                  <input type="checkbox" formControlName="notifyBudgetAlert" />
+                  <span class="checkbox-item__label">Alertes de budget</span>
+                </label>
+                <label class="checkbox-item">
+                  <input
+                    type="checkbox"
+                    formControlName="notifyOperationValidation"
+                  />
+                  <span class="checkbox-item__label"
+                    >Validations d'opérations</span
+                  >
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" formControlName="notifyNewOperation" />
+                  <span class="checkbox-item__label">Nouvelles opérations</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Langue et format -->
+        <div class="preferences-section">
+          <div class="preferences-section__header">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle
+                cx="9"
+                cy="9"
+                r="7"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M2 9h14M9 2c1.5 2 2.5 4.5 2.5 7s-1 5-2.5 7M9 2c-1.5 2-2.5 4.5-2.5 7s1 5 2.5 7"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <h3>Langue et format</h3>
+          </div>
+
+          <div class="preferences-section__body">
+            <!-- Langue -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Langue</span>
+                <span class="preference-item__desc">Langue de l'interface</span>
+              </div>
+              <div class="preference-item__control">
+                <select
+                  class="form-control form-control--sm"
+                  formControlName="language"
+                >
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Format de date -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Format de date</span>
+                <span class="preference-item__desc">Affichage des dates</span>
+              </div>
+              <div class="preference-item__control">
+                <select
+                  class="form-control form-control--sm"
+                  formControlName="dateFormat"
+                >
+                  <option value="DD/MM/YYYY">JJ/MM/AAAA</option>
+                  <option value="MM/DD/YYYY">MM/JJ/AAAA</option>
+                  <option value="YYYY-MM-DD">AAAA-MM-JJ</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Format de devise -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Symbole monétaire</span>
+                <span class="preference-item__desc"
+                  >Affichage des montants</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <select
+                  class="form-control form-control--sm"
+                  formControlName="currencyDisplay"
+                >
+                  <option value="symbol">FCFA</option>
+                  <option value="code">XOF</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Sécurité -->
+        <div class="preferences-section" *ngIf="auth.isAdmin()">
+          <div class="preferences-section__header">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect
+                x="3"
+                y="7"
+                width="12"
+                height="8"
+                rx="1.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M6 7V5a3 3 0 0 1 6 0v2"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <h3>Sécurité</h3>
+          </div>
+
+          <div class="preferences-section__body">
+            <!-- Seuil de validation -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Seuil de validation</span>
+                <span class="preference-item__desc"
+                  >Montant à partir duquel une validation est requise</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <div class="input-suffix">
+                  <input
+                    type="number"
+                    class="form-control form-control--sm"
+                    formControlName="validationThreshold"
+                    min="0"
+                    step="10000"
+                  />
+                  <span class="suffix-text">FCFA</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Double authentification -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label"
+                  >Authentification à deux facteurs</span
+                >
+                <span class="preference-item__desc"
+                  >Renforcer la sécurité du compte</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <label class="switch">
+                  <input type="checkbox" formControlName="twoFactorAuth" />
+                  <span class="switch__slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Session timeout -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label"
+                  >Expiration de session</span
+                >
+                <span class="preference-item__desc"
+                  >Délai avant déconnexion automatique</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <select
+                  class="form-control form-control--sm"
+                  formControlName="sessionTimeout"
+                >
+                  <option value="15">15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">1 heure</option>
+                  <option value="120">2 heures</option>
+                  <option value="0">Jamais</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Sauvegarde et données -->
+        <div class="preferences-section" *ngIf="auth.isAdmin()">
+          <div class="preferences-section__header">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path
+                d="M3 13v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <path
+                d="M9 3v8M6 8l3 3 3-3"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <h3>Sauvegarde et données</h3>
+          </div>
+
+          <div class="preferences-section__body">
+            <!-- Sauvegarde automatique -->
+            <div class="preference-item">
+              <div class="preference-item__info">
+                <span class="preference-item__label"
+                  >Sauvegarde automatique</span
+                >
+                <span class="preference-item__desc"
+                  >Exporter les données périodiquement</span
+                >
+              </div>
+              <div class="preference-item__control">
+                <label class="switch">
+                  <input type="checkbox" formControlName="autoBackup" />
+                  <span class="switch__slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Fréquence de sauvegarde -->
+            <div class="preference-item" *ngIf="form.get('autoBackup')?.value">
+              <div class="preference-item__info">
+                <span class="preference-item__label">Fréquence</span>
+              </div>
+              <div class="preference-item__control">
+                <select
+                  class="form-control form-control--sm"
+                  formControlName="backupFrequency"
+                >
+                  <option value="daily">Quotidienne</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="monthly">Mensuelle</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Actions de données -->
+            <div class="data-actions">
+              <button
+                type="button"
+                class="btn btn--secondary btn--sm"
+                (click)="exportAllData()"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 10v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1M7 2v8M4 7l3 3 3-3"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Exporter toutes les données
+              </button>
+              <button
+                type="button"
+                class="btn btn--danger btn--sm"
+                (click)="confirmResetData()"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 4h8M5 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M11 4v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Réinitialiser les données
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Modal de confirmation réinitialisation -->
+<div class="modal-overlay" *ngIf="showResetModal" (click)="closeResetModal()">
+  <div class="modal modal--small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header__icon modal-header__icon--danger">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M10 2L18 17H2L10 2Z"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M10 8v4M10 14v1"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <h2>Réinitialiser les données</h2>
+      <button class="modal-close" (click)="closeResetModal()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M3 3l10 10M13 3L3 13"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert--danger alert--sm">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle
+            cx="8"
+            cy="8"
+            r="6"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M8 5v3M8 10v.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span>Cette action est irréversible !</span>
+      </div>
+      <p>
+        Êtes-vous absolument sûr de vouloir réinitialiser toutes les données de
+        l'organisation ?
+      </p>
+      <p class="modal-body__hint">
+        Toutes les opérations, caisses, budgets et catégories seront
+        définitivement supprimés.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Tapez "SUPPRIMER" pour confirmer</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="resetConfirmation"
+          placeholder="SUPPRIMER"
+        />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--secondary" (click)="closeResetModal()">
+        Annuler
+      </button>
+      <button
+        class="btn btn--danger"
+        (click)="executeResetData()"
+        [disabled]="resetConfirmation !== 'SUPPRIMER'"
+      >
+        Réinitialiser
+      </button>
+    </div>
+  </div>
+</div>

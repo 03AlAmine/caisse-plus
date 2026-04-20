@@ -1,4 +1,4 @@
-<div class="app-shell" [class.sidebar-collapsed]="!sidebarOpen">
+<div class="app-shell">
   <app-sidebar [isOpen]="sidebarOpen"></app-sidebar>
   <div class="main-content">
     <app-topbar (toggleSidebar)="toggleSidebar()" [isSidebarOpen]="sidebarOpen"></app-topbar>
@@ -8,5 +8,4 @@
   </div>
 </div>
 
-<!-- Overlay pour mobile -->
 <div class="mobile-overlay" *ngIf="sidebarOpen && isMobile" (click)="toggleSidebar()"></div>

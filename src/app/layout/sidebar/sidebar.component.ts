@@ -1,7 +1,9 @@
-import { Component, Input, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, EventEmitter, Input, Output, inject, OnInit, OnDestroy } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 interface NavItem {
   label: string;
@@ -21,12 +23,18 @@ interface NavSection {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen = true;
+  @Output() toggleRequest = new EventEmitter<void>();
 
   auth = inject(AuthService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
+
+  private routerSubscription?: Subscription;
+
+  // Forcer la détection de changement
+  currentRoute: string = '';
 
   navSections: NavSection[] = [
     {
@@ -57,6 +65,24 @@ export class SidebarComponent {
     },
   ];
 
+  ngOnInit(): void {
+    // Initialiser la route courante
+    this.currentRoute = this.router.url;
+
+    // S'abonner aux changements de route pour mettre à jour l'état actif
+    this.routerSubscription = this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+      )
+      .subscribe((event: NavigationEnd) => {
+        this.currentRoute = event.urlAfterRedirects || event.url;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
+  }
+
   get visibleSections(): NavSection[] {
     return this.navSections
       .map((section) => ({
@@ -78,8 +104,8 @@ export class SidebarComponent {
 
   getUserColor(user: any): string {
     const colors = [
-      'linear-gradient(135deg, #F4A623 0%, #C8851A 100%)',
-      'linear-gradient(135deg, #00A86B 0%, #007A4D 100%)',
+      'linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)',
+      'linear-gradient(135deg, #059669 0%, #047857 100%)',
       'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)',
       'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
     ];
@@ -97,13 +123,6 @@ export class SidebarComponent {
     return roles[role] || role;
   }
 
-  isActive(route: string): boolean {
-    return this.router.url.startsWith(route);
-  }
-
-  toggleUserOptions(): void {
-    // Optionnel: ouvrir un modal ou dropdown
-  }
   getUserDisplayName(user: any): string {
     if (!user) return 'Utilisateur';
     if (user.displayName) {
@@ -114,6 +133,19 @@ export class SidebarComponent {
       return user.email.split('@')[0];
     }
     return 'Utilisateur';
+  }
+
+  /**
+   * Vérifie si une route est active
+   * Gère correctement les routes enfants (ex: /caisses/xxx)
+   */
+  isActive(route: string): boolean {
+    // Pour le dashboard, correspondance exacte
+    if (route === '/dashboard') {
+      return this.currentRoute === '/dashboard' || this.currentRoute === '/';
+    }
+    // Pour les autres routes, correspondance de préfixe
+    return this.currentRoute.startsWith(route);
   }
 
   async onLogout(): Promise<void> {

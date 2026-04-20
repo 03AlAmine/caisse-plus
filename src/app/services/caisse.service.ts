@@ -97,6 +97,7 @@ export class CaisseService {
     libelle: string,
     responsableId: string,
     responsableNom: string,
+    numeroPiece?: string,
   ): Promise<void> {
     const opsCol = collection(this.firestore, 'operations');
     await runTransaction(this.firestore, async (tx) => {
@@ -125,6 +126,7 @@ export class CaisseService {
         type: 'transfert',
         sens: 'sortie',
         statut: 'validee',
+        ...(numeroPiece ? { numeroPiece } : {}),
         caisseId: caisseSourceId,
         caisseNom: sourceNom,
         transfertCaisseDestId: caisseDestId,
@@ -136,13 +138,14 @@ export class CaisseService {
         createdAt: now,
       });
 
-      // Opération ENTRÉE sur la caisse destination
+      // Opération ENTRÉE sur la caisse destination (même numéro de pièce)
       tx.set(doc(opsCol), {
         libelle,
         montant,
         type: 'transfert',
         sens: 'entree',
         statut: 'validee',
+        ...(numeroPiece ? { numeroPiece } : {}),
         caisseId: caisseDestId,
         caisseNom: destNom,
         transfertCaisseDestId: caisseSourceId,

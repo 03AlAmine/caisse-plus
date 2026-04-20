@@ -1,150 +1,71 @@
-// register.component.scss
-// Styles spécifiques au formulaire d'inscription
+// ═══════════════════════════════════════════════════════════════════════
+// Register — Navy Minimaliste
+// ═══════════════════════════════════════════════════════════════════════
 
-.auth-wrapper {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-cream) 0%, #f5f0e8 100%);
-  padding: 2rem;
-}
+@import '../login/login.component.scss'; // Réutilisation des styles communs
 
-.auth-card {
-  background: var(--color-white);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  width: 100%;
-  max-width: 580px;
-  padding: 2rem 2rem 2rem;
-  transition: transform var(--transition-base);
-  animation: fadeIn 0.4s ease;
-
-  @media (max-width: 640px) {
-    padding: 1.5rem;
-  }
-}
-
-// Header avec logo
-.auth-header {
-  text-align: center;
-  margin-bottom: 2rem;
-
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-
-    .logo-icon {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy-600) 100%);
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      box-shadow: var(--shadow-gold);
-    }
-
-    .logo-text {
-      font-family: var(--font-display);
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: var(--color-navy);
-      letter-spacing: -0.03em;
-
-      .logo-plus {
-        color: var(--color-gold);
-      }
-    }
-  }
-
-  h1 {
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--color-navy);
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.02em;
-  }
-
-  p {
-    font-size: 0.875rem;
-    color: var(--color-gray-600);
-  }
-}
-
-// Indicateur d'étapes
+// ─── Indicateur d'étapes ────────────────────────────────────────────────
 .steps-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  margin-bottom: 2rem;
-  padding: 0 1rem;
+  margin-bottom: var(--space-8);
+  padding: 0 var(--space-2);
 }
 
 .step-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-2);
   flex-shrink: 0;
 
-  .step-dot {
+  &__dot {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid var(--color-gray-200);
+    border: 2px solid var(--gray-200);
     background: var(--color-white);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-display);
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
     font-weight: 700;
-    color: var(--color-gray-400);
-    transition: all 0.3s ease;
+    color: var(--gray-400);
+    transition: all 0.3s var(--ease-out);
   }
 
-  span {
-    font-size: 0.7rem;
+  &__label {
+    font-size: 10px;
     font-weight: 600;
-    color: var(--color-gray-400);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: color 0.3s ease;
+    letter-spacing: 0.06em;
+    color: var(--gray-400);
+    transition: color 0.3s var(--ease-out);
     white-space: nowrap;
-
-    @media (max-width: 480px) {
-      font-size: 0.6rem;
-    }
   }
 
-  &.active {
-    .step-dot {
-      border-color: var(--color-navy);
-      background: var(--color-navy);
+  &--active {
+    .step-item__dot {
+      border-color: var(--navy-600);
+      background: var(--navy-600);
       color: var(--color-white);
-      box-shadow: 0 0 0 4px rgba(10, 22, 40, 0.1);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     }
-    span {
-      color: var(--color-navy);
+    .step-item__label {
+      color: var(--navy-700);
       font-weight: 700;
     }
   }
 
-  &.done {
-    .step-dot {
-      border-color: var(--color-green);
-      background: var(--color-green);
+  &--done {
+    .step-item__dot {
+      border-color: var(--color-success);
+      background: var(--color-success);
       color: var(--color-white);
     }
-    span {
-      color: var(--color-green);
+    .step-item__label {
+      color: var(--color-success-dark);
     }
   }
 }
@@ -152,376 +73,99 @@
 .step-line {
   flex: 1;
   height: 2px;
-  background: var(--color-gray-200);
-  margin: 0 8px;
+  background: var(--gray-200);
+  margin: 0 var(--space-2);
   margin-bottom: 26px;
   min-width: 40px;
-  transition: background 0.3s ease;
+  transition: background 0.3s var(--ease-out);
 
-  &.done {
-    background: var(--color-green);
+  &--done {
+    background: var(--color-success);
   }
 }
 
-// Formulaire
-.auth-form {
-  margin-top: 1rem;
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-
-  label {
-    display: block;
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-gray-800);
-    margin-bottom: 0.4rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    color: var(--color-gray-900);
-    background: var(--color-white);
-    border: 1.5px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
-    transition: all var(--transition-fast);
-    outline: none;
-
-    &::placeholder {
-      color: var(--color-gray-400);
-    }
-
-    &:focus {
-      border-color: var(--color-navy);
-      box-shadow: 0 0 0 3px rgba(10, 22, 40, 0.08);
-    }
-
-    &.is-invalid,
-    &.ng-invalid.ng-touched {
-      border-color: var(--color-red);
-
-      &:focus {
-        box-shadow: 0 0 0 3px rgba(232, 69, 60, 0.12);
-      }
-    }
-  }
-
-  &.has-error {
-    input, select, textarea {
-      border-color: var(--color-red);
-    }
-  }
-}
-
-.input-with-toggle {
-  position: relative;
-
-  input {
-    padding-right: 3rem;
-  }
-
-  .toggle-pwd {
-    position: absolute;
-    right: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0.25rem;
-    border-radius: var(--radius-sm);
-    color: var(--color-gray-400);
-    transition: all var(--transition-fast);
-
-    &:hover {
-      color: var(--color-navy);
-      background: var(--color-gray-50);
-    }
-  }
-}
-
-.error-msg {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--color-red);
-  margin-top: 0.3rem;
-  padding-left: 0.25rem;
-}
-
-.error-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--color-red-light);
-  border: 1px solid #f5b4b0;
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
-  font-size: 0.85rem;
-  color: #8b1f1c;
-  animation: fadeIn 0.3s ease;
-
-  span {
-    font-size: 1rem;
-  }
-}
-
-// Boutons
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy-600) 100%);
-  color: var(--color-white);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1.5rem;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1.5rem;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background: var(--color-gray-200);
-    transform: translateY(-1px);
-  }
-}
-
-.step2-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-
-  .btn-secondary,
-  .btn-primary {
-    flex: 1;
-  }
-}
-
-// Radio group
+// ─── Radio group ────────────────────────────────────────────────────────
 .radio-group {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
-.radio-label {
+.radio-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 1.5px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast);
   background: var(--color-white);
 
   &:hover {
-    background: var(--color-gray-50);
-    border-color: var(--color-gray-300);
+    background: var(--gray-50);
+    border-color: var(--navy-400);
   }
 
   input[type="radio"] {
-    width: 18px;
-    height: 18px;
     margin-top: 2px;
+    accent-color: var(--navy-600);
     flex-shrink: 0;
-    cursor: pointer;
-    accent-color: var(--color-navy);
   }
 
-  .radio-text {
-    display: flex;
-    flex-direction: column;
+  &__content {
     flex: 1;
+  }
 
-    strong {
-      font-size: 0.9rem;
-      color: var(--color-gray-900);
-      margin-bottom: 0.2rem;
-    }
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+  }
 
-    small {
-      font-size: 0.75rem;
-      color: var(--color-gray-600);
-      line-height: 1.4;
-    }
+  &__hint {
+    font-size: var(--text-xs);
+    color: var(--gray-400);
   }
 }
 
-// Organisation info boxes
-.org-info-box {
-  background: #eff6ff;
-  border-left: 4px solid var(--color-navy);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 1.5rem;
-  font-size: 0.85rem;
-  color: #1e40af;
-  line-height: 1.5;
+// ─── Actions étape 2 ────────────────────────────────────────────────────
+.step-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
 
-  p {
-    margin: 0;
-  }
-
-  strong {
-    font-weight: 700;
-  }
-
-  &.info-warning {
-    background: #fef3c7;
-    border-left-color: #f59e0b;
-    color: #92400e;
-
-    strong {
-      color: #d97706;
-    }
-  }
-
-  &.info-success {
-    background: #d1fae5;
-    border-left-color: var(--color-green);
-    color: #065f46;
+  .btn {
+    flex: 1;
+    height: 48px;
   }
 }
 
-.help-text {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--color-gray-500);
-  margin-top: 0.3rem;
-  padding-left: 0.25rem;
+// ─── Alertes compactes ──────────────────────────────────────────────────
+.alert--sm {
+  margin-bottom: var(--space-5);
 }
 
-// Spinner
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: var(--color-white);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-// Footer avec lien
-.auth-footer {
-  text-align: center;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-gray-100);
-  font-size: 0.85rem;
-  color: var(--color-gray-600);
-
-  a {
-    color: var(--color-navy);
-    font-weight: 700;
-    text-decoration: none;
-    transition: color var(--transition-fast);
-
-    &:hover {
-      text-decoration: underline;
-      color: var(--color-gold-dark);
-    }
-  }
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// Responsive
-@media (max-width: 640px) {
-  .auth-card {
-    padding: 1.5rem;
+// ─── Responsive ─────────────────────────────────────────────────────────
+@media (max-width: 500px) {
+  .step-item__label {
+    font-size: 9px;
   }
 
-  .step-item span {
-    font-size: 0.6rem;
+  .step-item__dot {
+    width: 30px;
+    height: 30px;
   }
 
-  .step-dot {
-    width: 30px !important;
-    height: 30px !important;
-    font-size: 0.75rem !important;
-  }
-
-  .radio-label {
-    padding: 0.75rem;
-  }
-
-  .step2-actions {
+  .step-actions {
     flex-direction: column;
   }
-}
 
-// États de chargement
-.loading-overlay {
-  position: relative;
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-// Accessibilité
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  .radio-item {
+    padding: var(--space-3);
   }
 }

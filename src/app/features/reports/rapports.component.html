@@ -1,0 +1,503 @@
+<div class="page-wrapper">
+
+  <!-- En-tête -->
+  <header class="page-header">
+    <div class="page-header__content">
+      <h1 class="page-header__title">Rapports financiers</h1>
+      <p class="page-header__subtitle">Analysez les flux de votre organisation</p>
+    </div>
+    <div class="page-header__actions" *ngIf="rapport">
+      <button class="btn btn--secondary" (click)="onExportCSV()" title="Exporter en CSV">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 10v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1M7 2v8M4 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        CSV
+      </button>
+      <button class="btn btn--success" (click)="onExportExcel()" title="Exporter en Excel (.xlsx)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Excel
+      </button>
+      <button class="btn btn--danger" (click)="onExportPDF()" title="Exporter en PDF">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 2h8a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 6h4M5 8h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        PDF
+      </button>
+      <button class="btn btn--secondary" (click)="printRapport()" title="Imprimer">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="3" y="4" width="8" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M4 2h6v2H4V2zM4 10h6v2H4v-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Imprimer
+      </button>
+    </div>
+  </header>
+
+  <!-- Panneau de génération -->
+  <div class="card generation-card animate-fade-in">
+    <div class="generation-card__header">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M9 5v4l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <h3>Paramètres du rapport</h3>
+    </div>
+
+    <div class="generation-card__content">
+      <!-- Raccourcis période -->
+      <div class="period-shortcuts">
+        <span class="section-label">Période rapide</span>
+        <div class="shortcut-buttons">
+          <button class="shortcut-btn" (click)="setMoisActuel(); generer()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Ce mois
+          </button>
+          <button class="shortcut-btn" (click)="setMoisPrecedent(); generer()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Mois précédent
+          </button>
+          <button class="shortcut-btn" (click)="setTrimestre(); generer()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M4 1v2M10 1v2M2 7h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Ce trimestre
+          </button>
+          <button class="shortcut-btn" (click)="setAnneeActuelle(); generer()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M7 4v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Cette année
+          </button>
+        </div>
+      </div>
+
+      <!-- Période personnalisée -->
+      <div class="period-custom">
+        <span class="section-label">Période personnalisée</span>
+        <div class="date-inputs">
+          <div class="date-input">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <input type="date" [(ngModel)]="dateDebut" />
+          </div>
+          <span class="date-separator">—</span>
+          <div class="date-input">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <input type="date" [(ngModel)]="dateFin" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtre caisse -->
+      <div class="caisse-filter">
+        <span class="section-label">Caisse</span>
+        <select [(ngModel)]="caisseId" class="form-control">
+          <option value="">Toutes les caisses</option>
+          <option *ngFor="let c of caisses" [value]="c.id">{{ c.nom }}</option>
+        </select>
+      </div>
+
+      <!-- Bouton générer -->
+      <button class="btn btn--primary btn--lg" (click)="generer()" [disabled]="loading">
+        <span *ngIf="!loading">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 2h10v10H2V2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Générer le rapport
+        </span>
+        <span *ngIf="loading" class="btn-spinner"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Résultats -->
+  <ng-container *ngIf="rapport && !loading">
+
+    <!-- KPIs synthèse -->
+    <div class="kpi-grid animate-slide-in">
+      <div class="kpi-card kpi-card--entree">
+        <div class="kpi-card__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 17V3M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="kpi-card__content">
+          <span class="kpi-card__label">Total Entrées</span>
+          <span class="kpi-card__value kpi-card__value--positive">{{ rapport.totalEntrees | number:'1.0-0' }} <small>FCFA</small></span>
+          <span class="kpi-card__trend kpi-card__trend--up" *ngIf="tendanceEntrees > 0">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M5 2L9 8H1L5 2Z" fill="currentColor"/>
+            </svg>
+            {{ tendanceEntrees }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--sortie">
+        <div class="kpi-card__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 3v14M3 10l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="kpi-card__content">
+          <span class="kpi-card__label">Total Sorties</span>
+          <span class="kpi-card__value kpi-card__value--negative">{{ rapport.totalSorties | number:'1.0-0' }} <small>FCFA</small></span>
+          <span class="kpi-card__trend kpi-card__trend--down" *ngIf="tendanceSorties > 0">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M5 8L1 2H9L5 8Z" fill="currentColor"/>
+            </svg>
+            {{ tendanceSorties }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class.kpi-card--positive]="rapport.soldeNet >= 0" [class.kpi-card--negative]="rapport.soldeNet < 0">
+        <div class="kpi-card__icon">
+          <svg *ngIf="rapport.soldeNet >= 0" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M2 10L8 16L18 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg *ngIf="rapport.soldeNet < 0" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M10 6v4M10 14v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="kpi-card__content">
+          <span class="kpi-card__label">Solde net</span>
+          <span class="kpi-card__value">{{ rapport.soldeNet | number:'1.0-0' }} <small>FCFA</small></span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--ops">
+        <div class="kpi-card__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5h14M3 10h10M3 15h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="kpi-card__content">
+          <span class="kpi-card__label">Opérations</span>
+          <span class="kpi-card__value">{{ rapport.operations.length }}</span>
+          <span class="kpi-card__sub">dont {{ getPendingCount() }} en attente</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre de taux -->
+    <div class="taux-card animate-fade-in" *ngIf="rapport.totalEntrees > 0">
+      <div class="taux-card__header">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 10l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Taux d'utilisation des entrées</span>
+      </div>
+      <div class="taux-card__bar">
+        <div class="progress-bar">
+          <div class="progress-bar__fill" [class.progress-bar__fill--normal]="tauxSorties < 70"
+                                           [class.progress-bar__fill--warning]="tauxSorties >= 70 && tauxSorties < 100"
+                                           [class.progress-bar__fill--danger]="tauxSorties >= 100"
+                                           [style.width.%]="tauxSorties > 100 ? 100 : tauxSorties"></div>
+        </div>
+        <span class="taux-card__value" [class.taux-card__value--normal]="tauxSorties < 70"
+                                        [class.taux-card__value--warning]="tauxSorties >= 70 && tauxSorties < 100"
+                                        [class.taux-card__value--danger]="tauxSorties >= 100">
+          {{ tauxSorties }}%
+        </span>
+      </div>
+      <div class="taux-card__footer">
+        Sorties représentent {{ tauxSorties }}% des entrées
+      </div>
+    </div>
+
+    <!-- Onglets -->
+    <div class="tabs-container animate-fade-in">
+      <button class="tab" [class.tab--active]="onglet === 'synthese'" (click)="onglet = 'synthese'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Synthèse
+      </button>
+      <button class="tab" [class.tab--active]="onglet === 'operations'" (click)="onglet = 'operations'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 4h8M3 7h8M3 10h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Opérations
+        <span class="tab__badge">{{ rapport.operations.length }}</span>
+      </button>
+      <button class="tab" [class.tab--active]="onglet === 'categories'" (click)="onglet = 'categories'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 3h4v4H2V3zM8 3h4v4H8V3zM2 9h4v4H2V9zM8 9h4v4H8V9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Par catégorie
+      </button>
+      <button class="tab" [class.tab--active]="onglet === 'caisses'" (click)="onglet = 'caisses'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="2" y="4" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 4V2M9 4V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Par caisse
+      </button>
+    </div>
+
+    <!-- Onglet Synthèse -->
+    <div class="tab-content" *ngIf="onglet === 'synthese'">
+      <div class="synthese-grid">
+        <div class="card synthese-card">
+          <div class="synthese-card__header">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 2h12v12H2V2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M5 10l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h4>Top entrées par catégorie</h4>
+          </div>
+          <div class="synthese-card__body">
+            <div class="category-row" *ngFor="let cat of rapport.parCategorie.slice(0, 5)">
+              <div class="category-row__info">
+                <span class="category-row__name">{{ cat.nom }}</span>
+                <span class="category-row__percent">{{ getCategoryPercent(cat.total) }}%</span>
+              </div>
+              <span class="category-row__amount category-row__amount--entree">+{{ cat.total | number:'1.0-0' }} FCFA</span>
+            </div>
+            <p class="empty-msg" *ngIf="rapport.parCategorie.length === 0">Aucune donnée disponible</p>
+          </div>
+        </div>
+
+        <div class="card synthese-card">
+          <div class="synthese-card__header">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="4" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M6 4V2M10 4V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <h4>Activité par caisse</h4>
+          </div>
+          <div class="synthese-card__body">
+            <div class="caisse-stat" *ngFor="let c of rapport.parCaisse">
+              <div class="caisse-stat__header">
+                <span class="caisse-stat__name">{{ c.nom }}</span>
+                <span class="caisse-stat__net" [class.caisse-stat__net--positive]="(c.entrees - c.sorties) >= 0" [class.caisse-stat__net--negative]="(c.entrees - c.sorties) < 0">
+                  Net: {{ (c.entrees - c.sorties) | number:'1.0-0' }} FCFA
+                </span>
+              </div>
+              <div class="caisse-stat__amounts">
+                <span class="amount-badge amount-badge--entree">+{{ c.entrees | number:'1.0-0' }}</span>
+                <span class="amount-badge amount-badge--sortie">-{{ c.sorties | number:'1.0-0' }}</span>
+              </div>
+            </div>
+            <p class="empty-msg" *ngIf="rapport.parCaisse.length === 0">Aucune donnée disponible</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Résumé de la période -->
+      <div class="period-summary">
+        <div class="period-summary__item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <span>Période du <strong>{{ dateDebut | date:'dd/MM/yyyy' }}</strong> au <strong>{{ dateFin | date:'dd/MM/yyyy' }}</strong></span>
+        </div>
+        <div class="period-summary__item" *ngIf="caisseId">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="2" y="4" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>Caisse : <strong>{{ getSelectedCaisseName() }}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onglet Opérations -->
+    <div class="tab-content" *ngIf="onglet === 'operations'">
+      <div class="card table-card" *ngIf="rapport.operations.length > 0; else noData">
+        <div class="table-card__header">
+          <div class="search-input">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Rechercher..." />
+          </div>
+          <span class="table-count">{{ filteredOperations.length }} / {{ rapport.operations.length }} opérations</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Libellé</th>
+                <th>Caisse</th>
+                <th>Catégorie</th>
+                <th>Type</th>
+                <th class="text-right">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let op of filteredOperations">
+                <td>{{ toDate(op.date) | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <strong>{{ op.libelle }}</strong>
+                  <span class="op-notes" *ngIf="op.notes">{{ op.notes }}</span>
+                </td>
+                <td>{{ op.caisseNom || '—' }}</td>
+                <td>{{ op.categorieNom || '—' }}</td>
+                <td>
+                  <span class="badge" [class.badge--success]="op.type === 'entree'"
+                                        [class.badge--danger]="op.type === 'sortie'"
+                                        [class.badge--navy]="op.type === 'transfert'">
+                    {{ op.type === 'entree' ? 'Entrée' : op.type === 'sortie' ? 'Sortie' : 'Transfert' }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <span class="montant" [class.montant--entree]="op.type === 'entree'"
+                                        [class.montant--sortie]="op.type === 'sortie'">
+                    {{ op.type === 'entree' ? '+' : '-' }}{{ op.montant | number:'1.0-0' }} FCFA
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onglet Catégories -->
+    <div class="tab-content" *ngIf="onglet === 'categories'">
+      <div class="card table-card" *ngIf="rapport.parCategorie.length > 0; else noData">
+        <div class="table-card__header">
+          <span>Total général : <strong>{{ getTotalCategories() | number:'1.0-0' }} FCFA</strong></span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th>Type</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">% du total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of rapport.parCategorie">
+                <td>
+                  <div class="category-cell">
+                    <span class="category-cell__dot" [style.background]="getCategoryColor(c.nom)"></span>
+                    <strong>{{ c.nom }}</strong>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" [class.badge--success]="c.type === 'entree'"
+                                      [class.badge--danger]="c.type === 'sortie'"
+                                      [class.badge--gray]="c.type === 'les_deux'">
+                    {{ c.type === 'entree' ? 'Entrée' : c.type === 'sortie' ? 'Sortie' : 'Les deux' }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <span class="montant" [class.montant--entree]="c.type === 'entree'"
+                                        [class.montant--sortie]="c.type === 'sortie'">
+                    {{ c.total | number:'1.0-0' }} FCFA
+                  </span>
+                </td>
+                <td class="text-right">
+                  <span class="percent-badge">{{ getCategoryPercent(c.total) }}%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onglet Caisses -->
+    <div class="tab-content" *ngIf="onglet === 'caisses'">
+      <div class="card table-card" *ngIf="rapport.parCaisse.length > 0; else noData">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Caisse</th>
+                <th class="text-right">Entrées</th>
+                <th class="text-right">Sorties</th>
+                <th class="text-right">Net</th>
+                <th class="text-right">Performance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of rapport.parCaisse">
+                <td><strong>{{ c.nom }}</strong></td>
+                <td class="text-right"><span class="montant montant--entree">+{{ c.entrees | number:'1.0-0' }} FCFA</span></td>
+                <td class="text-right"><span class="montant montant--sortie">-{{ c.sorties | number:'1.0-0' }} FCFA</span></td>
+                <td class="text-right">
+                  <strong [class.montant--entree]="(c.entrees - c.sorties) >= 0" [class.montant--sortie]="(c.entrees - c.sorties) < 0">
+                    {{ (c.entrees - c.sorties) | number:'1.0-0' }} FCFA
+                  </strong>
+                </td>
+                <td class="text-right">
+                  <div class="performance-bar">
+                    <div class="performance-bar__fill" [style.width.%]="getCaissePerformance(c)"></div>
+                    <span class="performance-bar__text">{{ getCaissePerformance(c) }}%</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noData>
+      <div class="card empty-state">
+        <div class="empty-state__icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M6 8h20M6 16h14M6 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h4>Aucune donnée</h4>
+        <p>Aucune opération trouvée pour cette période.</p>
+      </div>
+    </ng-template>
+
+  </ng-container>
+
+  <!-- État initial -->
+  <div class="card initial-state animate-fade-in" *ngIf="!rapport && !loading">
+    <div class="initial-state__icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h3>Générez votre premier rapport</h3>
+    <p>Sélectionnez une période et cliquez sur "Générer" pour analyser vos finances.</p>
+    <button class="btn btn--primary btn--lg" (click)="generer()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M2 2h10v10H2V2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Générer le rapport du mois
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-center" *ngIf="loading">
+    <span class="spinner"></span>
+    <p class="loading-text">Génération du rapport en cours...</p>
+  </div>
+
+</div>

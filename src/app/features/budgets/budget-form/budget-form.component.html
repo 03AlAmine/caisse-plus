@@ -1,32 +1,42 @@
-<div class="form-page page-wrapper">
+<div class="page-wrapper">
 
-  <div class="form-header animate-fade-in">
-    <div class="header-back">
-      <a routerLink="/budgets" class="back-link">
-        <span class="back-icon">←</span> Retour aux budgets
-      </a>
-    </div>
-    <div class="header-title">
-      <div class="title-icon" [class.edit-mode]="isEdit">
-        <span>{{ isEdit ? '✏️' : '📊' }}</span>
+  <!-- En-tête -->
+  <header class="form-header animate-fade-in">
+    <a routerLink="/budgets" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Retour aux budgets
+    </a>
+
+    <div class="form-header__title">
+      <div class="form-header__icon" [class.form-header__icon--edit]="isEdit">
+        <svg *ngIf="!isEdit" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M3 5h18v14H3V5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <svg *ngIf="isEdit" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M4 20L20 4L20 20L4 20Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M8 16L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </div>
-      <div class="title-content">
+      <div class="form-header__text">
         <h1>{{ isEdit ? 'Modifier le budget' : 'Nouveau budget' }}</h1>
         <p>{{ isEdit ? 'Modifiez les paramètres de votre budget' : 'Définissez un plafond de dépenses pour mieux contrôler vos finances' }}</p>
       </div>
     </div>
-  </div>
+  </header>
 
   <div class="form-grid">
     <!-- Formulaire principal -->
-    <div class="form-card animate-slide-in">
+    <div class="card form-card animate-slide-in">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
         <!-- Nom du budget -->
-        <div class="form-group" [class.has-error]="form.get('nom')?.invalid && (form.get('nom')?.dirty || form.get('nom')?.touched)">
-          <label class="form-label required">
-            <span class="label-icon">🏷️</span>
+        <div class="form-group" [class.form-group--error]="form.get('nom')?.invalid && (form.get('nom')?.dirty || form.get('nom')?.touched)">
+          <label class="form-label">
             Nom du budget
+            <span class="form-label__required">*</span>
           </label>
           <input type="text"
                  formControlName="nom"
@@ -34,110 +44,114 @@
                  [class.is-invalid]="form.get('nom')?.invalid && (form.get('nom')?.dirty || form.get('nom')?.touched)"
                  placeholder="Ex: Budget Transport, Budget Événement annuel..." />
           <div class="form-error" *ngIf="form.get('nom')?.touched && form.get('nom')?.hasError('required')">
-            <span class="error-icon">⚠️</span> Le nom du budget est obligatoire
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Le nom du budget est obligatoire
           </div>
           <div class="form-error" *ngIf="form.get('nom')?.touched && form.get('nom')?.hasError('minlength')">
-            <span class="error-icon">⚠️</span> Le nom doit contenir au moins 3 caractères
+            Le nom doit contenir au moins 3 caractères
           </div>
-          <div class="form-hint success" *ngIf="form.get('nom')?.valid && form.get('nom')?.dirty">
-            <span class="hint-icon">✓</span> Nom valide
+          <div class="form-hint form-hint--success" *ngIf="form.get('nom')?.valid && form.get('nom')?.dirty">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Nom valide
           </div>
         </div>
 
         <!-- Caisse et Catégorie -->
         <div class="form-row">
-          <div class="form-group" [class.has-error]="form.get('caisseId')?.invalid && (form.get('caisseId')?.dirty || form.get('caisseId')?.touched)">
-            <label class="form-label required">
-              <span class="label-icon">🏦</span>
+          <div class="form-group">
+            <label class="form-label">
               Caisse concernée
+              <span class="form-label__required">*</span>
             </label>
             <select formControlName="caisseId" class="form-control" (change)="onCaisseChange($event)">
               <option value="">-- Sélectionner une caisse --</option>
               <option *ngFor="let c of caisses" [value]="c.id" [disabled]="!c.actif">
                 {{ c.nom }}
-                <span class="option-solde" *ngIf="c.type === 'principale'">(Principale)</span>
+                <ng-container *ngIf="c.type === 'principale'">(Principale)</ng-container>
               </option>
             </select>
-            <div class="form-error" *ngIf="form.get('caisseId')?.touched && form.get('caisseId')?.hasError('required')">
-              <span class="error-icon">⚠️</span> La caisse est obligatoire
-            </div>
             <div class="form-hint" *ngIf="selectedCaisse">
-              <span class="hint-icon">ℹ️</span>
               Budget pour la caisse <strong>{{ selectedCaisse.nom }}</strong>
-              <span *ngIf="selectedCaisse.type === 'principale'" class="badge badge--navy">Principale</span>
+              <span class="badge badge--navy" *ngIf="selectedCaisse.type === 'principale'">Principale</span>
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">
-              <span class="label-icon">📁</span>
-              Catégorie (optionnel)
-            </label>
+            <label class="form-label">Catégorie (optionnel)</label>
             <select formControlName="categorieId" class="form-control" (change)="onCategorieChange($event)">
               <option value="">-- Toutes les dépenses --</option>
               <option *ngFor="let cat of categoriesFiltrees" [value]="cat.id">
                 {{ cat.nom }}
-                <span class="option-type" *ngIf="cat.type === 'les_deux'">(Entrée/Sortie)</span>
               </option>
             </select>
             <div class="form-hint" *ngIf="selectedCategorie">
-              <span class="hint-icon">🎯</span>
               Seules les dépenses de la catégorie <strong>{{ selectedCategorie.nom }}</strong> seront comptabilisées
             </div>
             <div class="form-hint" *ngIf="!form.get('categorieId')?.value">
-              <span class="hint-icon">📊</span>
               Toutes les dépenses de la caisse seront comptabilisées
             </div>
           </div>
         </div>
 
         <!-- Montant prévisionnel -->
-        <div class="form-group" [class.has-error]="form.get('montantPrevu')?.invalid && (form.get('montantPrevu')?.dirty || form.get('montantPrevu')?.touched)">
-          <label class="form-label required">
-            <span class="label-icon">💰</span>
+        <div class="form-group">
+          <label class="form-label">
             Montant prévisionnel
+            <span class="form-label__required">*</span>
           </label>
           <div class="input-suffix">
             <input type="number"
                    formControlName="montantPrevu"
                    class="form-control"
-                   [class.is-invalid]="form.get('montantPrevu')?.invalid && (form.get('montantPrevu')?.dirty || form.get('montantPrevu')?.touched)"
                    min="1"
                    step="1000"
                    placeholder="0" />
             <span class="suffix-text">FCFA</span>
           </div>
           <div class="form-error" *ngIf="form.get('montantPrevu')?.touched && form.get('montantPrevu')?.hasError('required')">
-            <span class="error-icon">⚠️</span> Le montant est obligatoire
-          </div>
-          <div class="form-error" *ngIf="form.get('montantPrevu')?.touched && form.get('montantPrevu')?.hasError('min')">
-            <span class="error-icon">⚠️</span> Le montant doit être supérieur à 0
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Le montant est obligatoire
           </div>
           <div class="form-hint" *ngIf="form.get('montantPrevu')?.value > 0">
-            <span class="hint-icon">💡</span>
-            Montant: <strong>{{ form.get('montantPrevu')?.value | number:'1.0-0' }} FCFA</strong>
+            Montant : <strong>{{ form.get('montantPrevu')?.value | number:'1.0-0' }} FCFA</strong>
           </div>
         </div>
 
         <!-- Période -->
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label required">
-              <span class="label-icon">📅</span>
+            <label class="form-label">
               Période
+              <span class="form-label__required">*</span>
             </label>
             <div class="type-tabs">
-              <button type="button" class="type-tab"
-                      [class.active]="form.get('periode')?.value === 'mensuel'"
+              <button type="button"
+                      class="type-tab"
+                      [class.type-tab--active]="form.get('periode')?.value === 'mensuel'"
                       (click)="form.get('periode')?.setValue('mensuel')">
-                <span class="tab-icon">📆</span>
-                <span class="tab-label">Mensuel</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Mensuel</span>
               </button>
-              <button type="button" class="type-tab"
-                      [class.active]="form.get('periode')?.value === 'annuel'"
+              <button type="button"
+                      class="type-tab"
+                      [class.type-tab--active]="form.get('periode')?.value === 'annuel'"
                       (click)="form.get('periode')?.setValue('annuel')">
-                <span class="tab-icon">📅</span>
-                <span class="tab-label">Annuel</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M8 4v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Annuel</span>
               </button>
             </div>
           </div>
@@ -145,18 +159,14 @@
           <div class="form-group" *ngIf="form.get('periode')?.value === 'mensuel'">
             <label class="form-label">Mois</label>
             <select formControlName="mois" class="form-control">
-              <option *ngFor="let m of MOIS; let i = index" [value]="i + 1">
-                {{ m }}
-              </option>
+              <option *ngFor="let m of MOIS; let i = index" [value]="i + 1">{{ m }}</option>
             </select>
           </div>
 
           <div class="form-group">
             <label class="form-label">Année</label>
             <select formControlName="annee" class="form-control">
-              <option *ngFor="let a of annees" [value]="a">
-                {{ a }}
-              </option>
+              <option *ngFor="let a of annees" [value]="a">{{ a }}</option>
             </select>
           </div>
         </div>
@@ -164,7 +174,6 @@
         <!-- Seuil d'alerte -->
         <div class="form-group">
           <label class="form-label">
-            <span class="label-icon">⚠️</span>
             Seuil d'alerte : <strong class="seuil-value">{{ form.get('seuilAlerte')?.value }}%</strong>
           </label>
           <div class="slider-container">
@@ -176,22 +185,22 @@
                    step="5" />
             <div class="slider-labels">
               <span>10%</span>
-              <span>25%</span>
               <span>50%</span>
-              <span>75%</span>
               <span>100%</span>
             </div>
           </div>
           <div class="seuil-description">
-            <span class="seuil-icon">🔔</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2L12 11H2L7 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
             <span>{{ getSeuilDescription() }}</span>
           </div>
           <div class="seuil-preview" *ngIf="form.get('montantPrevu')?.value > 0">
-            <div class="preview-item">
+            <div class="seuil-preview__item">
               <span>Dépense au seuil :</span>
               <strong>{{ getMontantSeuil() | number:'1.0-0' }} FCFA</strong>
             </div>
-            <div class="preview-item">
+            <div class="seuil-preview__item">
               <span>Dépassement à partir de :</span>
               <strong>{{ getMontantDepassement() | number:'1.0-0' }} FCFA</strong>
             </div>
@@ -199,34 +208,34 @@
         </div>
 
         <!-- Aperçu -->
-        <div class="form-preview" *ngIf="form.valid && form.get('nom')?.value">
-          <div class="preview-title">📋 Aperçu du budget</div>
-          <div class="preview-card">
-            <div class="preview-header">
-              <div class="preview-name">{{ form.get('nom')?.value }}</div>
-              <div class="preview-badge" [class]="form.get('periode')?.value">
+        <div class="preview-card" *ngIf="form.valid && form.get('nom')?.value">
+          <span class="preview-card__label">Aperçu du budget</span>
+          <div class="preview-card__content">
+            <div class="preview-card__header">
+              <span class="preview-card__name">{{ form.get('nom')?.value }}</span>
+              <span class="badge" [class.badge--info]="form.get('periode')?.value === 'mensuel'" [class.badge--navy]="form.get('periode')?.value === 'annuel'">
                 {{ form.get('periode')?.value === 'mensuel' ? 'Mensuel' : 'Annuel' }}
-              </div>
+              </span>
             </div>
-            <div class="preview-details">
-              <div class="preview-detail">
-                <span class="detail-label">Caisse :</span>
+            <div class="preview-card__details">
+              <div class="preview-card__row">
+                <span>Caisse :</span>
                 <span>{{ selectedCaisse?.nom || '—' }}</span>
               </div>
-              <div class="preview-detail" *ngIf="selectedCategorie">
-                <span class="detail-label">Catégorie :</span>
+              <div class="preview-card__row" *ngIf="selectedCategorie">
+                <span>Catégorie :</span>
                 <span>{{ selectedCategorie.nom }}</span>
               </div>
-              <div class="preview-detail">
-                <span class="detail-label">Période :</span>
+              <div class="preview-card__row">
+                <span>Période :</span>
                 <span>{{ getPeriodeLabel() }}</span>
               </div>
-              <div class="preview-detail highlight">
-                <span class="detail-label">Budget :</span>
+              <div class="preview-card__row preview-card__row--highlight">
+                <span>Budget :</span>
                 <span>{{ form.get('montantPrevu')?.value | number:'1.0-0' }} FCFA</span>
               </div>
-              <div class="preview-detail">
-                <span class="detail-label">Alerte à :</span>
+              <div class="preview-card__row">
+                <span>Alerte à :</span>
                 <span>{{ form.get('seuilAlerte')?.value }}% ({{ getMontantSeuil() | number:'1.0-0' }} FCFA)</span>
               </div>
             </div>
@@ -235,14 +244,9 @@
 
         <!-- Actions -->
         <div class="form-actions">
-          <a routerLink="/budgets" class="btn btn--outline btn--lg">
-            <span class="btn-icon">✕</span> Annuler
-          </a>
+          <a routerLink="/budgets" class="btn btn--secondary btn--lg">Annuler</a>
           <button type="submit" class="btn btn--primary btn--lg" [disabled]="saving || form.invalid">
-            <span *ngIf="!saving">
-              <span class="btn-icon">{{ isEdit ? '💾' : '✨' }}</span>
-              {{ isEdit ? 'Enregistrer les modifications' : 'Créer le budget' }}
-            </span>
+            <span *ngIf="!saving">{{ isEdit ? 'Enregistrer les modifications' : 'Créer le budget' }}</span>
             <span *ngIf="saving" class="btn-spinner"></span>
           </button>
         </div>
@@ -252,18 +256,21 @@
 
     <!-- Panneau d'aide -->
     <div class="help-panel animate-slide-in">
-      <div class="help-header">
-        <span class="help-icon">ℹ️</span>
+      <div class="help-panel__header">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9 6v4M9 12v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
         <h3>Aide et conseils</h3>
       </div>
 
-      <div class="help-section">
-        <h4>📊 Qu'est-ce qu'un budget ?</h4>
+      <div class="help-panel__section">
+        <h4>Qu'est-ce qu'un budget ?</h4>
         <p>Un budget vous permet de définir un plafond de dépenses pour une caisse ou une catégorie spécifique.</p>
       </div>
 
-      <div class="help-section">
-        <h4>⚙️ Comment ça fonctionne ?</h4>
+      <div class="help-panel__section">
+        <h4>Comment ça fonctionne ?</h4>
         <ul>
           <li>Les dépenses sont automatiquement comptabilisées</li>
           <li>Une alerte se déclenche au seuil défini</li>
@@ -271,8 +278,8 @@
         </ul>
       </div>
 
-      <div class="help-section">
-        <h4>💡 Conseils</h4>
+      <div class="help-panel__section">
+        <h4>Conseils</h4>
         <ul>
           <li>Définissez un seuil d'alerte entre 70% et 85%</li>
           <li>Utilisez des catégories pour des budgets précis</li>
@@ -280,24 +287,24 @@
         </ul>
       </div>
 
-      <div class="help-section">
-        <h4>📈 Exemple</h4>
+      <div class="help-panel__section">
+        <h4>Exemple</h4>
         <div class="example-box">
           <strong>Budget Transport</strong><br>
           Caisse Principale • Mars 2025<br>
-          Montant: 150 000 FCFA<br>
+          Montant : 150 000 FCFA<br>
           Alerte à 80% (120 000 FCFA)<br>
-          <span class="example-result">→ Alerte déclenchée à 120 000 FCFA</span>
+          <span class="example-box__result">→ Alerte déclenchée à 120 000 FCFA</span>
         </div>
       </div>
 
-      <div class="help-footer">
+      <div class="help-panel__footer">
         <div class="shortcut">
-          <span class="shortcut-key">↵</span>
+          <span class="shortcut__key">↵</span>
           <span>Valider</span>
         </div>
         <div class="shortcut">
-          <span class="shortcut-key">Esc</span>
+          <span class="shortcut__key">Esc</span>
           <span>Annuler</span>
         </div>
       </div>
@@ -308,18 +315,25 @@
   <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
     <div class="modal modal--small" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-header-icon warning">
-          <span class="icon">⚠️</span>
+        <div class="modal-header__icon modal-header__icon--warning">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L18 17H2L10 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 8v4M10 14v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
         </div>
         <h2>Confirmer la modification</h2>
-        <button class="modal-close" (click)="closeConfirmModal()">✕</button>
+        <button class="modal-close" (click)="closeConfirmModal()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
       <div class="modal-body">
         <p>Êtes-vous sûr de vouloir modifier ce budget ?</p>
-        <p class="modal-hint">Les modifications seront appliquées immédiatement et pourraient affecter les alertes en cours.</p>
+        <p class="modal-body__hint">Les modifications seront appliquées immédiatement et pourraient affecter les alertes en cours.</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn--outline" (click)="closeConfirmModal()">Annuler</button>
+        <button class="btn btn--secondary" (click)="closeConfirmModal()">Annuler</button>
         <button class="btn btn--primary" (click)="confirmSubmit()">Confirmer</button>
       </div>
     </div>

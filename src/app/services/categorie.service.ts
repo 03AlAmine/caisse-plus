@@ -46,12 +46,26 @@ export class CategorieService {
     await deleteDoc(doc(this.firestore, `categories/${id}`));
   }
 
-  // Initialiser les catégories par défaut à la création de l'organisation
-  async initCategories(): Promise<void> {
+  // Initialiser ou compléter les catégories par défaut.
+  // Stratégie non-destructive : on n'ajoute que les catégories système
+  // absentes (comparaison sur le nom normalisé). Les catégories custom
+  // de l'organisation ne sont jamais touchées.
+  async initCategories(): Promise<number> {
     const snap = await getDocs(query(this.col, where('organisationId', '==', this.orgId)));
-    if (snap.size > 0) return; // déjà initialisées
-    for (const cat of CATEGORIES_DEFAUT) {
+
+    // Noms déjà présents (insensible à la casse pour éviter les doublons)
+    const nomsExistants = new Set(
+      snap.docs.map(d => (d.data()['nom'] as string).toLowerCase().trim())
+    );
+
+    const aAjouter = CATEGORIES_DEFAUT.filter(
+      cat => !nomsExistants.has(cat.nom.toLowerCase().trim())
+    );
+
+    for (const cat of aAjouter) {
       await addDoc(this.col, { ...cat, organisationId: this.orgId });
     }
+
+    return aAjouter.length; // nombre de catégories ajoutées
   }
 }

@@ -33,6 +33,7 @@ export class OperationFormComponent implements OnInit {
   isEdit = false;
   operationId: string | null = null;
   showConfirmModal = false;
+  showResumeModal  = false;   // résumé avant enregistrement (nouvelle opération)
   uploadedFiles: File[] = [];
 
   ngOnInit(): void {
@@ -116,6 +117,30 @@ export class OperationFormComponent implements OnInit {
   get libelle() { return this.form.get('libelle')!; }
   get montant() { return this.form.get('montant')!; }
 
+  // Arrondi entier pour éviter les erreurs flottantes (5 030 360 - 3 678 660 = 1 351 700)
+  get montantEntier(): number {
+    return Math.round(Number(this.montant.value) || 0);
+  }
+
+  get selectedCategorie(): Categorie | undefined {
+    return this.categories.find(c => c.id === this.form.get('categorieId')?.value);
+  }
+
+  get typeLabel(): string {
+    const t = this.form.get('type')?.value;
+    return t === 'entree' ? '📈 Entrée' : t === 'sortie' ? '📉 Sortie' : '🔄 Transfert';
+  }
+
+  get typeClass(): string {
+    return this.form.get('type')?.value ?? 'sortie';
+  }
+
+  // Bloque le scroll souris sur le champ montant (évite les incréments accidentels)
+  onMontantWheel(event: WheelEvent): void {
+    event.preventDefault();
+    (event.target as HTMLInputElement).blur();
+  }
+
   get selectedCaisse(): Caisse | undefined {
     const id = this.form.get('caisseId')?.value;
     return this.caisses.find(c => c.id === id);
@@ -184,17 +209,12 @@ export class OperationFormComponent implements OnInit {
       return;
     }
 
-    if (this.form.get('type')?.value === 'sortie' && this.montant.value > this.selectedCaisseSolde) {
-      const confirm = window.confirm(
-        `Attention : Le solde de la caisse (${this.selectedCaisseSolde.toLocaleString()} FCFA) est inférieur au montant saisi (${this.montant.value.toLocaleString()} FCFA).\n\nVoulez-vous continuer ?`
-      );
-      if (!confirm) return;
-    }
-
     if (this.isEdit) {
+      // Mode édition → modal de confirmation simple (existante)
       this.showConfirmModal = true;
     } else {
-      await this.saveOperation();
+      // Nouvelle opération → modal de résumé (nouvelle)
+      this.showResumeModal = true;
     }
   }
 
@@ -207,6 +227,25 @@ export class OperationFormComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
+  // Résumé nouvelle opération
+  confirmResume(): void {
+    this.showResumeModal = false;
+    // Vérification solde insuffisant (sortie) après confirmation du résumé
+    if (this.form.get('type')?.value === 'sortie' && this.montantEntier > this.selectedCaisseSolde) {
+      if (!window.confirm(
+        `⚠️ Solde insuffisant !\n\n` +
+        `Solde disponible : ${this.selectedCaisseSolde.toLocaleString('fr-FR')} FCFA\n` +
+        `Montant saisi    : ${this.montantEntier.toLocaleString('fr-FR')} FCFA\n\n` +
+        `Voulez-vous quand même continuer ?`
+      )) return;
+    }
+    this.saveOperation();
+  }
+
+  closeResumeModal(): void {
+    this.showResumeModal = false;
+  }
+
   private async saveOperation(): Promise<void> {
     this.loading = true;
     const val = this.form.value;
@@ -215,7 +254,7 @@ export class OperationFormComponent implements OnInit {
     try {
       const data: any = {
         libelle: val.libelle,
-        montant: Number(val.montant),
+        montant: Math.round(Number(val.montant) || 0), // arrondi entier FCFA
         type: val.type,
         caisseId: val.caisseId,
         caisseNom: caisse?.nom ?? '',

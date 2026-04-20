@@ -1,13 +1,23 @@
 {
   "indexes": [
     {
-      "collectionGroup": "caisses",
+      "collectionGroup": "operations",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "caisseId",       "order": "ASCENDING" },
         { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "actif", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "DESCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" }
+        { "fieldPath": "statut",         "order": "ASCENDING" },
+        { "fieldPath": "date",           "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "operations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "caisseId",       "order": "ASCENDING" },
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "date",           "order": "ASCENDING" },
+        { "fieldPath": "createdAt",      "order": "ASCENDING" }
       ]
     },
     {
@@ -15,69 +25,8 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "statut", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "operations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "statut", "order": "ASCENDING" },
-        { "fieldPath": "date", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "operations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "caisseId", "order": "ASCENDING" },
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "operations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "budgets",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "actif", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "categories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "nom", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "categories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "nom", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organisationId", "order": "ASCENDING" },
-        { "fieldPath": "actif", "order": "ASCENDING" },
-        { "fieldPath": "displayName", "order": "ASCENDING" }
+        { "fieldPath": "statut",         "order": "ASCENDING" },
+        { "fieldPath": "date",           "order": "ASCENDING" }
       ]
     }
   ],

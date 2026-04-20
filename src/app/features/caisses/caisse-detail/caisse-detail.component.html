@@ -1,412 +1,516 @@
 <div class="page-wrapper">
-  <ng-container *ngIf="caisse$ | async as caisse; else loadingTpl">
-    <!-- En-tête avec actions -->
-    <div class="detail-header animate-fade-in">
-      <div class="header-back">
-        <a routerLink="/caisses" class="back-link">
-          <span class="back-icon">←</span> Toutes les caisses
-        </a>
+
+  <!-- En-tête -->
+  <header class="detail-header animate-fade-in">
+    <a routerLink="/caisses" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Toutes les caisses
+    </a>
+
+    <div class="detail-header__main" *ngIf="caisse">
+      <div class="detail-header__icon" [style.background]="caisse.couleur || 'var(--navy-600)'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="8" width="18" height="13" rx="2.5" stroke="white" stroke-width="1.8"/>
+          <path d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3" stroke="white" stroke-width="1.8"/>
+        </svg>
       </div>
-      <div class="header-title-section">
-        <div
-          class="caisse-icon"
-          [style.background]="caisse.couleur || 'var(--color-navy)'"
-        >
-          <span class="icon">{{
-            caisse.type === "principale" ? "🏛️" : "📦"
-          }}</span>
-        </div>
-        <div class="title-info">
-          <h1 class="caisse-name">{{ caisse.nom }}</h1>
-          <p class="caisse-description" *ngIf="caisse.description">
-            {{ caisse.description }}
-          </p>
+      <div class="detail-header__info">
+        <h1 class="detail-header__name">{{ caisse.nom }}</h1>
+        <p class="detail-header__desc" *ngIf="caisse.description">{{ caisse.description }}</p>
+      </div>
+    </div>
+
+    <div class="detail-header__actions" *ngIf="auth.isTresorier() && caisse">
+      <a [routerLink]="['/caisses', caisseId, 'modifier']" class="btn btn--secondary">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 10L10 2L12 4L4 12L1 13L2 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Modifier
+      </a>
+      <button class="btn btn--primary" (click)="goNouvelleOperation()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Nouvelle opération
+      </button>
+    </div>
+  </header>
+
+  <!-- Badges info -->
+  <div class="info-badges animate-fade-in" *ngIf="caisse">
+    <span class="badge" [class.badge--navy]="caisse.type === 'principale'" [class.badge--gray]="caisse.type === 'secondaire'">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <polygon points="6,1 7.5,4.5 11,4.5 8.25,6.75 9.5,10 6,7.75 2.5,10 3.75,6.75 1,4.5 4.5,4.5" fill="currentColor"/>
+      </svg>
+      {{ caisse.type === 'principale' ? 'Caisse principale' : 'Caisse secondaire' }}
+    </span>
+    <span class="badge badge--info" *ngIf="caisse.responsableNom">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      {{ caisse.responsableNom }}
+    </span>
+    <span class="badge badge--gray" *ngIf="caisse.createdAt">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M6 3v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Créée le {{ caisse.createdAt | date:'dd/MM/yyyy' }}
+    </span>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid animate-slide-in" *ngIf="caisse">
+    <div class="kpi-card kpi-card--solde" [style.--kpi-color]="caisse.couleur || 'var(--navy-600)'">
+      <div class="kpi-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="2.5" y="6.5" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="12" r="2" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">Solde actuel</span>
+        <div class="kpi-card__value" [class.kpi-card__value--neg]="caisse.solde < 0">
+          {{ caisse.solde | number:'1.0-0' }}
+          <span class="kpi-card__currency">FCFA</span>
         </div>
       </div>
-      <div class="header-actions" *ngIf="auth.isTresorier()">
-        <a
-          [routerLink]="['/caisses', caisseId, 'modifier']"
-          class="btn btn--outline btn--sm"
-        >
-          <span class="btn-icon">✏️</span> Modifier
-        </a>
+    </div>
+
+    <div class="kpi-card kpi-card--entree">
+      <div class="kpi-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 17V3M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">
+          Entrées ce mois
+          <span class="kpi-trend" *ngIf="tendanceEntrees !== null" [class.kpi-trend--up]="tendanceEntrees >= 0" [class.kpi-trend--down]="tendanceEntrees < 0">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path *ngIf="tendanceEntrees >= 0" d="M5 2L9 8H1L5 2Z" fill="currentColor"/>
+              <path *ngIf="tendanceEntrees < 0" d="M5 8L1 2H9L5 8Z" fill="currentColor"/>
+            </svg>
+            {{ (tendanceEntrees < 0 ? -tendanceEntrees : tendanceEntrees) | number:'1.0-0' }}%
+          </span>
+        </span>
+        <div class="kpi-card__value kpi-card__value--positive">
+          {{ (chartEntrees.length ? chartEntrees[5] : 0) | number:'1.0-0' }}
+          <span class="kpi-card__currency">FCFA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--sortie">
+      <div class="kpi-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 3v14M3 10l7 7 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">
+          Sorties ce mois
+          <span class="kpi-trend" *ngIf="tendanceSorties !== null" [class.kpi-trend--up]="tendanceSorties >= 0" [class.kpi-trend--down]="tendanceSorties < 0">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path *ngIf="tendanceSorties >= 0" d="M5 2L9 8H1L5 2Z" fill="currentColor"/>
+              <path *ngIf="tendanceSorties < 0" d="M5 8L1 2H9L5 8Z" fill="currentColor"/>
+            </svg>
+            {{ (tendanceSorties < 0 ? -tendanceSorties : tendanceSorties) | number:'1.0-0' }}%
+          </span>
+        </span>
+        <div class="kpi-card__value kpi-card__value--negative">
+          {{ (chartSorties.length ? chartSorties[5] : 0) | number:'1.0-0' }}
+          <span class="kpi-card__currency">FCFA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--ops">
+      <div class="kpi-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 5h14M3 10h10M3 15h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">Total opérations</span>
+        <div class="kpi-card__value">{{ totalOperationsGlobal }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Analytics (Graphique + Top catégories) -->
+  <div class="analytics-section animate-fade-in" *ngIf="!chartLoading">
+    <div class="analytics-chart card">
+      <div class="analytics-chart__header">
+        <h3 class="analytics-chart__title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 14L6 9L9 12L14 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Évolution 6 mois
+        </h3>
+        <div class="chart-legend">
+          <span class="chart-legend__item chart-legend__item--entree">Entrées</span>
+          <span class="chart-legend__item chart-legend__item--sortie">Sorties</span>
+        </div>
+      </div>
+      <div class="analytics-chart__body">
+        <svg [attr.viewBox]="'0 0 ' + CHART_W + ' ' + CHART_H" class="chart-svg">
+          <!-- Grille -->
+          <line *ngFor="let yl of yLabels"
+                [attr.x1]="CHART_PAD_L" [attr.y1]="yl.y"
+                [attr.x2]="CHART_W - CHART_PAD_R" [attr.y2]="yl.y"
+                class="chart-grid-line" />
+          <!-- Labels Y -->
+          <text *ngFor="let yl of yLabels"
+                [attr.x]="CHART_PAD_L - 6" [attr.y]="yl.y + 4"
+                class="chart-axis-label" text-anchor="end">{{ yl.label }}</text>
+          <!-- Barres entrées -->
+          <rect *ngFor="let v of chartEntrees; let i = index"
+                [attr.x]="barX(i, 0)" [attr.y]="barY(v)"
+                [attr.width]="barW()" [attr.height]="barH(v)" rx="3"
+                class="chart-bar chart-bar--entree">
+            <title>{{ chartMois[i] }} — Entrées : {{ v | number:'1.0-0' }} FCFA</title>
+          </rect>
+          <!-- Barres sorties -->
+          <rect *ngFor="let v of chartSorties; let i = index"
+                [attr.x]="barX(i, 1)" [attr.y]="barY(v)"
+                [attr.width]="barW()" [attr.height]="barH(v)" rx="3"
+                class="chart-bar chart-bar--sortie">
+            <title>{{ chartMois[i] }} — Sorties : {{ v | number:'1.0-0' }} FCFA</title>
+          </rect>
+          <!-- Labels X -->
+          <text *ngFor="let m of chartMois; let i = index"
+                [attr.x]="barX(i, 0) + barW()" [attr.y]="chartBottom + 17"
+                class="chart-axis-label chart-x-label" text-anchor="middle">{{ m }}</text>
+          <!-- Ligne de base -->
+          <line [attr.x1]="CHART_PAD_L" [attr.y1]="chartBottom"
+                [attr.x2]="CHART_W - CHART_PAD_R" [attr.y2]="chartBottom"
+                class="chart-axis-line" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="analytics-categories card" *ngIf="topCategories.length > 0">
+      <div class="analytics-categories__header">
+        <h3 class="analytics-categories__title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 14L6 9L9 12L14 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Top dépenses
+        </h3>
+        <span class="analytics-categories__sub">6 derniers mois</span>
+      </div>
+      <div class="categories-list">
+        <div class="category-row" *ngFor="let cat of topCategories">
+          <div class="category-row__header">
+            <span class="category-row__name">{{ cat.nom }}</span>
+            <span class="category-row__pct">{{ cat.pct }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-bar__fill progress-bar__fill--warning" [style.width.%]="cat.pct"></div>
+          </div>
+          <span class="category-row__amount">{{ cat.total | number:'1.0-0' }} FCFA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Livre de caisse -->
+  <section class="livre-section card animate-fade-in">
+    <!-- Navigation mois -->
+    <div class="livre-nav">
+      <button class="livre-nav__arrow" (click)="moisPrecedent()" title="Mois précédent">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="livre-nav__selector">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 3V1M11 3V1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <select class="livre-nav__select" [ngModel]="moisSelectionneeValue" (ngModelChange)="onMoisChange($event)">
+          <option *ngFor="let m of moisDisponibles" [value]="m.annee + '-' + (m.mois < 10 ? '0' : '') + m.mois">
+            {{ m.label }}
+          </option>
+        </select>
+      </div>
+
+      <button class="livre-nav__arrow" (click)="moisSuivant()" [disabled]="estMoisCourant" title="Mois suivant">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="livre-nav__filters">
+        <select class="filter-select" [(ngModel)]="filtreType" (change)="appliquerFiltres()">
+          <option value="tous">Tous types</option>
+          <option value="entree">Entrées</option>
+          <option value="sortie">Sorties</option>
+          <option value="transfert">Transferts</option>
+        </select>
+        <select class="filter-select" [(ngModel)]="filtreStatut" (change)="appliquerFiltres()">
+          <option value="tous">Tous statuts</option>
+          <option value="validee">Validées</option>
+          <option value="en_attente">En attente</option>
+          <option value="rejetee">Rejetées</option>
+        </select>
         <button
-          class="btn btn--primary btn--sm"
-          (click)="goNouvelleOperation()"
+          class="filter-reset"
+          *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'"
+          (click)="resetFilters()"
+          title="Réinitialiser"
         >
-          <span class="btn-icon">+</span> Nouvelle opération
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 4l2-2M4 10l-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
         </button>
       </div>
     </div>
 
-    <!-- Cartes statistiques -->
-    <div class="stats-grid animate-slide-in">
-      <div
-        class="stat-card solde-card"
-        [style.border-bottom-color]="caisse.couleur || 'var(--color-navy)'"
-      >
-        <div class="stat-icon">💰</div>
-        <div class="stat-content">
-          <span class="stat-label">Solde actuel</span>
-          <div class="stat-value" [class.negatif]="caisse.solde < 0">
-            {{ caisse.solde | number: "1.0-0" }}
-            <span class="stat-currency">FCFA</span>
-          </div>
-        </div>
+    <!-- Résumé mensuel -->
+    <div class="livre-resume" *ngIf="moisData && !loadingMois">
+      <div class="resume-item resume-item--ouverture">
+        <span class="resume-item__label">Solde ouverture</span>
+        <span class="resume-item__value">{{ moisData.soldOuverture | number:'1.0-0' }} FCFA</span>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">📈</div>
-        <div class="stat-content">
-          <span class="stat-label">Total entrées</span>
-          <div class="stat-value positive">
-            {{ totalEntrees | number: "1.0-0" }}
-            <span class="stat-currency">FCFA</span>
-          </div>
-        </div>
+      <svg class="resume-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="resume-item resume-item--entree">
+        <span class="resume-item__label">+ Entrées</span>
+        <span class="resume-item__value resume-item__value--positive">{{ moisData.totalEntrees | number:'1.0-0' }} FCFA</span>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">📉</div>
-        <div class="stat-content">
-          <span class="stat-label">Total sorties</span>
-          <div class="stat-value negative">
-            {{ totalSorties | number: "1.0-0" }}
-            <span class="stat-currency">FCFA</span>
-          </div>
-        </div>
+      <div class="resume-item resume-item--sortie">
+        <span class="resume-item__label">- Sorties</span>
+        <span class="resume-item__value resume-item__value--negative">{{ moisData.totalSorties | number:'1.0-0' }} FCFA</span>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">🔄</div>
-        <div class="stat-content">
-          <span class="stat-label">Total opérations</span>
-          <div class="stat-value">
-            {{ totalOperations }}
-            <span class="stat-unit">ops</span>
-          </div>
-        </div>
+      <svg class="resume-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="resume-item resume-item--cloture" [class.resume-item--negatif]="moisData.soldeCloture < 0">
+        <span class="resume-item__label">Solde clôture</span>
+        <span class="resume-item__value">{{ moisData.soldeCloture | number:'1.0-0' }} FCFA</span>
       </div>
     </div>
 
-    <!-- Badges info -->
-    <div class="info-badges animate-fade-in">
-      <span class="badge" [class]="caisse.type">
-        {{
-          caisse.type === "principale"
-            ? "⭐ Caisse principale"
-            : "📦 Caisse secondaire"
-        }}
-      </span>
-      <span class="badge badge--info" *ngIf="caisse.responsableNom">
-        👤 Responsable : {{ caisse.responsableNom }}
-      </span>
-      <span class="badge badge--date" *ngIf="caisse.createdAt">
-        🕒 Créée le {{ caisse.createdAt | date: "dd/MM/yyyy" }}
-      </span>
+    <!-- Loading -->
+    <div class="loading-ops" *ngIf="loadingMois || loadingSolde">
+      <span class="spinner"></span>
+      <span *ngIf="loadingSolde && !loadingMois">Calcul du solde d'ouverture...</span>
+      <span *ngIf="loadingMois">Chargement du livre de caisse...</span>
     </div>
 
-    <!-- Section opérations -->
-    <div class="operations-section">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="title-icon">📋</span>
-          <h3>Historique des opérations</h3>
-        </div>
-        <div class="section-stats">
-          <span class="ops-count"
-            >{{ (operations$ | async)?.length || 0 }} opération(s)</span
-          >
-        </div>
-      </div>
+    <!-- Tableau -->
+    <div class="livre-table-wrapper" *ngIf="!loadingMois && moisData">
+      <table class="data-table livre-table">
+        <thead>
+          <tr>
+            <th>N° Pièce</th>
+            <th>Date</th>
+            <th>Désignation</th>
+            <th>Catégorie</th>
+            <th>Statut</th>
+            <th class="text-right">Entrées</th>
+            <th class="text-right">Sorties</th>
+            <th class="text-right">Solde</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let ligne of moisData.lignes">
 
-      <!-- Filtres améliorés -->
-      <div class="filters-bar">
-        <div class="filters-group">
-          <div class="filter-item">
-            <label class="filter-label">
-              <span class="filter-icon">🏷️</span>
-              Type
-            </label>
-            <div class="filter-buttons">
-              <button
-                class="filter-chip"
-                [class.active]="filtreType === 'tous'"
-                (click)="filtreType = 'tous'"
-              >
-                Tous
-              </button>
-              <button
-                class="filter-chip filter-chip--entree"
-                [class.active]="filtreType === 'entree'"
-                (click)="filtreType = 'entree'"
-              >
-                📈 Entrées
-              </button>
-              <button
-                class="filter-chip filter-chip--sortie"
-                [class.active]="filtreType === 'sortie'"
-                (click)="filtreType = 'sortie'"
-              >
-                📉 Sorties
-              </button>
-              <button
-                class="filter-chip filter-chip--transfert"
-                [class.active]="filtreType === 'transfert'"
-                (click)="filtreType = 'transfert'"
-              >
-                🔄 Transferts
-              </button>
-            </div>
-          </div>
+            <!-- Ligne d'ouverture -->
+            <tr *ngIf="ligne.type === 'ouverture'" class="livre-row livre-row--ouverture">
+              <td>—</td>
+              <td>
+                <span class="date-badge">01 {{ nomMois(moisData.mois) }}</span>
+              </td>
+              <td colspan="3">
+                <span class="special-libelle">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 5h8M2 8h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                  {{ ligne.libelle }}
+                </span>
+                <span class="ouverture-badge">Calculé au {{ moisData.annee }}-{{ moisData.mois | number:'2.0-0' }}-01</span>
+              </td>
+              <td class="text-right">—</td>
+              <td class="text-right">—</td>
+              <td class="text-right">
+                <span class="solde-value" [class.solde-value--positive]="ligne.solde >= 0" [class.solde-value--negative]="ligne.solde < 0">
+                  {{ ligne.solde | number:'1.0-0' }}
+                </span>
+              </td>
+              <td></td>
+            </tr>
 
-          <div class="filter-item">
-            <label class="filter-label">
-              <span class="filter-icon">✓</span>
-              Statut
-            </label>
-            <div class="filter-buttons">
-              <button
-                class="filter-chip"
-                [class.active]="filtreStatut === 'tous'"
-                (click)="filtreStatut = 'tous'"
-              >
-                Tous
-              </button>
-              <button
-                class="filter-chip filter-chip--validee"
-                [class.active]="filtreStatut === 'validee'"
-                (click)="filtreStatut = 'validee'"
-              >
-                ✓ Validées
-              </button>
-              <button
-                class="filter-chip filter-chip--en_attente"
-                [class.active]="filtreStatut === 'en_attente'"
-                (click)="filtreStatut = 'en_attente'"
-              >
-                ⏳ En attente
-              </button>
-              <button
-                class="filter-chip filter-chip--rejetee"
-                [class.active]="filtreStatut === 'rejetee'"
-                (click)="filtreStatut = 'rejetee'"
-              >
-                ✗ Rejetées
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="filter-reset"
-          *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'"
-        >
-          <button class="btn-reset" (click)="resetFilters()">
-            ↺ Réinitialiser
-          </button>
-        </div>
-      </div>
-
-      <!-- Liste des opérations -->
-      <ng-container *ngIf="operations$ | async as ops; else loadingOpsTpl">
-        <div
-          class="operations-list"
-          *ngIf="filteredOperations(ops).length > 0; else noOps"
-        >
-          <div class="ops-table">
-            <div class="ops-table-header">
-              <span class="col-date">Date</span>
-              <span class="col-libelle">Libellé</span>
-              <span class="col-type">Type</span>
-              <span class="col-statut">Statut</span>
-              <span class="col-montant text-right">Montant</span>
-              <span class="col-actions"></span>
-            </div>
-
-            <div
-              class="ops-row"
-              *ngFor="let op of filteredOperations(ops); let i = index"
-              [class.pending]="op.statut === 'en_attente'"
-            >
-              <span class="col-date">
-                <span class="date-day">{{ op.date | date: "dd" }}</span>
-                <span class="date-month">{{ op.date | date: "MMM" }}</span>
-              </span>
-              <span class="col-libelle">
-                <span class="libelle-main">{{ op.libelle }}</span>
-                <span class="libelle-meta" *ngIf="op.type === 'transfert' && op.sens === 'sortie' && op.transfertCaisseDestNom">
-                  🔄 vers {{ op.transfertCaisseDestNom }}
-                </span>
-                <span class="libelle-meta" *ngIf="op.type === 'transfert' && op.sens === 'entree' && op.transfertCaisseDestNom">
-                  🔄 depuis {{ op.transfertCaisseDestNom }}
-                </span>
-                <span class="libelle-meta" *ngIf="op.categorieNom">
-                  📁 {{ op.categorieNom }}
-                </span>
-                <span class="libelle-meta" *ngIf="op.responsableNom">
-                  👤 par {{ op.responsableNom }}
-                </span>
-              </span>
-              <span class="col-type">
-                <span class="type-badge" [class]="op.type === 'transfert' ? (estEntree(op) ? 'entree' : 'sortie') : op.type">
-                  {{
-                    op.type === "entree"
-                      ? "📈 Entrée"
-                      : op.type === "sortie"
-                        ? "📉 Sortie"
-                        : estEntree(op) ? "🔄 ↓ Reçu" : "🔄 ↑ Envoyé"
-                  }}
-                </span>
-              </span>
-              <span class="col-statut">
-                <span class="status-badge" [class]="op.statut">
-                  <span class="status-icon">
-                    {{
-                      op.statut === "validee"
-                        ? "✓"
-                        : op.statut === "en_attente"
-                          ? "⏳"
-                          : "✗"
-                    }}
+            <!-- Lignes d'opérations -->
+            <tr *ngIf="ligne.type === 'operation' && ligne.operation as op"
+                class="livre-row"
+                [class.livre-row--pending]="op.statut === 'en_attente'"
+                [class.livre-row--rejected]="op.statut === 'rejetee'">
+              <td>
+                <span class="piece-badge" *ngIf="ligne.numeroPiece">{{ ligne.numeroPiece }}</span>
+                <span class="text-muted" *ngIf="!ligne.numeroPiece">—</span>
+              </td>
+              <td>
+                <div class="date-cell">
+                  <span class="date-cell__day">{{ ligne.date | date:'dd' }}</span>
+                  <span class="date-cell__month">{{ ligne.date | date:'MMM' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="libelle-cell">
+                  <span class="libelle-cell__main">{{ ligne.libelle }}</span>
+                  <span class="libelle-cell__meta" *ngIf="op.type === 'transfert' && op.transfertCaisseDestNom">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {{ op.sens === 'sortie' ? 'vers' : 'depuis' }} {{ op.transfertCaisseDestNom }}
                   </span>
-                  <span class="status-text">
-                    {{
-                      op.statut === "validee"
-                        ? "Validée"
-                        : op.statut === "en_attente"
-                          ? "En attente"
-                          : "Rejetée"
-                    }}
-                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="cat-badge" *ngIf="op.categorieNom">{{ op.categorieNom }}</span>
+                <span class="text-muted" *ngIf="!op.categorieNom">—</span>
+              </td>
+              <td>
+                <span class="status-dot" [class]="op.statut" [title]="statutLabel(op.statut)">
+                  {{ statutIcon(op.statut) }}
                 </span>
-              </span>
-              <span class="col-montant text-right">
-                <span class="montant" [class]="op.type === 'transfert' ? (estEntree(op) ? 'entree' : 'sortie') : op.type">
-                  {{ estEntree(op) ? '+' : '-' }}{{ op.montant | number: "1.0-0" }}
+              </td>
+              <td class="text-right">
+                <span class="montant montant--entree" *ngIf="ligne.entree !== null">
+                  +{{ ligne.entree | number:'1.0-0' }}
                 </span>
-                <span class="currency">FCFA</span>
-              </span>
-              <span class="col-actions">
-                <button
-                  class="action-icon"
-                  (click)="viewOperationDetails(op)"
-                  title="Voir détails"
-                >
-                  👁️
+              </td>
+              <td class="text-right">
+                <span class="montant montant--sortie" *ngIf="ligne.sortie !== null">
+                  -{{ ligne.sortie | number:'1.0-0' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <span class="solde-value" *ngIf="op.statut === 'validee'"
+                      [class.solde-value--positive]="ligne.solde >= 0"
+                      [class.solde-value--negative]="ligne.solde < 0">
+                  {{ ligne.solde | number:'1.0-0' }}
+                </span>
+                <span class="text-muted" *ngIf="op.statut !== 'validee'">—</span>
+              </td>
+              <td>
+                <button class="icon-btn icon-btn--sm" (click)="viewOperationDetails(op)" title="Voir détails">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                    <circle cx="2" cy="6" r="1.5" fill="currentColor"/>
+                    <circle cx="10" cy="6" r="1.5" fill="currentColor"/>
+                  </svg>
                 </button>
-              </span>
-            </div>
-          </div>
+              </td>
+            </tr>
+
+            <!-- Ligne de clôture -->
+            <tr *ngIf="ligne.type === 'cloture'" class="livre-row livre-row--cloture">
+              <td>—</td>
+              <td></td>
+              <td colspan="2">
+                <span class="special-libelle">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 2h8v8H2z" stroke="currentColor" stroke-width="1.2"/>
+                  </svg>
+                  {{ ligne.libelle }}
+                </span>
+              </td>
+              <td></td>
+              <td class="text-right">
+                <span class="total-value total-value--positive">{{ ligne.entree | number:'1.0-0' }}</span>
+              </td>
+              <td class="text-right">
+                <span class="total-value total-value--negative">{{ ligne.sortie | number:'1.0-0' }}</span>
+              </td>
+              <td class="text-right">
+                <span class="solde-value solde-value--final"
+                      [class.solde-value--positive]="ligne.solde >= 0"
+                      [class.solde-value--negative]="ligne.solde < 0">
+                  {{ ligne.solde | number:'1.0-0' }}
+                </span>
+              </td>
+              <td></td>
+            </tr>
+
+          </ng-container>
+        </tbody>
+      </table>
+
+      <!-- État vide -->
+      <div class="empty-state" *ngIf="moisData.lignes.length <= 2">
+        <div class="empty-state__icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect x="5" y="8" width="22" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 8V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
         </div>
-
-        <ng-template #noOps>
-          <div class="empty-state animate-fade-in">
-            <div class="empty-icon-wrapper">
-              <div class="empty-icon">📭</div>
-            </div>
-            <h3>Aucune opération</h3>
-            <p *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'">
-              Aucune opération ne correspond à vos critères de filtrage.
-            </p>
-            <p *ngIf="filtreType === 'tous' && filtreStatut === 'tous'">
-              Cette caisse ne contient encore aucune opération.
-            </p>
-            <button
-              class="btn btn--outline btn--sm"
-              (click)="resetFilters()"
-              *ngIf="filtreType !== 'tous' || filtreStatut !== 'tous'"
-            >
-              ↺ Réinitialiser les filtres
-            </button>
-            <button
-              class="btn btn--primary btn--sm"
-              (click)="goNouvelleOperation()"
-              *ngIf="auth.isTresorier()"
-            >
-              + Nouvelle opération
-            </button>
-          </div>
-        </ng-template>
-      </ng-container>
-
-      <ng-template #loadingOpsTpl>
-        <div class="loading-ops">
-          <app-loading-spinner [size]="32"></app-loading-spinner>
-          <span>Chargement des opérations...</span>
-        </div>
-      </ng-template>
+        <h3>Aucune opération en {{ moisData.label }}</h3>
+        <p>Ce mois ne contient pas encore d'opérations enregistrées.</p>
+        <button class="btn btn--primary btn--sm" (click)="goNouvelleOperation()" *ngIf="auth.isTresorier()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Nouvelle opération
+        </button>
+      </div>
     </div>
-  </ng-container>
+  </section>
 
-  <ng-template #loadingTpl>
-    <div class="loading-center">
-      <app-loading-spinner [size]="48"></app-loading-spinner>
-    </div>
-  </ng-template>
-
-  <!-- Modal détails opération -->
-  <div
-    class="modal-overlay"
-    *ngIf="selectedOperation"
-    (click)="closeOperationDetails()"
-  >
+  <!-- Modal détail opération -->
+  <div class="modal-overlay" *ngIf="selectedOperation" (click)="closeOperationDetails()">
     <div class="modal modal--small" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-header-icon" [class]="selectedOperation.type">
-          <span class="icon">{{
-            selectedOperation.type === "entree"
-              ? "📈"
-              : selectedOperation.type === "sortie"
-                ? "📉"
-                : "🔄"
-          }}</span>
+        <div class="modal-header__icon" [class.modal-header__icon--entree]="selectedOperation.type === 'entree'"
+                                          [class.modal-header__icon--sortie]="selectedOperation.type === 'sortie'"
+                                          [class.modal-header__icon--transfert]="selectedOperation.type === 'transfert'">
+          <svg *ngIf="selectedOperation.type === 'entree'" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 17V3M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg *ngIf="selectedOperation.type === 'sortie'" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 3v14M3 10l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg *ngIf="selectedOperation.type === 'transfert'" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 10h12M11 6l3 3-3 3M9 14l-3-3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
         <h2>Détails de l'opération</h2>
-        <button class="modal-close" (click)="closeOperationDetails()">✕</button>
+        <button class="modal-close" (click)="closeOperationDetails()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
       <div class="modal-body">
+        <div class="detail-group" *ngIf="selectedOperation.numeroPiece">
+          <label>N° Pièce</label>
+          <p class="detail-value piece-code">{{ selectedOperation.numeroPiece }}</p>
+        </div>
         <div class="detail-group">
           <label>Libellé</label>
           <p class="detail-value">{{ selectedOperation.libelle }}</p>
         </div>
         <div class="detail-group">
           <label>Montant</label>
-          <p class="detail-value montant" [class]="selectedOperation.type === 'transfert' ? (estEntree(selectedOperation) ? 'entree' : 'sortie') : selectedOperation.type">
-            {{ estEntree(selectedOperation) ? '+' : '-'
-            }}{{ selectedOperation.montant | number: "1.0-0" }} FCFA
-          </p>
-        </div>
-        <div class="detail-group">
-          <label>Type</label>
-          <p class="detail-value">
-            {{
-              selectedOperation.type === "entree"
-                ? "Entrée"
-                : selectedOperation.type === "sortie"
-                  ? "Sortie"
-                  : estEntree(selectedOperation) ? "Transfert entrant" : "Transfert sortant"
-            }}
-          </p>
-        </div>
-        <div class="detail-group" *ngIf="selectedOperation.type === 'transfert' && selectedOperation.transfertCaisseDestNom">
-          <label>{{ selectedOperation.sens === 'sortie' ? 'Caisse destinataire' : 'Caisse émettrice' }}</label>
-          <p class="detail-value">
-            {{ selectedOperation.sens === 'sortie' ? '→' : '←' }}
-            {{ selectedOperation.transfertCaisseDestNom }}
+          <p class="detail-value detail-value--montant" [class.detail-value--entree]="estEntree(selectedOperation)" [class.detail-value--sortie]="!estEntree(selectedOperation)">
+            {{ estEntree(selectedOperation) ? '+' : '-' }}{{ selectedOperation.montant | number:'1.0-0' }} FCFA
           </p>
         </div>
         <div class="detail-group">
           <label>Statut</label>
           <p class="detail-value">
             <span class="status-badge" [class]="selectedOperation.statut">
-              {{
-                selectedOperation.statut === "validee"
-                  ? "✓ Validée"
-                  : selectedOperation.statut === "en_attente"
-                    ? "⏳ En attente"
-                    : "✗ Rejetée"
-              }}
+              {{ statutIcon(selectedOperation.statut) }} {{ statutLabel(selectedOperation.statut) }}
             </span>
           </p>
         </div>
@@ -414,11 +518,18 @@
           <label>Catégorie</label>
           <p class="detail-value">{{ selectedOperation.categorieNom }}</p>
         </div>
+        <div class="detail-group" *ngIf="selectedOperation.type === 'transfert' && selectedOperation.transfertCaisseDestNom">
+          <label>{{ selectedOperation.sens === 'sortie' ? 'Caisse destinataire' : 'Caisse émettrice' }}</label>
+          <p class="detail-value">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {{ selectedOperation.transfertCaisseDestNom }}
+          </p>
+        </div>
         <div class="detail-group">
           <label>Date</label>
-          <p class="detail-value">
-            {{ selectedOperation.date | date: "dd/MM/yyyy à HH:mm" }}
-          </p>
+          <p class="detail-value">{{ selectedOperation.date | date:'dd/MM/yyyy' }}</p>
         </div>
         <div class="detail-group" *ngIf="selectedOperation.responsableNom">
           <label>Créé par</label>
@@ -426,14 +537,13 @@
         </div>
         <div class="detail-group" *ngIf="selectedOperation.notes">
           <label>Commentaire</label>
-          <p class="detail-value commentaire">{{ selectedOperation.notes }}</p>
+          <p class="detail-value detail-value--comment">{{ selectedOperation.notes }}</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn--outline" (click)="closeOperationDetails()">
-          Fermer
-        </button>
+        <button class="btn btn--secondary" (click)="closeOperationDetails()">Fermer</button>
       </div>
     </div>
   </div>
+
 </div>

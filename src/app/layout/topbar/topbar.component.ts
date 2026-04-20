@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription, filter, take } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService, Notification } from '../../services/notification.service';
+import { SearchService, ResultatsGroupes, ResultatRecherche } from '../../services/search.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -17,7 +18,8 @@ export class TopbarComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   private notifService = inject(NotificationService);
   private router = inject(Router);
-  private toastr = inject(ToastrService);
+  private toastr       = inject(ToastrService);
+  private searchService = inject(SearchService);
 
   today = new Date();
   showUserMenu = false;
@@ -25,6 +27,13 @@ export class TopbarComponent implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   private intervalId: any;
   private notifSub?: Subscription;
+
+  // ── Recherche globale ────────────────────────────────────────────────────
+  searchQuery     = '';
+  showSearch      = false;
+  searchLoading   = false;
+  searchResultats: ResultatsGroupes | null = null;
+  private searchTimer: any;
 
   get hasNotifications(): boolean {
     return this.notifications.some(n => !n.read);
@@ -85,11 +94,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
     return roles[role || 'utilisateur'];
   }
 
-  getNotifIcon(type: string): string {
-    if (type === 'warning') return '⚠️';
-    if (type === 'success') return '✓';
-    return 'ℹ️';
-  }
 
   toDate(val: any): Date {
     if (val instanceof Date) return val;
@@ -113,14 +117,84 @@ export class TopbarComponent implements OnInit, OnDestroy {
   }
 
   async onNotifClick(notif: Notification): Promise<void> {
+    // Marquer comme lu
     if (!notif.read && notif.id) {
       await this.notifService.markAsRead(notif.id);
     }
+    // Naviguer vers la ressource si un lien est défini
+    if (notif.link) {
+      this.showNotifications = false;
+      this.router.navigateByUrl(notif.link);
+    }
+  }
+
+  async deleteNotif(event: Event, notif: Notification): Promise<void> {
+    event.stopPropagation(); // ne pas déclencher onNotifClick
+    if (notif.id) {
+      await this.notifService.delete(notif.id);
+    }
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.notifService.deleteAll();
+    this.showNotifications = false;
+  }
+
+  getNotifIcon(type: string): string {
+    if (type === 'warning') return '⚠️';
+    if (type === 'success') return '✅';
+    if (type === 'error')   return '❌';
+    return 'ℹ️';
+  }
+
+  // ── Méthodes de recherche ────────────────────────────────────────────────
+
+  onSearchInput(): void {
+    clearTimeout(this.searchTimer);
+    if (!this.searchQuery.trim()) {
+      this.searchResultats = null;
+      this.showSearch = false;
+      return;
+    }
+    this.showSearch   = true;
+    this.searchLoading = true;
+    // Debounce 350ms pour éviter une requête à chaque frappe
+    this.searchTimer = setTimeout(async () => {
+      try {
+        this.searchResultats = await this.searchService.rechercher(this.searchQuery);
+      } finally {
+        this.searchLoading = false;
+      }
+    }, 350);
+  }
+
+  onSearchFocus(): void {
+    if (this.searchQuery.trim().length >= 2) {
+      this.showSearch = true;
+    }
+    this.showUserMenu      = false;
+    this.showNotifications = false;
+  }
+
+  closeSearch(): void {
+    this.showSearch  = false;
+    this.searchQuery = '';
+    this.searchResultats = null;
+  }
+
+  naviguerVers(resultat: ResultatRecherche): void {
+    this.router.navigateByUrl(resultat.lien);
+    this.closeSearch();
+  }
+
+  get hasResultats(): boolean {
+    return !!this.searchResultats && this.searchResultats.total > 0;
   }
 
   closeMenus(): void {
-    this.showUserMenu = false;
+    this.showUserMenu      = false;
     this.showNotifications = false;
+    this.showSearch        = false;
   }
 
   async onLogout(): Promise<void> {

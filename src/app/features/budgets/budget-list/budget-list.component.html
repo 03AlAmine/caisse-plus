@@ -1,66 +1,92 @@
 <div class="page-wrapper">
 
-  <app-page-header title="📊 Budgets" subtitle="Suivez vos budgets prévisionnels et détectez les dépassements">
-    <div class="header-actions" *ngIf="auth.isTresorier()">
-      <button class="btn btn--outline btn--sm" (click)="exportBudgets()" *ngIf="(budgets$ | async)?.length">
-        <span class="btn-icon">📥</span> Exporter
+  <!-- En-tête -->
+  <header class="page-header">
+    <div class="page-header__content">
+      <h1 class="page-header__title">Budgets</h1>
+      <p class="page-header__subtitle">Suivez vos budgets prévisionnels et détectez les dépassements</p>
+    </div>
+    <div class="page-header__actions" *ngIf="auth.isTresorier()">
+      <button class="btn btn--secondary" (click)="exportBudgets()" *ngIf="(budgets$ | async)?.length">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 10v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1M7 2v8M4 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Exporter
       </button>
-      <a routerLink="nouveau" class="btn btn--primary btn--sm">
-        <span class="btn-icon">+</span> Nouveau budget
+      <a routerLink="nouveau" class="btn btn--primary">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Nouveau budget
       </a>
     </div>
-  </app-page-header>
+  </header>
 
   <!-- Filtres -->
-  <div class="filter-bar animate-fade-in" *ngIf="(budgets$ | async) as budgets">
-    <div class="filter-group">
-      <select class="filter-select" [(ngModel)]="filtrePeriode" (ngModelChange)="onFiltreChange(budgets)">
-        <option value="tous">📅 Toutes les périodes</option>
-        <option value="mensuel">📆 Mensuels</option>
-        <option value="annuel">📅 Annuels</option>
+  <div class="filter-panel card animate-fade-in" *ngIf="(budgets$ | async) as budgets">
+    <div class="filter-panel__row">
+      <select class="form-control filter-select" [(ngModel)]="filtrePeriode" (ngModelChange)="onFiltreChange(budgets)">
+        <option value="tous">Toutes les périodes</option>
+        <option value="mensuel">Mensuels</option>
+        <option value="annuel">Annuels</option>
       </select>
-    </div>
-    <div class="filter-group">
-      <select class="filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="onFiltreChange(budgets)">
-        <option value="tous">🎯 Tous les statuts</option>
-        <option value="normal">✅ Normaux</option>
-        <option value="alerte">⚠️ En alerte</option>
-        <option value="depasse">🚨 Dépassés</option>
+
+      <select class="form-control filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="onFiltreChange(budgets)">
+        <option value="tous">Tous les statuts</option>
+        <option value="normal">Normaux</option>
+        <option value="alerte">En alerte</option>
+        <option value="depasse">Dépassés</option>
       </select>
-    </div>
-    <div class="filter-group">
-      <select class="filter-select" [(ngModel)]="filtreCaisseId" (ngModelChange)="onFiltreChange(budgets)">
-        <option value="toutes">🏦 Toutes les caisses</option>
+
+      <select class="form-control filter-select" [(ngModel)]="filtreCaisseId" (ngModelChange)="onFiltreChange(budgets)">
+        <option value="toutes">Toutes les caisses</option>
         <option *ngFor="let c of caisses" [value]="c.id">{{ c.nom }}</option>
       </select>
+
+      <div class="filter-actions">
+        <span class="filter-actions__count" *ngIf="filteredBudgets.length !== budgets.length">
+          {{ filteredBudgets.length }} / {{ budgets.length }} budget(s)
+        </span>
+        <button class="filter-actions__reset" (click)="resetFiltres(budgets)" *ngIf="hasActiveFilters()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M8 3l2-2M3 9l-2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Réinitialiser
+        </button>
+      </div>
     </div>
-    <div class="filter-result" *ngIf="filteredBudgets.length !== budgets.length">
-      {{ filteredBudgets.length }} / {{ budgets.length }} budget(s)
-    </div>
-    <button class="btn-filter-reset" (click)="resetFiltres(budgets)" *ngIf="hasActiveFilters()">
-      <span class="reset-icon">↺</span> Réinitialiser
-    </button>
   </div>
 
   <!-- Alertes globales -->
   <div class="alertes-section animate-slide-in" *ngIf="alertesBudgets.length > 0">
-    <div class="alerte-card" *ngFor="let b of alertesBudgets">
-      <div class="alerte-icon" [class.danger]="b.tauxConsommation >= 100">
-        {{ b.tauxConsommation >= 100 ? '🚨' : '⚠️' }}
+    <div class="alerte-card" *ngFor="let b of alertesBudgets" [class.alerte-card--danger]="b.tauxConsommation >= 100">
+      <div class="alerte-card__icon">
+        <svg *ngIf="b.tauxConsommation < 100" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L18 17H2L10 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M10 8v4M10 14v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <svg *ngIf="b.tauxConsommation >= 100" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M10 6v5M10 14v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
       </div>
-      <div class="alerte-content">
-        <div class="alerte-title">
+      <div class="alerte-card__content">
+        <div class="alerte-card__title">
           <strong>{{ b.nom }}</strong>
-          <span class="alerte-badge" [class]="b.tauxConsommation >= 100 ? 'danger' : 'warning'">
+          <span class="badge" [class.badge--warning]="b.tauxConsommation < 100" [class.badge--danger]="b.tauxConsommation >= 100">
             {{ b.tauxConsommation >= 100 ? 'Dépassé' : 'Alerte' }}
           </span>
         </div>
-        <div class="alerte-detail">
+        <div class="alerte-card__detail">
           {{ b.tauxConsommation }}% consommé ({{ b.montantDepense | number:'1.0-0' }} / {{ b.montantPrevu | number:'1.0-0' }} FCFA)
         </div>
       </div>
-      <a href="javascript:void(0)" class="alerte-link" (click)="scrollToBudget(b.id)">
-        Voir détails →
+      <a href="javascript:void(0)" class="alerte-card__link" (click)="scrollToBudget(b.id)">
+        Voir détails
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </a>
     </div>
   </div>
@@ -68,74 +94,110 @@
   <!-- Statistiques -->
   <div class="stats-strip animate-fade-in" *ngIf="filteredBudgets.length > 0">
     <div class="stat-card">
-      <div class="stat-icon">📊</div>
-      <div class="stat-content">
-        <span class="stat-label">Budget total</span>
-        <span class="stat-value">{{ totalBudgetPrevu | number:'1.0-0' }} FCFA</span>
+      <div class="stat-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 5V3M13 5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Budget total</span>
+        <span class="stat-card__value">{{ totalBudgetPrevu | number:'1.0-0' }} FCFA</span>
       </div>
     </div>
+
     <div class="stat-card">
-      <div class="stat-icon">💸</div>
-      <div class="stat-content">
-        <span class="stat-label">Dépenses engagées</span>
-        <span class="stat-value">{{ totalBudgetDepense | number:'1.0-0' }} FCFA</span>
+      <div class="stat-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 5h14M3 10h10M3 15h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Dépenses engagées</span>
+        <span class="stat-card__value">{{ totalBudgetDepense | number:'1.0-0' }} FCFA</span>
       </div>
     </div>
+
     <div class="stat-card">
-      <div class="stat-icon">💰</div>
-      <div class="stat-content">
-        <span class="stat-label">Taux global</span>
-        <span class="stat-value" [class]="getGlobalTauxClass()">{{ tauxGlobal }}%</span>
+      <div class="stat-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Taux global</span>
+        <span class="stat-card__value" [class.stat-card__value--success]="tauxGlobal < 70"
+                                          [class.stat-card__value--warning]="tauxGlobal >= 70 && tauxGlobal < 100"
+                                          [class.stat-card__value--danger]="tauxGlobal >= 100">
+          {{ tauxGlobal }}%
+        </span>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">⚠️</div>
-      <div class="stat-content">
-        <span class="stat-label">Budgets en alerte</span>
-        <span class="stat-value" [class.warning]="alertesBudgets.length > 0">{{ alertesBudgets.length }}</span>
+
+    <div class="stat-card stat-card--alert" *ngIf="alertesBudgets.length > 0">
+      <div class="stat-card__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L18 17H2L10 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Budgets en alerte</span>
+        <span class="stat-card__value">{{ alertesBudgets.length }}</span>
       </div>
     </div>
   </div>
 
+  <!-- Loading -->
   <div class="loading-center" *ngIf="loading">
-    <app-loading-spinner [size]="48"></app-loading-spinner>
+    <span class="spinner"></span>
   </div>
 
+  <!-- Grille budgets -->
   <ng-container *ngIf="!loading">
     <ng-container *ngIf="budgets$ | async as budgets">
-      <!-- Grille budgets -->
       <div class="budgets-grid" *ngIf="filteredBudgets.length > 0; else noBudgets">
         <div class="budget-card animate-card"
              *ngFor="let b of filteredBudgets; let i = index"
-             [class.en-alerte]="b.estEnAlerte && b.tauxConsommation < 100"
-             [class.depasse]="b.tauxConsommation >= 100"
+             [class.budget-card--alerte]="b.estEnAlerte && b.tauxConsommation < 100"
+             [class.budget-card--depasse]="b.tauxConsommation >= 100"
              [style.animation-delay]="(i * 0.05) + 's'">
 
-          <div class="budget-card-header">
-            <div class="budget-info">
+          <div class="budget-card__header">
+            <div class="budget-card__info">
               <h3>{{ b.nom }}</h3>
-              <div class="budget-meta">
-                <span class="periode-badge" [class]="b.periode">
+              <div class="budget-card__meta">
+                <span class="badge" [class.badge--info]="b.periode === 'mensuel'" [class.badge--navy]="b.periode === 'annuel'">
                   {{ getPeriodeLabel(b) }}
                 </span>
-                <span class="meta-sep">•</span>
-                <span class="caisse-name">{{ b.caisseNom || '—' }}</span>
-                <span class="categorie-name" *ngIf="b.categorieNom">• {{ b.categorieNom }}</span>
+                <span class="separator">•</span>
+                <span>{{ b.caisseNom || '—' }}</span>
+                <span *ngIf="b.categorieNom">• {{ b.categorieNom }}</span>
               </div>
             </div>
-            <div class="budget-actions" *ngIf="auth.isTresorier()">
-              <a [routerLink]="[b.id, 'modifier']" class="action-icon" title="Modifier">✏️</a>
-              <button class="action-icon danger" (click)="onDelete(b)" title="Supprimer">🗑️</button>
+            <div class="budget-card__actions" *ngIf="auth.isTresorier()">
+              <a [routerLink]="[b.id, 'modifier']" class="icon-btn icon-btn--sm" title="Modifier">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M1.5 8.5L8.5 1.5L10.5 3.5L3.5 10.5L1 11L1.5 8.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <button class="icon-btn icon-btn--sm icon-btn--danger" (click)="onDelete(b)" title="Supprimer">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2.5 3.5h7M4 3.5v-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M9.5 3.5v6a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-6" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+              </button>
             </div>
           </div>
 
           <!-- Progression -->
           <div class="progress-section">
-            <div class="progress-header">
-              <div class="progress-pct" [class]="getBarreClass(b)">
+            <div class="progress-section__header">
+              <div class="progress-section__pct" [class.progress-section__pct--success]="!b.estEnAlerte && b.tauxConsommation < 100"
+                                                  [class.progress-section__pct--warning]="b.estEnAlerte && b.tauxConsommation < 100"
+                                                  [class.progress-section__pct--danger]="b.tauxConsommation >= 100">
                 {{ b.tauxConsommation }}%
               </div>
-              <div class="progress-amounts">
+              <div class="progress-section__amounts">
                 <span class="depense">{{ b.montantDepense | number:'1.0-0' }}</span>
                 <span class="separator">/</span>
                 <span class="prevu">{{ b.montantPrevu | number:'1.0-0' }}</span>
@@ -143,22 +205,22 @@
               </div>
             </div>
 
-            <div class="progress-bar-track">
-              <div class="progress-bar-fill"
-                   [class]="getBarreClass(b)"
+            <div class="progress-bar">
+              <div class="progress-bar__fill"
+                   [class.progress-bar__fill--normal]="!b.estEnAlerte && b.tauxConsommation < 100"
+                   [class.progress-bar__fill--warning]="b.estEnAlerte && b.tauxConsommation < 100"
+                   [class.progress-bar__fill--danger]="b.tauxConsommation >= 100"
                    [style.width.%]="b.tauxConsommation > 100 ? 100 : b.tauxConsommation">
-                <span class="fill-tooltip" *ngIf="b.tauxConsommation > 0">
-                  {{ b.tauxConsommation }}%
-                </span>
               </div>
-              <div class="seuil-marker" [style.left.%]="b.seuilAlerte">
-                <div class="marker-tooltip">Seuil: {{ b.seuilAlerte }}%</div>
-              </div>
+              <div class="progress-bar__marker" [style.left.%]="b.seuilAlerte" [title]="'Seuil : ' + b.seuilAlerte + '%'"></div>
             </div>
 
-            <div class="progress-footer">
-              <div class="restant" [class.negatif]="b.restant < 0">
-                <span class="restant-icon">{{ b.restant >= 0 ? '✅' : '⚠️' }}</span>
+            <div class="progress-section__footer">
+              <div class="restant" [class.restant--negatif]="b.restant < 0">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+                  <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
                 {{ b.restant >= 0 ? 'Restant' : 'Dépassement' }} :
                 <strong>{{ b.restant < 0 ? (b.restant * -1 | number:'1.0-0') : (b.restant | number:'1.0-0') }} FCFA</strong>
               </div>
@@ -167,26 +229,28 @@
               </div>
             </div>
           </div>
-
-          <!-- Mini graphique de tendance -->
-          <div class="budget-trend" *ngIf="b.tauxConsommation > 0">
-            <div class="trend-bar" [style.height.%]="Math.min(b.tauxConsommation, 100)"></div>
-          </div>
         </div>
       </div>
 
       <ng-template #noBudgets>
-        <div class="empty-state animate-fade-in">
-          <div class="empty-icon-wrapper">
-            <div class="empty-icon">📊</div>
+        <div class="card empty-state">
+          <div class="empty-state__icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect x="8" y="12" width="32" height="26" rx="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M16 12V8M32 12V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           </div>
           <h3>Aucun budget défini</h3>
           <p>Créez des budgets prévisionnels pour mieux contrôler vos dépenses et recevoir des alertes.</p>
-          <a routerLink="nouveau" class="btn btn--primary btn--lg" *ngIf="auth.isTresorier()">
-            <span class="btn-icon">+</span> Créer un budget
+          <a routerLink="nouveau" class="btn btn--primary" *ngIf="auth.isTresorier()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Créer un budget
           </a>
         </div>
       </ng-template>
     </ng-container>
   </ng-container>
+
 </div>
