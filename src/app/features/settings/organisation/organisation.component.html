@@ -2,15 +2,33 @@
   <div class="param-section__header">
     <h2 class="param-section__title">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <rect x="2" y="5" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M6 5V3M12 5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <rect
+          x="2"
+          y="5"
+          width="14"
+          height="10"
+          rx="1.5"
+          stroke="currentColor"
+          stroke-width="1.5"
+        />
+        <path
+          d="M6 5V3M12 5V3"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
       </svg>
       Organisation
     </h2>
     <div class="param-section__actions" *ngIf="!isEditing && auth.isAdmin()">
       <button class="btn btn--secondary btn--sm" (click)="enableEditing()">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 10L10 2L12 4L4 12L1 13L2 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path
+            d="M2 10L10 2L12 4L4 12L1 13L2 10Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          />
         </svg>
         Modifier
       </button>
@@ -22,18 +40,123 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <div class="org-content">
+    <!-- Onglets -->
+    <div class="org-tabs">
+      <button
+        class="org-tab"
+        [class.org-tab--active]="activeTab === 'infos'"
+        (click)="activeTab = 'infos'"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle
+            cx="7"
+            cy="7"
+            r="5.5"
+            stroke="currentColor"
+            stroke-width="1.2"
+          />
+          <path
+            d="M7 4v3.5M7 9.5v.5"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+          />
+        </svg>
+        Informations
+      </button>
+      <button
+        class="org-tab"
+        [class.org-tab--active]="activeTab === 'activite'"
+        (click)="activeTab = 'activite'"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect
+            x="2"
+            y="2"
+            width="10"
+            height="10"
+            rx="2"
+            stroke="currentColor"
+            stroke-width="1.2"
+          />
+          <path
+            d="M5 7h4M7 5v4"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+          />
+        </svg>
+        Mon activité
+      </button>
+    </div>
+
+    <!-- ═══ Onglet Informations ═══ -->
+    <div class="org-content" *ngIf="activeTab === 'infos'">
+      <!-- Message de bienvenue si profil incomplet -->
+      <div
+        class="alert alert--info"
+        *ngIf="!isEditing && isProfilIncomplet() && auth.isAdmin()"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle
+            cx="10"
+            cy="10"
+            r="8"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M10 6v4M10 13v.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        <div class="alert__body">
+          <strong>Complétez votre profil</strong>
+          <p>
+            Ajoutez la description, l'adresse et les contacts de votre
+            organisation.
+          </p>
+        </div>
+        <button class="btn btn--primary btn--sm" (click)="enableEditing()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path
+              d="M2 10L10 2L12 4L4 12L1 13L2 10Z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Compléter
+        </button>
+      </div>
+
       <!-- Logo / Avatar -->
       <div class="org-header">
         <div class="org-header__logo">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="10" width="24" height="16" rx="3" stroke="white" stroke-width="2"/>
-            <path d="M10 10V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" stroke="white" stroke-width="2"/>
+            <rect
+              x="4"
+              y="10"
+              width="24"
+              height="16"
+              rx="3"
+              stroke="white"
+              stroke-width="2"
+            />
+            <path
+              d="M10 10V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"
+              stroke="white"
+              stroke-width="2"
+            />
           </svg>
         </div>
         <div class="org-header__info">
-          <h3>{{ organisation?.nom || 'Mon organisation' }}</h3>
-          <span class="org-header__id">{{ auth.organisationId.slice(0, 8) }}...</span>
+          <h3>{{ organisation?.nom || "Mon organisation" }}</h3>
+          <span class="org-header__id"
+            >{{ auth.organisationId.slice(0, 8) }}...</span
+          >
         </div>
       </div>
 
@@ -41,25 +164,31 @@
       <div class="org-fields" *ngIf="!isEditing">
         <div class="org-field">
           <span class="org-field__label">Description</span>
-          <p class="org-field__value">{{ organisation?.description || '—' }}</p>
+          <p class="org-field__value">{{ organisation?.description || "—" }}</p>
         </div>
 
         <div class="org-grid">
           <div class="org-field">
             <span class="org-field__label">Adresse</span>
-            <p class="org-field__value">{{ organisation?.adresse || '—' }}</p>
+            <p class="org-field__value">{{ organisation?.adresse || "—" }}</p>
           </div>
           <div class="org-field">
             <span class="org-field__label">Téléphone</span>
-            <p class="org-field__value">{{ organisation?.telephone || '—' }}</p>
+            <p class="org-field__value">{{ organisation?.telephone || "—" }}</p>
           </div>
           <div class="org-field">
             <span class="org-field__label">Email</span>
-            <p class="org-field__value">{{ organisation?.email || '—' }}</p>
+            <p class="org-field__value">{{ organisation?.email || "—" }}</p>
           </div>
           <div class="org-field">
             <span class="org-field__label">Créée le</span>
-            <p class="org-field__value">{{ organisation?.createdAt | date:'dd/MM/yyyy' }}</p>
+            <p class="org-field__value">
+              {{
+                organisation?.createdAt
+                  ? (organisation.createdAt.toDate() | date: "dd/MM/yyyy")
+                  : "—"
+              }}
+            </p>
           </div>
         </div>
       </div>
@@ -71,41 +200,415 @@
             Nom de l'organisation
             <span class="form-label__required">*</span>
           </label>
-          <input type="text" class="form-control" formControlName="nom" placeholder="Association XYZ, PME Diallo..." />
-          <div class="form-error" *ngIf="form.get('nom')?.touched && form.get('nom')?.hasError('required')">
+          <input
+            type="text"
+            class="form-control"
+            formControlName="nom"
+            placeholder="Association XYZ, PME Diallo..."
+          />
+          <div
+            class="form-error"
+            *ngIf="
+              form.get('nom')?.touched && form.get('nom')?.hasError('required')
+            "
+          >
             Le nom est obligatoire
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Description</label>
-          <textarea class="form-control" formControlName="description" rows="3" placeholder="Description de votre organisation..."></textarea>
+          <textarea
+            class="form-control"
+            formControlName="description"
+            rows="3"
+            placeholder="Décrivez votre activité en quelques mots..."
+          ></textarea>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Adresse</label>
-            <input type="text" class="form-control" formControlName="adresse" placeholder="Dakar, Sénégal" />
+            <input
+              type="text"
+              class="form-control"
+              formControlName="adresse"
+              placeholder="Dakar, Sénégal"
+            />
           </div>
           <div class="form-group">
             <label class="form-label">Téléphone</label>
-            <input type="tel" class="form-control" formControlName="telephone" placeholder="+221 77 000 00 00" />
+            <input
+              type="tel"
+              class="form-control"
+              formControlName="telephone"
+              placeholder="+221 77 000 00 00"
+            />
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Email de contact</label>
-          <input type="email" class="form-control" formControlName="email" placeholder="contact@organisation.sn" />
+          <input
+            type="email"
+            class="form-control"
+            formControlName="email"
+            placeholder="contact@organisation.sn"
+          />
+          <div class="form-hint">
+            Cet email est différent de votre email de connexion
+          </div>
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn btn--secondary" (click)="cancelEditing()">Annuler</button>
-          <button type="submit" class="btn btn--primary" [disabled]="saving || form.invalid">
+          <button
+            type="button"
+            class="btn btn--secondary"
+            (click)="cancelEditing()"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            class="btn btn--primary"
+            [disabled]="saving || form.invalid"
+          >
             <span *ngIf="!saving">Enregistrer</span>
             <span *ngIf="saving" class="btn-spinner"></span>
           </button>
         </div>
       </form>
+    </div>
+
+    <!-- ═══ Onglet Mon activité ═══ -->
+    <div class="org-content" *ngIf="activeTab === 'activite'">
+      <!-- Template actuel -->
+      <div class="activite-section">
+        <div class="activite-section__header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect
+                x="2"
+                y="2"
+                width="12"
+                height="12"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M5 8l2 2 4-4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            Modèle d'activité actuel
+          </h3>
+        </div>
+
+        <!-- Carte du template actuel -->
+        <div class="current-template" *ngIf="currentTemplate">
+          <div class="current-template__card">
+            <div
+              class="current-template__icon"
+              [style.background]="currentTemplate.couleur + '15'"
+              [style.color]="currentTemplate.couleur"
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="getTemplateIcon(currentTemplate.icone)" />
+              </svg>
+            </div>
+            <div class="current-template__info">
+              <h4>{{ currentTemplate.nom }}</h4>
+              <p>{{ currentTemplate.description }}</p>
+              <div class="current-template__stats">
+                <span class="current-template__stat">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 4h8M2 7h8M2 10h5"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                  {{
+                    currentTemplate.categoriesEntree.length +
+                      currentTemplate.categoriesSortie.length
+                  }}
+                  catégories
+                </span>
+                <span class="current-template__stat">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <rect
+                      x="1.5"
+                      y="3"
+                      width="9"
+                      height="7"
+                      rx="1.5"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                    />
+                  </svg>
+                  {{ currentTemplate.caissesSuggerees.length }} caisse(s)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pas de template -->
+        <div class="no-template" *ngIf="!currentTemplate">
+          <div class="no-template__icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle
+                cx="16"
+                cy="16"
+                r="12"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-dasharray="4 4"
+              />
+              <path
+                d="M16 10v6M16 20v.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+          <p>Aucun modèle d'activité défini</p>
+          <span
+            >Choisissez un modèle ci-dessous pour préconfigurer vos
+            catégories</span
+          >
+        </div>
+
+        <!-- Bouton réinitialiser les catégories -->
+        <div class="activite-actions" *ngIf="currentTemplate && auth.isAdmin()">
+          <button
+            class="btn btn--secondary btn--sm"
+            (click)="reinitialiserCategories()"
+            [disabled]="loadingReinit"
+          >
+            <span *ngIf="!loadingReinit">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M9 4l2-2M4 10l-2 2"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Réinitialiser les catégories
+            </span>
+            <span *ngIf="loadingReinit" class="btn-spinner"></span>
+          </button>
+          <button
+            class="btn btn--secondary btn--sm"
+            (click)="reinitialiserCaisses()"
+            [disabled]="loadingReinitCaisses"
+          >
+            <span *ngIf="!loadingReinitCaisses">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <rect
+                  x="2"
+                  y="4"
+                  width="10"
+                  height="8"
+                  rx="1.5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+              </svg>
+              Ajouter les caisses suggérées
+            </span>
+            <span *ngIf="loadingReinitCaisses" class="btn-spinner"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Changer de template -->
+      <div class="activite-section" *ngIf="auth.isAdmin()">
+        <div class="activite-section__header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M13 3h-3V1H6v2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+            </svg>
+            {{ currentTemplate ? "Changer de modèle" : "Choisir un modèle" }}
+          </h3>
+          <p class="activite-section__hint">
+            {{
+              currentTemplate
+                ? "Sélectionnez un nouveau modèle. Les catégories existantes seront conservées, les nouvelles seront ajoutées."
+                : "Choisissez un modèle pour préconfigurer vos catégories."
+            }}
+          </p>
+        </div>
+
+        <!-- Grille des templates disponibles -->
+        <div class="templates-grid">
+          <div
+            class="template-card"
+            *ngFor="let t of templates"
+            [class.template-card--selected]="selectedNewTemplate?.id === t.id"
+            [class.template-card--current]="currentTemplate?.id === t.id"
+            (click)="selectNewTemplate(t)"
+          >
+            <div
+              class="template-card__icon"
+              [style.background]="t.couleur + '15'"
+              [style.color]="t.couleur"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="getTemplateIcon(t.icone)" />
+              </svg>
+            </div>
+            <div class="template-card__info">
+              <h4>{{ t.nom }}</h4>
+              <p>{{ t.description }}</p>
+            </div>
+            <div class="template-card__stats">
+              <span
+                >{{
+                  t.categoriesEntree.length + t.categoriesSortie.length
+                }}
+                catégories</span
+              >
+              <span>·</span>
+              <span>{{ t.caissesSuggerees.length }} caisses</span>
+            </div>
+            <span
+              class="template-card__badge"
+              *ngIf="currentTemplate?.id === t.id"
+              >Actuel</span
+            >
+            <div
+              class="template-card__check"
+              *ngIf="selectedNewTemplate?.id === t.id"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="7"
+                  fill="currentColor"
+                  opacity="0.15"
+                />
+                <path
+                  d="M4 8l3 3 5-5"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aperçu du nouveau template -->
+        <div
+          class="template-preview"
+          *ngIf="
+            selectedNewTemplate &&
+            selectedNewTemplate.id !== currentTemplate?.id
+          "
+        >
+          <div class="template-preview__header">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle
+                cx="7"
+                cy="7"
+                r="5.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M7 4v3M7 9v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span
+              >Les catégories suivantes seront <strong>ajoutées</strong> à vos
+              catégories existantes</span
+            >
+          </div>
+          <div class="template-preview__categories">
+            <span
+              class="template-preview__cat"
+              *ngFor="let cat of getNewTemplatePreview()"
+              [style.background]="cat.type === 'Entrée' ? '#D1FAE5' : '#FEE2E2'"
+              [style.color]="cat.type === 'Entrée' ? '#047857' : '#B91C1C'"
+            >
+              {{ cat.nom }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Bouton appliquer -->
+        <div
+          class="activite-actions"
+          *ngIf="
+            selectedNewTemplate &&
+            selectedNewTemplate.id !== currentTemplate?.id
+          "
+        >
+          <button
+            class="btn btn--secondary btn--sm"
+            (click)="cancelChangeTemplate()"
+          >
+            Annuler
+          </button>
+          <button
+            class="btn btn--primary btn--sm"
+            (click)="applyNewTemplate()"
+            [disabled]="loadingApply"
+          >
+            <span *ngIf="!loadingApply">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M2 7L6 11L12 3"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Appliquer ce modèle
+            </span>
+            <span *ngIf="loadingApply" class="btn-spinner"></span>
+          </button>
+        </div>
+      </div>
     </div>
   </ng-container>
 </div>

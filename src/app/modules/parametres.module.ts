@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { SharedModule } from './shared.module';
 import { ParametresComponent } from '../features/settings/parametres.component';
-import { UtilisateursComponent } from '../features/utilisateurs/utilisateurs.component';
+import { UtilisateursComponent } from '../features/settings/utilisateurs/utilisateurs.component';
 import { CategoriesParamComponent } from '../features/settings/categories/categories-param.component';
 import { OrganisationComponent } from '../features/settings/organisation/organisation.component';
 import { PreferencesComponent } from '../features/settings/preferences/preferences.component';

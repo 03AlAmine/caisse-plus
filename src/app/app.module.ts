@@ -7,6 +7,7 @@ import localeFr from '@angular/common/locales/fr';
 import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 import { LayoutModule } from './modules/layout.module';
+import { SharedModule } from './modules/shared.module'; // ✅ Ajouter cet import
 import { AppComponent } from './app.component';
 import { environment } from '../environments/environment';
 
@@ -21,7 +22,9 @@ import { provideStorage, getStorage } from '@angular/fire/storage';
 registerLocaleData(localeFr);
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [
+    AppComponent,
+  ],
   imports: [
     BrowserModule,
     CommonModule,
@@ -29,6 +32,7 @@ registerLocaleData(localeFr);
     AppRoutingModule,
     CoreModule,
     LayoutModule,
+    SharedModule, // ✅ Ajouter ici
 
     ToastrModule.forRoot({
       timeOut: 3000,
@@ -43,9 +47,7 @@ registerLocaleData(localeFr);
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
   ],
-  providers: [
-    { provide: LOCALE_ID, useValue: 'fr-FR' },
-  ],
+  providers: [{ provide: LOCALE_ID, useValue: 'fr-FR' }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

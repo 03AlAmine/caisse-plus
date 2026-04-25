@@ -125,3 +125,275 @@
   padding-top: var(--space-5);
   border-top: 1px solid var(--gray-100);
 }
+// ─── Onglets ────────────────────────────────────────────────────────────
+.org-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gray-100);
+  padding: 0 var(--space-5);
+}
+
+.org-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  margin-bottom: -1px;
+
+  &:hover { color: var(--navy-600); }
+
+  &--active {
+    color: var(--navy-700);
+    border-bottom-color: var(--navy-600);
+  }
+}
+
+// ─── Section activité ──────────────────────────────────────────────────
+.activite-section {
+  padding: var(--space-5);
+
+  & + & {
+    border-top: 1px solid var(--gray-100);
+    margin-top: var(--space-2);
+  }
+
+  &__header {
+    margin-bottom: var(--space-4);
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--navy-800);
+      margin: 0 0 var(--space-1);
+    }
+  }
+
+  &__hint {
+    font-size: var(--text-xs);
+    color: var(--gray-400);
+    margin: var(--space-1) 0 0;
+  }
+}
+
+// ─── Template actuel ───────────────────────────────────────────────────
+.current-template {
+  margin-bottom: var(--space-5);
+
+  &__card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    border-radius: var(--radius-lg);
+  }
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--navy-800);
+      margin: 0 0 var(--space-1);
+    }
+
+    p {
+      font-size: var(--text-xs);
+      color: var(--gray-500);
+      margin: 0 0 var(--space-2);
+    }
+  }
+
+  &__stats {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  &__stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 11px;
+    color: var(--gray-500);
+    background: var(--color-white);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+}
+
+.no-template {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--gray-400);
+
+  &__icon {
+    margin-bottom: var(--space-3);
+    color: var(--gray-300);
+  }
+
+  p {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-500);
+    margin: 0 0 var(--space-1);
+  }
+
+  span {
+    font-size: var(--text-xs);
+  }
+}
+
+// ─── Grille des templates ──────────────────────────────────────────────
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.template-card {
+  position: relative;
+  padding: var(--space-3);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  background: var(--color-white);
+
+  &:hover {
+    border-color: var(--navy-400);
+    background: var(--navy-50);
+  }
+
+  &--selected {
+    border-color: var(--navy-600);
+    background: var(--navy-50);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &--current {
+    border-color: var(--color-success);
+    background: var(--color-success-light);
+    cursor: default;
+  }
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-2);
+  }
+
+  &__info {
+    margin-bottom: var(--space-2);
+
+    h4 {
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--navy-800);
+      margin: 0 0 2px;
+    }
+
+    p {
+      font-size: 11px;
+      color: var(--gray-400);
+      margin: 0;
+    }
+  }
+
+  &__stats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 10px;
+    color: var(--gray-500);
+  }
+
+  &__badge {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    font-size: 9px;
+    font-weight: 700;
+    background: var(--color-success);
+    color: white;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+  }
+
+  &__check {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    color: var(--navy-600);
+  }
+}
+
+// ─── Aperçu du nouveau template ────────────────────────────────────────
+.template-preview {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    color: #92400E;
+    margin-bottom: var(--space-2);
+
+    strong { font-weight: 700; }
+  }
+
+  &__categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  &__cat {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+}
+
+// ─── Actions ───────────────────────────────────────────────────────────
+.activite-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}

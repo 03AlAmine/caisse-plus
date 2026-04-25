@@ -2,9 +2,9 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
-import { UserService } from '../../services/user.service';
-import { AuthService } from '../../services/auth.service';
-import { User, UserRole } from '../../models/user.model';
+import { UserService } from '../../../services/user.service';
+import { AuthService } from '../../../services/auth.service';
+import { User, UserRole } from '../../../models/user.model';
 import { ToastrService } from 'ngx-toastr';
 
 interface RoleInfo {
@@ -22,7 +22,7 @@ interface RoleInfo {
 export class UtilisateursComponent implements OnInit {
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
-  private firestore = inject(Firestore);  // ← Ajouté
+  private firestore = inject(Firestore); // ← Ajouté
   auth = inject(AuthService);
   private toastr = inject(ToastrService);
 
@@ -47,10 +47,30 @@ export class UtilisateursComponent implements OnInit {
   inviterForm!: FormGroup;
 
   ROLES: RoleInfo[] = [
-    { value: 'admin', label: 'Administrateur', desc: 'Accès complet', color: '#0F172A' },
-    { value: 'tresorier', label: 'Trésorier', desc: 'Gestion financière', color: '#059669' },
-    { value: 'auditeur', label: 'Auditeur', desc: 'Lecture seule', color: '#7C3AED' },
-    { value: 'utilisateur', label: 'Utilisateur', desc: 'Saisie d\'opérations', color: '#6B7280' },
+    {
+      value: 'admin',
+      label: 'Administrateur',
+      desc: 'Accès complet',
+      color: '#0F172A',
+    },
+    {
+      value: 'tresorier',
+      label: 'Trésorier',
+      desc: 'Gestion financière',
+      color: '#059669',
+    },
+    {
+      value: 'auditeur',
+      label: 'Auditeur',
+      desc: 'Lecture seule',
+      color: '#7C3AED',
+    },
+    {
+      value: 'utilisateur',
+      label: 'Utilisateur',
+      desc: "Saisie d'opérations",
+      color: '#6B7280',
+    },
   ];
 
   ngOnInit(): void {
@@ -68,10 +88,13 @@ export class UtilisateursComponent implements OnInit {
     });
 
     // Validation conditionnelle du mot de passe
-    this.inviterForm.get('invitationMode')?.valueChanges.subscribe(mode => {
+    this.inviterForm.get('invitationMode')?.valueChanges.subscribe((mode) => {
       const passwordControl = this.inviterForm.get('password');
       if (mode === 'direct') {
-        passwordControl?.setValidators([Validators.required, Validators.minLength(8)]);
+        passwordControl?.setValidators([
+          Validators.required,
+          Validators.minLength(8),
+        ]);
       } else {
         passwordControl?.clearValidators();
         passwordControl?.setValue('');
@@ -84,11 +107,11 @@ export class UtilisateursComponent implements OnInit {
     this.loading = true;
     this.users$ = this.userService.getAll();
     this.users$.subscribe({
-      next: () => this.loading = false,
+      next: () => (this.loading = false),
       error: () => {
         this.loading = false;
         this.toastr.error('Erreur lors du chargement des utilisateurs');
-      }
+      },
     });
   }
 
@@ -108,15 +131,15 @@ export class UtilisateursComponent implements OnInit {
   }
 
   getRoleInfo(role: UserRole): RoleInfo {
-    return this.ROLES.find(r => r.value === role) || this.ROLES[3];
+    return this.ROLES.find((r) => r.value === role) || this.ROLES[3];
   }
 
   getAdminsCount(users: User[]): number {
-    return users.filter(u => u.role === 'admin' && u.actif !== false).length;
+    return users.filter((u) => u.role === 'admin' && u.actif !== false).length;
   }
 
   getActiveUsersCount(users: User[]): number {
-    return users.filter(u => u.actif !== false).length;
+    return users.filter((u) => u.actif !== false).length;
   }
 
   getPendingInvitationsCount(): number {
@@ -141,7 +164,10 @@ export class UtilisateursComponent implements OnInit {
       const userDoc = await getDoc(doc(this.firestore, `users/${inviterId}`));
       if (userDoc.exists()) {
         const data = userDoc.data();
-        const name = data['displayName'] || data['email']?.split('@')[0] || 'Administrateur';
+        const name =
+          data['displayName'] ||
+          data['email']?.split('@')[0] ||
+          'Administrateur';
         this.invitersCache.set(inviterId, name);
       } else {
         this.invitersCache.set(inviterId, 'Administrateur');
@@ -159,13 +185,19 @@ export class UtilisateursComponent implements OnInit {
 
     // Vérifier qu'il reste au moins un admin
     if (user.role === 'admin' && newRole !== 'admin') {
-      this.users$.subscribe(users => {
-        const adminCount = users.filter(u => u.role === 'admin' && u.actif !== false).length;
-        if (adminCount <= 1) {
-          this.toastr.error('Impossible de retirer le dernier administrateur');
-          return;
-        }
-      }).unsubscribe();
+      this.users$
+        .subscribe((users) => {
+          const adminCount = users.filter(
+            (u) => u.role === 'admin' && u.actif !== false,
+          ).length;
+          if (adminCount <= 1) {
+            this.toastr.error(
+              'Impossible de retirer le dernier administrateur',
+            );
+            return;
+          }
+        })
+        .unsubscribe();
     }
 
     this.loadingRole = user.uid;
@@ -191,7 +223,9 @@ export class UtilisateursComponent implements OnInit {
     this.loadingRole = this.userToDeactivate.uid;
     try {
       await this.userService.desactiver(this.userToDeactivate.uid);
-      this.toastr.success(`${this.userToDeactivate.displayName} a été désactivé`);
+      this.toastr.success(
+        `${this.userToDeactivate.displayName} a été désactivé`,
+      );
       this.closeDeactivateModal();
       this.loadUsers(); // Recharger la liste
     } catch (error: any) {
@@ -226,7 +260,7 @@ export class UtilisateursComponent implements OnInit {
     this.createdUserCredentials = null;
     this.inviterForm.reset({
       invitationMode: 'email',
-      role: 'utilisateur'
+      role: 'utilisateur',
     });
     this.showPassword = false;
     this.showInviterModal = true;
@@ -245,7 +279,8 @@ export class UtilisateursComponent implements OnInit {
   }
 
   private _generateSecurePassword(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
     let password = '';
     for (let i = 0; i < 16; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -260,15 +295,21 @@ export class UtilisateursComponent implements OnInit {
     }
 
     this.loadingInviter = true;
-    const { displayName, email, role, invitationMode, password } = this.inviterForm.value;
+    const { displayName, email, role, invitationMode, password } =
+      this.inviterForm.value;
 
     try {
       if (invitationMode === 'direct') {
-        const result = await this.userService.inviter(email, displayName, role, {
-          sendEmail: false,
-          password: password,
-          skipEmailVerification: true,
-        });
+        const result = await this.userService.inviter(
+          email,
+          displayName,
+          role,
+          {
+            sendEmail: false,
+            password: password,
+            skipEmailVerification: true,
+          },
+        );
 
         this.createdUserCredentials = {
           email,
@@ -288,7 +329,7 @@ export class UtilisateursComponent implements OnInit {
         this.closeInviteModal();
       }
     } catch (error: any) {
-      this.toastr.error(error.message || 'Erreur lors de l\'invitation');
+      this.toastr.error(error.message || "Erreur lors de l'invitation");
     } finally {
       this.loadingInviter = false;
     }
@@ -297,12 +338,17 @@ export class UtilisateursComponent implements OnInit {
   copyCredentials(): void {
     if (this.createdUserCredentials) {
       const text = `Email: ${this.createdUserCredentials.email}\nMot de passe: ${this.createdUserCredentials.password}`;
-      navigator.clipboard?.writeText(text).then(() => {
-        this.toastr.info('Identifiants copiés dans le presse-papier');
-      }).catch(() => {
-        // Fallback pour les navigateurs sans clipboard API
-        this.toastr.info(`Email: ${this.createdUserCredentials?.email} | Mot de passe: ${this.createdUserCredentials?.password}`);
-      });
+      navigator.clipboard
+        ?.writeText(text)
+        .then(() => {
+          this.toastr.info('Identifiants copiés dans le presse-papier');
+        })
+        .catch(() => {
+          // Fallback pour les navigateurs sans clipboard API
+          this.toastr.info(
+            `Email: ${this.createdUserCredentials?.email} | Mot de passe: ${this.createdUserCredentials?.password}`,
+          );
+        });
     }
   }
 
@@ -313,7 +359,9 @@ export class UtilisateursComponent implements OnInit {
       this.invitationCode = await this.userService.generateInvitationCode();
       this.showInvitationCodeModal = true;
     } catch (error: any) {
-      this.toastr.error(error.message || 'Erreur lors de la génération du code');
+      this.toastr.error(
+        error.message || 'Erreur lors de la génération du code',
+      );
     }
   }
 
@@ -324,11 +372,14 @@ export class UtilisateursComponent implements OnInit {
 
   copyInvitationCode(): void {
     if (this.invitationCode) {
-      navigator.clipboard?.writeText(this.invitationCode).then(() => {
-        this.toastr.info('Code d\'invitation copié');
-      }).catch(() => {
-        this.toastr.info(`Code d'invitation : ${this.invitationCode}`);
-      });
+      navigator.clipboard
+        ?.writeText(this.invitationCode)
+        .then(() => {
+          this.toastr.info("Code d'invitation copié");
+        })
+        .catch(() => {
+          this.toastr.info(`Code d'invitation : ${this.invitationCode}`);
+        });
     }
   }
 }

@@ -11,6 +11,8 @@ import { CanDoDirective } from '../shared/directives/can-do.directive';
 import { LoadingSpinnerComponent } from '../shared/components/loading-spinner/loading-spinner.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
 import { ChartComponent } from '../shared/components/chart/chart.component';
+import { WelcomeModalComponent } from '../shared/components/welcome-modal/welcome-modal.component';
+
 
 @NgModule({
   declarations: [
@@ -21,14 +23,10 @@ import { ChartComponent } from '../shared/components/chart/chart.component';
     CanDoDirective,
     LoadingSpinnerComponent,
     PageHeaderComponent,
-    ChartComponent
+    ChartComponent,
+    WelcomeModalComponent,
   ],
-  imports: [
-    CommonModule,
-    RouterModule,
-    ReactiveFormsModule,
-    FormsModule
-  ],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   exports: [
     // Modules
     CommonModule,
@@ -48,7 +46,8 @@ import { ChartComponent } from '../shared/components/chart/chart.component';
     // Components
     LoadingSpinnerComponent,
     PageHeaderComponent,
-    ChartComponent  // ← AJOUTÉ ICI
+    ChartComponent, // ← AJOUTÉ ICI
+    WelcomeModalComponent,
   ],
 })
 export class SharedModule {}

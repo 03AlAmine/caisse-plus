@@ -12,8 +12,19 @@
       <div class="feature-item stagger-1">
         <div class="feature-item__icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M5 20v-2a7 7 0 0 1 14 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <circle
+              cx="12"
+              cy="8"
+              r="4"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <path
+              d="M5 20v-2a7 7 0 0 1 14 0v2"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
           </svg>
         </div>
         <div class="feature-item__text">
@@ -24,8 +35,20 @@
       <div class="feature-item stagger-2">
         <div class="feature-item__icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="8" width="18" height="13" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.8"/>
+            <rect
+              x="3"
+              y="8"
+              width="18"
+              height="13"
+              rx="2.5"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <path
+              d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
           </svg>
         </div>
         <div class="feature-item__text">
@@ -36,12 +59,20 @@
       <div class="feature-item stagger-3">
         <div class="feature-item__icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M3 17L9 11L13 15L21 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M3 17L9 11L13 15L21 7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </div>
         <div class="feature-item__text">
           <div class="feature-item__title">Commencez à gérer</div>
-          <div class="feature-item__desc">Accès immédiat au tableau de bord</div>
+          <div class="feature-item__desc">
+            Accès immédiat au tableau de bord
+          </div>
         </div>
       </div>
     </div>
@@ -63,18 +94,58 @@
 
       <!-- Indicateur d'étapes -->
       <div class="steps-indicator">
-        <div class="step-item" [class.step-item--active]="step >= 1" [class.step-item--done]="step > 1">
+        <div
+          class="step-item"
+          [class.step-item--active]="step >= 1"
+          [class.step-item--done]="step > 1"
+        >
           <div class="step-item__dot">
-            <svg *ngIf="step > 1" width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7L6 11L12 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <svg
+              *ngIf="step > 1"
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+            >
+              <path
+                d="M2 7L6 11L12 3"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
             </svg>
             <span *ngIf="step <= 1">1</span>
           </div>
           <span class="step-item__label">Informations</span>
         </div>
         <div class="step-line" [class.step-line--done]="step > 1"></div>
-        <div class="step-item" [class.step-item--active]="step >= 2">
-          <div class="step-item__dot">2</div>
+        <div
+          class="step-item"
+          [class.step-item--active]="step >= 2"
+          [class.step-item--done]="step > 2"
+        >
+          <div class="step-item__dot">
+            <svg
+              *ngIf="step > 2"
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+            >
+              <path
+                d="M2 7L6 11L12 3"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span *ngIf="step <= 2">2</span>
+          </div>
+          <span class="step-item__label">Activité</span>
+        </div>
+        <div class="step-line" [class.step-line--done]="step > 2"></div>
+        <div class="step-item" [class.step-item--active]="step >= 3">
+          <div class="step-item__dot">3</div>
           <span class="step-item__label">Organisation</span>
         </div>
       </div>
@@ -82,7 +153,12 @@
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
         <!-- Étape 1 : Infos personnelles -->
         <ng-container *ngIf="step === 1">
-          <div class="form-group" [class.form-group--error]="displayName.invalid && displayName.touched">
+          <div
+            class="form-group"
+            [class.form-group--error]="
+              displayName.invalid && displayName.touched
+            "
+          >
             <label class="form-label" for="displayName">
               Nom complet
               <span class="form-label__required">*</span>
@@ -95,19 +171,39 @@
               [class.is-invalid]="displayName.invalid && displayName.touched"
               placeholder="Amadou Diallo"
             />
-            <div class="form-error" *ngIf="displayName.touched && displayName.hasError('required')">
+            <div
+              class="form-error"
+              *ngIf="displayName.touched && displayName.hasError('required')"
+            >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
-                <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                <circle
+                  cx="6"
+                  cy="6"
+                  r="5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                />
+                <path
+                  d="M6 3v3M6 8v.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                />
               </svg>
               Le nom est obligatoire.
             </div>
-            <div class="form-error" *ngIf="displayName.touched && displayName.hasError('minlength')">
+            <div
+              class="form-error"
+              *ngIf="displayName.touched && displayName.hasError('minlength')"
+            >
               Minimum 3 caractères.
             </div>
           </div>
 
-          <div class="form-group" [class.form-group--error]="email.invalid && email.touched">
+          <div
+            class="form-group"
+            [class.form-group--error]="email.invalid && email.touched"
+          >
             <label class="form-label" for="email">
               Adresse email
               <span class="form-label__required">*</span>
@@ -120,20 +216,52 @@
               [class.is-invalid]="email.invalid && email.touched"
               placeholder="vous@exemple.com"
             />
-            <div class="form-error" *ngIf="email.touched && email.hasError('required')">
+            <div
+              class="form-error"
+              *ngIf="email.touched && email.hasError('required')"
+            >
               L'email est obligatoire.
             </div>
-            <div class="form-error" *ngIf="email.touched && email.hasError('email')">
+            <div
+              class="form-error"
+              *ngIf="email.touched && email.hasError('email')"
+            >
               Email invalide.
             </div>
           </div>
 
-          <div class="form-group" [class.form-group--error]="password.invalid && password.touched">
+          <div
+            class="form-group"
+            [class.form-group--error]="password.invalid && password.touched"
+          >
             <label class="form-label" for="password">
               Mot de passe
               <span class="form-label__required">*</span>
             </label>
             <div class="input-with-icon">
+              <svg
+                class="input-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <rect
+                  x="3"
+                  y="7"
+                  width="10"
+                  height="7"
+                  rx="1.5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M5 7V5a3 3 0 0 1 6 0v2"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
               <input
                 id="password"
                 [type]="showPassword ? 'text' : 'password'"
@@ -148,22 +276,61 @@
                 (click)="showPassword = !showPassword"
                 tabindex="-1"
               >
-                <svg *ngIf="!showPassword" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 8s3-5 6-5 6 5 6 5-3 5-6 5-6-5-6-5z" stroke="currentColor" stroke-width="1.5"/>
-                  <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/>
+                <svg
+                  *ngIf="!showPassword"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                >
+                  <path
+                    d="M2 8s3-5 6-5 6 5 6 5-3 5-6 5-6-5-6-5z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="2"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
                 </svg>
-                <svg *ngIf="showPassword" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 8s3-5 6-5 6 5 6 5-3 5-6 5-6-5-6-5z" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M3 3l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <svg
+                  *ngIf="showPassword"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                >
+                  <path
+                    d="M2 8s3-5 6-5 6 5 6 5-3 5-6 5-6-5-6-5z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <path
+                    d="M3 3l10 10"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
                 </svg>
               </button>
             </div>
-            <div class="form-error" *ngIf="password.touched && password.hasError('minlength')">
+            <div
+              class="form-error"
+              *ngIf="password.touched && password.hasError('minlength')"
+            >
               Minimum 6 caractères.
             </div>
           </div>
 
-          <div class="form-group" [class.form-group--error]="confirmPassword.touched && form.hasError('passwordMismatch')">
+          <div
+            class="form-group"
+            [class.form-group--error]="
+              confirmPassword.touched && form.hasError('passwordMismatch')
+            "
+          >
             <label class="form-label" for="confirmPassword">
               Confirmer le mot de passe
               <span class="form-label__required">*</span>
@@ -173,58 +340,330 @@
               type="password"
               formControlName="confirmPassword"
               class="form-control"
-              [class.is-invalid]="confirmPassword.touched && form.hasError('passwordMismatch')"
+              [class.is-invalid]="
+                confirmPassword.touched && form.hasError('passwordMismatch')
+              "
               placeholder="••••••••"
             />
-            <div class="form-error" *ngIf="confirmPassword.touched && form.hasError('passwordMismatch')">
+            <div
+              class="form-error"
+              *ngIf="
+                confirmPassword.touched && form.hasError('passwordMismatch')
+              "
+            >
               Les mots de passe ne correspondent pas.
             </div>
           </div>
 
-          <div class="alert alert--danger alert--sm" *ngIf="errorMessage && step === 1">
+          <div
+            class="alert alert--danger alert--sm"
+            *ngIf="errorMessage && step === 1"
+          >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M8 5v3M8 10v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <circle
+                cx="8"
+                cy="8"
+                r="6.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M8 5v3M8 10v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
             </svg>
             <span>{{ errorMessage }}</span>
           </div>
 
-          <button type="button" class="btn btn--primary auth-submit" (click)="nextStep()">
+          <button
+            type="button"
+            class="btn btn--primary auth-submit"
+            (click)="nextStep()"
+          >
             Continuer
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path
+                d="M3 8h10M9 4l4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </button>
         </ng-container>
 
-        <!-- Étape 2 : Organisation -->
+        <!-- ═══ ÉTAPE 2 : Choix du template ═══ -->
+
         <ng-container *ngIf="step === 2">
+          <div class="template-section">
+            <h2>Quelle est votre activité ?</h2>
+            <p class="template-section__desc">
+              Choisissez un modèle pour préconfigurer vos catégories et démarrer
+              rapidement.
+              <strong>Vous pourrez tout modifier plus tard.</strong>
+            </p>
+
+            <!-- Grille des templates -->
+            <div class="templates-grid">
+              <div
+                class="template-card"
+                *ngFor="let t of templates"
+                [class.template-card--selected]="selectedTemplate?.id === t.id"
+                (click)="selectTemplate(t)"
+              >
+                <!-- Icône -->
+                <div
+                  class="template-card__icon"
+                  [style.background]="t.couleur + '15'"
+                  [style.color]="t.couleur"
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path [attr.d]="getTemplateIcon(t.icone)" />
+                  </svg>
+                </div>
+
+                <!-- Infos -->
+                <div class="template-card__info">
+                  <h3 class="template-card__name">{{ t.nom }}</h3>
+                  <p class="template-card__desc">{{ t.description }}</p>
+                </div>
+
+                <!-- Stats -->
+                <div class="template-card__stats">
+                  <span class="template-card__stat">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path
+                        d="M2 4h8M2 7h8M2 10h5"
+                        stroke="currentColor"
+                        stroke-width="1.2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    {{ t.categoriesEntree.length + t.categoriesSortie.length }}
+                    catégories
+                  </span>
+                  <span class="template-card__stat">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <rect
+                        x="1.5"
+                        y="3"
+                        width="9"
+                        height="7"
+                        rx="1.5"
+                        stroke="currentColor"
+                        stroke-width="1.2"
+                      />
+                    </svg>
+                    {{ t.caissesSuggerees.length }} caisse(s)
+                  </span>
+                </div>
+
+                <!-- Check si sélectionné -->
+                <div
+                  class="template-card__check"
+                  *ngIf="selectedTemplate?.id === t.id"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle
+                      cx="8"
+                      cy="8"
+                      r="7"
+                      fill="currentColor"
+                      opacity="0.15"
+                    />
+                    <path
+                      d="M4 8l3 3 5-5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Aperçu des catégories du template sélectionné -->
+            <div class="template-preview" *ngIf="selectedTemplate">
+              <h4>Aperçu des catégories — {{ selectedTemplate.nom }}</h4>
+              <div class="template-preview__categories">
+                <span
+                  class="template-preview__cat"
+                  *ngFor="let cat of templatePreview"
+                  [style.background]="
+                    cat.type === 'Entrée' ? '#D1FAE5' : '#FEE2E2'
+                  "
+                  [style.color]="cat.type === 'Entrée' ? '#047857' : '#B91C1C'"
+                >
+                  {{ cat.nom }}
+                </span>
+                <span
+                  class="template-preview__more"
+                  *ngIf="
+                    selectedTemplate.categoriesEntree.length +
+                      selectedTemplate.categoriesSortie.length >
+                    8
+                  "
+                >
+                  +{{
+                    selectedTemplate.categoriesEntree.length +
+                      selectedTemplate.categoriesSortie.length -
+                      8
+                  }}
+                  autres
+                </span>
+              </div>
+              <div
+                class="template-preview__caisses"
+                *ngIf="selectedTemplate.caissesSuggerees.length > 0"
+              >
+                <h4>Caisses suggérées</h4>
+                <div
+                  class="caisse-suggeree"
+                  *ngFor="let c of selectedTemplate.caissesSuggerees"
+                >
+                  <span
+                    class="caisse-suggeree__dot"
+                    [style.background]="c.couleur || '#6B7280'"
+                  ></span>
+                  <span class="caisse-suggeree__name">{{ c.nom }}</span>
+                  <span class="caisse-suggeree__type">{{
+                    c.type === "principale" ? "Principale" : "Secondaire"
+                  }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="alert alert--danger alert--sm"
+              *ngIf="errorMessage && step === 2"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                />
+                <path
+                  d="M8 5v3M8 10v.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <span>{{ errorMessage }}</span>
+            </div>
+
+            <div class="step-actions">
+              <button
+                type="button"
+                class="btn btn--secondary"
+                (click)="previousStep()"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M13 8H3M7 4L3 8l4 4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Retour
+              </button>
+              <button
+                type="button"
+                class="btn btn--primary"
+                (click)="nextStep()"
+                [disabled]="!selectedTemplate"
+              >
+                Continuer
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M3 8h10M9 4l4 4-4 4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+        <!-- ═══ ÉTAPE 3 : Organisation ═══ -->
+        <ng-container *ngIf="step === 3">
           <div class="form-group">
             <label class="form-label">Type d'inscription</label>
             <div class="radio-group">
               <label class="radio-item">
-                <input type="radio" formControlName="typeInscription" value="nouvelle" />
+                <input
+                  type="radio"
+                  formControlName="typeInscription"
+                  value="nouvelle"
+                />
                 <span class="radio-item__content">
                   <span class="radio-item__label">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                      <path d="M5 2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      <rect
+                        x="2"
+                        y="4"
+                        width="12"
+                        height="9"
+                        rx="1.5"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      />
+                      <path
+                        d="M5 2h6"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
                     </svg>
                     Créer une nouvelle organisation
                   </span>
-                  <span class="radio-item__hint">Vous serez administrateur et pourrez inviter d'autres membres</span>
+                  <span class="radio-item__hint"
+                    >Vous serez administrateur et pourrez inviter d'autres
+                    membres</span
+                  >
                 </span>
               </label>
               <label class="radio-item">
-                <input type="radio" formControlName="typeInscription" value="existante" />
+                <input
+                  type="radio"
+                  formControlName="typeInscription"
+                  value="existante"
+                />
                 <span class="radio-item__content">
                   <span class="radio-item__label">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M8 2v12M4 8h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      <path
+                        d="M8 2v12M4 8h8"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
                     </svg>
                     Rejoindre une organisation existante
                   </span>
-                  <span class="radio-item__hint">Vous avez reçu un ID d'organisation ou un code d'invitation</span>
+                  <span class="radio-item__hint"
+                    >Vous avez reçu un ID d'organisation ou un code
+                    d'invitation</span
+                  >
                 </span>
               </label>
             </div>
@@ -234,13 +673,32 @@
           <ng-container *ngIf="typeInscription.value === 'nouvelle'">
             <div class="alert alert--info alert--sm">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
-                <path d="M8 5v3M8 10v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                />
+                <path
+                  d="M8 5v3M8 10v.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                />
               </svg>
-              <span>Vous allez créer une <strong>organisation</strong>. Vous en serez l'administrateur.</span>
+              <span
+                >Vous allez créer une <strong>organisation</strong>. Vous en
+                serez l'administrateur.</span
+              >
             </div>
 
-            <div class="form-group" [class.form-group--error]="organisationNom.invalid && organisationNom.touched">
+            <div
+              class="form-group"
+              [class.form-group--error]="
+                organisationNom.invalid && organisationNom.touched
+              "
+            >
               <label class="form-label" for="orgNom">
                 Nom de l'organisation
                 <span class="form-label__required">*</span>
@@ -250,10 +708,18 @@
                 type="text"
                 formControlName="organisationNom"
                 class="form-control"
-                [class.is-invalid]="organisationNom.invalid && organisationNom.touched"
+                [class.is-invalid]="
+                  organisationNom.invalid && organisationNom.touched
+                "
                 placeholder="Association XYZ, PME Diallo..."
               />
-              <div class="form-error" *ngIf="organisationNom.touched && organisationNom.hasError('required')">
+              <div
+                class="form-error"
+                *ngIf="
+                  organisationNom.touched &&
+                  organisationNom.hasError('required')
+                "
+              >
                 Le nom de l'organisation est obligatoire.
               </div>
             </div>
@@ -263,12 +729,24 @@
           <ng-container *ngIf="typeInscription.value === 'existante'">
             <div class="alert alert--warning alert--sm">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path
+                  d="M8 2L14 13H2L8 2Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
               </svg>
-              <span>Demandez l'ID de l'organisation à votre administrateur.</span>
+              <span
+                >Demandez l'ID de l'organisation à votre administrateur.</span
+              >
             </div>
 
-            <div class="form-group" [class.form-group--error]="organisationId.invalid && organisationId.touched">
+            <div
+              class="form-group"
+              [class.form-group--error]="
+                organisationId.invalid && organisationId.touched
+              "
+            >
               <label class="form-label" for="orgId">
                 ID de l'organisation
                 <span class="form-label__required">*</span>
@@ -278,17 +756,28 @@
                 type="text"
                 formControlName="organisationId"
                 class="form-control"
-                [class.is-invalid]="organisationId.invalid && organisationId.touched"
+                [class.is-invalid]="
+                  organisationId.invalid && organisationId.touched
+                "
                 placeholder="ex: ABC123XYZ..."
               />
-              <div class="form-error" *ngIf="organisationId.touched && organisationId.hasError('required')">
+              <div
+                class="form-error"
+                *ngIf="
+                  organisationId.touched && organisationId.hasError('required')
+                "
+              >
                 L'ID de l'organisation est obligatoire.
               </div>
-              <div class="form-hint">L'ID est disponible dans les paramètres de l'organisation</div>
+              <div class="form-hint">
+                L'ID est disponible dans les paramètres de l'organisation
+              </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="invitationCode">Code d'invitation (optionnel)</label>
+              <label class="form-label" for="invitationCode"
+                >Code d'invitation (optionnel)</label
+              >
               <input
                 id="invitationCode"
                 type="text"
@@ -296,22 +785,48 @@
                 class="form-control"
                 placeholder="Code supplémentaire si requis"
               />
-              <div class="form-hint">Certaines organisations peuvent demander un code d'invitation</div>
+              <div class="form-hint">
+                Certaines organisations peuvent demander un code d'invitation
+              </div>
             </div>
           </ng-container>
 
-          <div class="alert alert--danger alert--sm" *ngIf="errorMessage && step === 2">
+          <div
+            class="alert alert--danger alert--sm"
+            *ngIf="errorMessage && step === 3"
+          >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M8 5v3M8 10v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <circle
+                cx="8"
+                cy="8"
+                r="6.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M8 5v3M8 10v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
             </svg>
             <span>{{ errorMessage }}</span>
           </div>
 
           <div class="step-actions">
-            <button type="button" class="btn btn--secondary" (click)="previousStep()">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              (click)="previousStep()"
+            >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M13 8H3M7 4L3 8l4 4"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
               Retour
             </button>
@@ -321,7 +836,11 @@
               [disabled]="loading || form.invalid"
             >
               <span *ngIf="!loading">
-                {{ typeInscription.value === 'nouvelle' ? 'Créer mon compte' : 'Rejoindre l\'organisation' }}
+                {{
+                  typeInscription.value === "nouvelle"
+                    ? "Créer mon compte"
+                    : "Rejoindre l'organisation"
+                }}
               </span>
               <span *ngIf="loading" class="btn-spinner"></span>
             </button>

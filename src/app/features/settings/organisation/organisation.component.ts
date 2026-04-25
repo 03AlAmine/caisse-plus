@@ -1,19 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Firestore, doc, getDoc, updateDoc, Timestamp } from '@angular/fire/firestore';
 import { AuthService } from '../../../services/auth.service';
+import { CategorieService } from '../../../services/categorie.service';
+import { CaisseService } from '../../../services/caisse.service';
 import { ToastrService } from 'ngx-toastr';
-
-interface Organisation {
-  id?: string;
-  nom: string;
-  description?: string;
-  adresse?: string;
-  telephone?: string;
-  email?: string;
-  createdAt?: Date;
-  ownerId?: string;
-}
+import {
+  TEMPLATES,
+  ActiviteTemplate,
+  getTemplateById,
+  getAllCategoriesFromTemplate,
+} from '../../../models/templates.data';
 
 @Component({
   selector: 'app-organisation',
@@ -21,46 +17,67 @@ interface Organisation {
   styleUrls: ['./organisation.component.scss'],
 })
 export class OrganisationComponent implements OnInit {
-  private firestore = inject(Firestore);
-  auth = inject(AuthService);
-  private toastr = inject(ToastrService);
   private fb = inject(FormBuilder);
+  auth = inject(AuthService);
+  private categorieService = inject(CategorieService);
+  private caisseService = inject(CaisseService);
+  private toastr = inject(ToastrService);
 
-  form!: FormGroup;
-  organisation: Organisation | null = null;
-  loading = false;
-  saving = false;
+  // Onglets
+  activeTab: 'infos' | 'activite' = 'infos';
+
+  // Template
+  templates = TEMPLATES;
+  currentTemplate: ActiviteTemplate | undefined;
+  selectedNewTemplate: ActiviteTemplate | null = null;
+
+  // Loading
+  loading = true;
+  loadingReinit = false;
+  loadingReinitCaisses = false;
+  loadingApply = false;
+
+  // Informations (existant)
   isEditing = false;
+  saving = false;
+  organisation: any = null;
+  form!: FormGroup;
 
   ngOnInit(): void {
     this.initForm();
     this.loadOrganisation();
+    this.loadTemplate();
+
+    // ✅ Si on vient de s'inscrire (profil incomplet), ouvrir directement l'onglet Infos
+    // et passer en mode édition
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('completer') === 'true') {
+      this.activeTab = 'infos';
+      // Attendre que les données soient chargées avant d'activer l'édition
+      setTimeout(() => {
+        if (this.isProfilIncomplet()) {
+          this.enableEditing();
+        }
+      }, 1000);
+    }
   }
 
   private initForm(): void {
     this.form = this.fb.group({
-      nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-      description: ['', Validators.maxLength(500)],
-      adresse: ['', Validators.maxLength(200)],
-      telephone: ['', Validators.pattern(/^[+\d\s-]+$/)],
-      email: ['', [Validators.email, Validators.maxLength(100)]],
+      nom: ['', [Validators.required, Validators.minLength(3)]],
+      description: [''],
+      adresse: [''],
+      telephone: [''],
+      email: ['', Validators.email],
     });
   }
 
   private async loadOrganisation(): Promise<void> {
-    this.loading = true;
     try {
-      const orgId = this.auth.organisationId;
-      if (!orgId) {
-        this.toastr.error('ID organisation non trouvé');
-        return;
-      }
-
-      const snap = await getDoc(doc(this.firestore, `organisations/${orgId}`));
-      if (snap.exists()) {
-        this.organisation = { id: snap.id, ...snap.data() } as Organisation;
+      this.organisation = await this.auth.getCurrentOrganisation();
+      if (this.organisation) {
         this.form.patchValue({
-          nom: this.organisation.nom,
+          nom: this.organisation.nom || '',
           description: this.organisation.description || '',
           adresse: this.organisation.adresse || '',
           telephone: this.organisation.telephone || '',
@@ -68,22 +85,131 @@ export class OrganisationComponent implements OnInit {
         });
       }
     } catch (error) {
-      this.toastr.error('Erreur lors du chargement des informations');
+      console.error('Erreur chargement organisation:', error);
     } finally {
       this.loading = false;
     }
   }
 
+  private async loadTemplate(): Promise<void> {
+    this.currentTemplate = await this.auth.getOrganisationTemplate();
+  }
+
+  // ─── Template Icon ────────────────────────────────────────────────────
+  getTemplateIcon(icon: string): string {
+    const icons: Record<string, string> = {
+      building: 'M3 21h18M5 21V7l8-4v18M13 21V3l8 4v14',
+      store: 'M3 9l2 10h14l2-10M3 9h18M9 9v12M15 9v12',
+      fabric: 'M6 2h12v20H6V2zM10 2v20M14 2v20M6 10h12',
+      restaurant:
+        'M10 3v18M6 8c0-3 2-5 4-5s4 2 4 5v10M18 8c0-3-2-5-4-5s-4 2-4 5',
+      tools:
+        'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z',
+      heart:
+        'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
+      plant: 'M12 22v-6M9 10c0-4 3-7 7-7M17 10c0 4-3 7-7 7M5 16c2-2 4-2 7 0',
+      truck:
+        'M1 12h13M8 3h6l4 6v9h-3M15 3v6h4M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM16 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+      custom: 'M12 2l3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1 3-6z',
+    };
+    return icons[icon] || 'M12 2l3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1 3-6z';
+  }
+
+  // ─── Actions Template ────────────────────────────────────────────────
+
+  selectNewTemplate(template: ActiviteTemplate): void {
+    if (this.currentTemplate?.id === template.id) {
+      this.selectedNewTemplate = null;
+      return;
+    }
+    this.selectedNewTemplate =
+      this.selectedNewTemplate?.id === template.id ? null : template;
+  }
+
+  cancelChangeTemplate(): void {
+    this.selectedNewTemplate = null;
+  }
+
+  getNewTemplatePreview(): { nom: string; type: string }[] {
+    if (!this.selectedNewTemplate) return [];
+    const allCategories = getAllCategoriesFromTemplate(
+      this.selectedNewTemplate,
+    );
+    return allCategories.slice(0, 12).map((cat) => ({
+      nom: cat.nom,
+      type: cat.type === 'entree' ? 'Entrée' : 'Sortie',
+    }));
+  }
+
+  async applyNewTemplate(): Promise<void> {
+    if (!this.selectedNewTemplate) return;
+    if (this.selectedNewTemplate.id === this.currentTemplate?.id) {
+      this.toastr.info('Ce modèle est déjà appliqué');
+      return;
+    }
+
+    this.loadingApply = true;
+    try {
+      await this.auth.changerTemplate(this.selectedNewTemplate.id);
+      this.currentTemplate = this.selectedNewTemplate;
+      this.selectedNewTemplate = null;
+      this.toastr.success(
+        `Modèle "${this.currentTemplate?.nom}" appliqué avec succès`,
+      );
+    } catch (error: any) {
+      this.toastr.error(error.message || 'Erreur lors du changement de modèle');
+    } finally {
+      this.loadingApply = false;
+    }
+  }
+
+  async reinitialiserCategories(): Promise<void> {
+    if (!this.currentTemplate) return;
+
+    const confirmMsg = `Réinitialiser les catégories à partir du modèle "${this.currentTemplate.nom}" ?\n\nLes catégories système seront supprimées et recréées.`;
+    if (!confirm(confirmMsg)) return;
+
+    this.loadingReinit = true;
+    try {
+      const count = await this.categorieService.reinitialiserDepuisTemplate();
+      this.toastr.success(`${count} catégories réinitialisées avec succès`);
+    } catch (error: any) {
+      this.toastr.error(error.message || 'Erreur lors de la réinitialisation');
+    } finally {
+      this.loadingReinit = false;
+    }
+  }
+
+  async reinitialiserCaisses(): Promise<void> {
+    if (!this.currentTemplate) return;
+    if (this.currentTemplate.caissesSuggerees.length === 0) {
+      this.toastr.info('Aucune caisse suggérée pour ce modèle');
+      return;
+    }
+
+    this.loadingReinitCaisses = true;
+    try {
+      // La méthode initCaissesFromTemplate est privée dans AuthService
+      // On utilise changerTemplate qui appelle aussi initCaissesFromTemplate
+      await this.auth.changerTemplate(this.currentTemplate.id);
+      this.toastr.success('Caisses suggérées ajoutées avec succès');
+    } catch (error: any) {
+      this.toastr.error(error.message || "Erreur lors de l'ajout des caisses");
+    } finally {
+      this.loadingReinitCaisses = false;
+    }
+  }
+
+  // ─── Informations (existant) ─────────────────────────────────────────
   enableEditing(): void {
     this.isEditing = true;
   }
 
   cancelEditing(): void {
     this.isEditing = false;
-    // Restaurer les valeurs originales
     if (this.organisation) {
       this.form.patchValue({
-        nom: this.organisation.nom,
+        nom: this.organisation.nom || '',
         description: this.organisation.description || '',
         adresse: this.organisation.adresse || '',
         telephone: this.organisation.telephone || '',
@@ -93,28 +219,34 @@ export class OrganisationComponent implements OnInit {
   }
 
   async onSave(): Promise<void> {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
+    if (this.form.invalid) return;
     this.saving = true;
     try {
-      const orgId = this.auth.organisationId;
-      if (!orgId) throw new Error('ID organisation non trouvé');
-
-      await updateDoc(doc(this.firestore, `organisations/${orgId}`), {
-        ...this.form.value,
-        updatedAt: Timestamp.now(),
-      });
-
-      this.toastr.success('Informations mises à jour avec succès');
+      await this.auth.updateUserProfile(this.form.value);
+      this.organisation = { ...this.organisation, ...this.form.value };
       this.isEditing = false;
-      await this.loadOrganisation();
-    } catch (error) {
-      this.toastr.error('Erreur lors de la sauvegarde');
+      this.toastr.success('Organisation mise à jour avec succès');
+    } catch (error: any) {
+      this.toastr.error(error.message || 'Erreur lors de la mise à jour');
     } finally {
       this.saving = false;
     }
+  }
+  /**
+   * Vérifie si le profil de l'organisation est incomplet
+   * (pour afficher le message d'invitation à compléter)
+   */
+  isProfilIncomplet(): boolean {
+    if (!this.organisation) return true;
+
+    // Vérifier si au moins 2 champs sont vides
+    const champsVides = [
+      this.organisation.description,
+      this.organisation.adresse,
+      this.organisation.telephone,
+      this.organisation.email,
+    ].filter((v) => !v).length;
+
+    return champsVides >= 2;
   }
 }

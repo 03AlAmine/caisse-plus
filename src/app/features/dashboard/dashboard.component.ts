@@ -137,13 +137,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Fin du mois précédent (dernier jour à 23:59:59)
     const finMoisPrecedent = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-    console.log('=== CALCUL KPIs ===');
-    console.log('Date début mois:', debutMois);
-    console.log('Nombre total opérations:', operations.length);
-
     // Filtrer les opérations validées
     const opsValidees = operations.filter(o => o.statut === 'validee');
-    console.log('Opérations validées:', opsValidees.length);
 
     // Entrées du mois en cours
     const entreesMois = opsValidees
@@ -151,9 +146,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const dateOp = this.toDate(o.date);
         const isEntree = this.estEntree(o);
         const dansLeMois = dateOp >= debutMois;
-        if (isEntree && dansLeMois) {
-          console.log(`Entrée mois: ${o.libelle} - ${o.montant} FCFA - Date: ${dateOp}`);
-        }
+
         return isEntree && dansLeMois;
       })
       .reduce((s, o) => s + o.montant, 0);
@@ -165,14 +158,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const isSortie = this.estSortie(o);
         const dansLeMois = dateOp >= debutMois;
         if (isSortie && dansLeMois) {
-          console.log(`Sortie mois: ${o.libelle} - ${o.montant} FCFA - Date: ${dateOp}`);
         }
         return isSortie && dansLeMois;
       })
       .reduce((s, o) => s + o.montant, 0);
 
-    console.log('Entrées ce mois:', entreesMois);
-    console.log('Sorties ce mois:', sortiesMois);
+
 
     // Mois précédent pour les tendances
     const entreesMoisPrecedent = opsValidees
@@ -232,9 +223,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Date de début : il y a 6 mois, 1er jour du mois
     const debut = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
 
-    console.log('=== CALCUL GRAPHIQUE ===');
-    console.log('Date début graphique:', debut);
-
     // Filtrer les opérations validées dans la période
     const opsValidees = operations.filter(o => o.statut === 'validee');
 
@@ -251,11 +239,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       if (this.estEntree(op)) {
         entrees[idx] = Math.round(entrees[idx] + op.montant);
-        console.log(`Graph Entrée [${labels[idx]}]: ${op.libelle} - ${op.montant} FCFA`);
       }
       if (this.estSortie(op)) {
         sorties[idx] = Math.round(sorties[idx] + op.montant);
-        console.log(`Graph Sortie [${labels[idx]}]: ${op.libelle} - ${op.montant} FCFA`);
 
         // Pour le doughnut : regrouper par catégorie
         const cat = op.categorieNom || 'Sans catégorie';
@@ -263,8 +249,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    console.log('Entrées par mois:', entrees);
-    console.log('Sorties par mois:', sorties);
 
     this.chartMois = labels;
     this.chartEntrees = entrees;
@@ -281,7 +265,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         pct: totalSorties > 0 ? Math.round((total / totalSorties) * 100) : 0
       }));
 
-    console.log('Top catégories:', this.topCategories);
 
     this.updateChartData();
 
