@@ -1,27 +1,65 @@
 <div class="page-wrapper">
-
   <!-- En-tête -->
   <header class="form-header animate-fade-in">
     <a routerLink="/operations" class="back-link">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path
+          d="M10 12L6 8L10 4"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
       Retour aux opérations
     </a>
 
     <div class="form-header__title">
       <div class="form-header__icon" [class.form-header__icon--edit]="isEdit">
-        <svg *ngIf="!isEdit" width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M3 5h18M3 12h18M3 19h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <svg
+          *ngIf="!isEdit"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M3 5h18M3 12h18M3 19h12"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
         </svg>
-        <svg *ngIf="isEdit" width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M4 20L20 4L20 20L4 20Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M8 16L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <svg
+          *ngIf="isEdit"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M4 20L20 4L20 20L4 20Z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8 16L16 8"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
         </svg>
       </div>
       <div class="form-header__text">
-        <h1>{{ isEdit ? 'Modifier l\'opération' : 'Nouvelle opération' }}</h1>
-        <p>{{ isEdit ? 'Modifiez les détails de la transaction' : 'Enregistrez un mouvement de fonds' }}</p>
+        <h1>{{ isEdit ? "Modifier l'opération" : "Nouvelle opération" }}</h1>
+        <p>
+          {{
+            isEdit
+              ? "Modifiez les détails de la transaction"
+              : "Enregistrez un mouvement de fonds"
+          }}
+        </p>
       </div>
     </div>
   </header>
@@ -30,7 +68,6 @@
     <!-- Formulaire principal -->
     <div class="card form-card animate-slide-in">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
-
         <!-- Type d'opération -->
         <div class="form-group">
           <label class="form-label">
@@ -38,31 +75,55 @@
             <span class="form-label__required">*</span>
           </label>
           <div class="type-tabs">
-            <button type="button"
-                    class="type-tab"
-                    [class.type-tab--active]="form.get('type')?.value === 'entree'"
-                    (click)="form.get('type')?.setValue('entree')">
+            <button
+              type="button"
+              class="type-tab"
+              [class.type-tab--active]="form.get('type')?.value === 'entree'"
+              (click)="form.get('type')?.setValue('entree')"
+            >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 14V2M2 8l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M8 14V2M2 8l6-6 6 6"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
               <span>Entrée</span>
             </button>
-            <button type="button"
-                    class="type-tab"
-                    [class.type-tab--active]="form.get('type')?.value === 'sortie'"
-                    (click)="form.get('type')?.setValue('sortie')">
+            <button
+              type="button"
+              class="type-tab"
+              [class.type-tab--active]="form.get('type')?.value === 'sortie'"
+              (click)="form.get('type')?.setValue('sortie')"
+            >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 2v12M2 8l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M8 2v12M2 8l6 6 6-6"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
               <span>Sortie</span>
             </button>
-            <button type="button"
-                    class="type-tab"
-                    [class.type-tab--active]="form.get('type')?.value === 'transfert'"
-                    (click)="form.get('type')?.setValue('transfert')"
-                    *ngIf="auth.isTresorier()">
+            <button
+              type="button"
+              class="type-tab"
+              [class.type-tab--active]="form.get('type')?.value === 'transfert'"
+              (click)="form.get('type')?.setValue('transfert')"
+              *ngIf="auth.isTresorier()"
+            >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8h10M9 4l4 4-4 4M7 12l-4-4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M3 8h10M9 4l4 4-4 4M7 12l-4-4 4-4"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
               <span>Transfert</span>
             </button>
@@ -70,78 +131,177 @@
         </div>
 
         <!-- Libellé -->
-        <div class="form-group" [class.form-group--error]="libelle.invalid && (libelle.dirty || libelle.touched)">
+        <div
+          class="form-group"
+          [class.form-group--error]="
+            libelle.invalid && (libelle.dirty || libelle.touched)
+          "
+        >
           <label class="form-label">
             Libellé
             <span class="form-label__required">*</span>
           </label>
-          <input type="text"
-                 formControlName="libelle"
-                 class="form-control"
-                 [class.is-invalid]="libelle.invalid && (libelle.dirty || libelle.touched)"
-                 placeholder="Ex: Achat de fournitures, Cotisation mensuelle..." />
-          <div class="form-error" *ngIf="libelle.touched && libelle.hasError('required')">
+          <input
+            type="text"
+            formControlName="libelle"
+            class="form-control"
+            [class.is-invalid]="
+              libelle.invalid && (libelle.dirty || libelle.touched)
+            "
+            placeholder="Ex: Achat de fournitures, Cotisation mensuelle..."
+          />
+          <div
+            class="form-error"
+            *ngIf="libelle.touched && libelle.hasError('required')"
+          >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <circle
+                cx="6"
+                cy="6"
+                r="5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M6 3v3M6 8v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
             </svg>
             Le libellé est obligatoire
           </div>
-          <div class="form-error" *ngIf="libelle.touched && libelle.hasError('minlength')">
+          <div
+            class="form-error"
+            *ngIf="libelle.touched && libelle.hasError('minlength')"
+          >
             Le libellé doit contenir au moins 3 caractères
           </div>
-          <div class="form-hint form-hint--success" *ngIf="libelle.valid && libelle.dirty">
+          <div
+            class="form-hint form-hint--success"
+            *ngIf="libelle.valid && libelle.dirty"
+          >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path
+                d="M2 6L5 9L10 3"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
             Libellé valide
           </div>
         </div>
 
         <!-- Montant -->
-        <div class="form-group" [class.form-group--error]="montant.invalid && (montant.dirty || montant.touched)">
+        <div
+          class="form-group"
+          [class.form-group--error]="
+            montant.invalid && (montant.dirty || montant.touched)
+          "
+        >
           <label class="form-label">
             Montant
             <span class="form-label__required">*</span>
           </label>
           <div class="input-suffix">
-            <input type="number"
-                   formControlName="montant"
-                   class="form-control"
-                   [class.is-invalid]="montant.invalid && (montant.dirty || montant.touched)"
-                   min="1"
-                   step="100"
-                   placeholder="0"
-                   (wheel)="onMontantWheel($event)" />
+            <input
+              type="number"
+              formControlName="montant"
+              class="form-control"
+              [class.is-invalid]="
+                montant.invalid && (montant.dirty || montant.touched)
+              "
+              min="1"
+              step="100"
+              placeholder="0"
+              (wheel)="onMontantWheel($event)"
+            />
             <span class="suffix-text">FCFA</span>
           </div>
-          <div class="form-error" *ngIf="montant.touched && montant.hasError('required')">
+          <div
+            class="form-error"
+            *ngIf="montant.touched && montant.hasError('required')"
+          >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M6 3v3M6 8v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <circle
+                cx="6"
+                cy="6"
+                r="5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M6 3v3M6 8v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
             </svg>
             Le montant est obligatoire
           </div>
-          <div class="form-error" *ngIf="montant.touched && montant.hasError('min')">
+          <div
+            class="form-error"
+            *ngIf="montant.touched && montant.hasError('min')"
+          >
             Le montant doit être supérieur à 0
           </div>
 
           <!-- Avertissement validation -->
-          <div class="alert alert--warning alert--sm" *ngIf="montant.value >= 100000 && !auth.isTresorier() && !isEdit">
+          <div
+            class="alert alert--warning alert--sm"
+            *ngIf="montant.value >= 100000 && !auth.isTresorier() && !isEdit"
+          >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M8 6v3M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path
+                d="M8 2L14 13H2L8 2Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8 6v3M8 11v.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
-            <span>Montant ≥ 100 000 FCFA — cette opération sera soumise à validation.</span>
+            <span
+              >Montant ≥ 100 000 FCFA — cette opération sera soumise à
+              validation.</span
+            >
           </div>
 
           <!-- Indicateur de solde -->
-          <div class="alert alert--danger alert--sm" *ngIf="form.get('type')?.value === 'sortie' && selectedCaisseSolde < montant.value && montant.value > 0">
+          <div
+            class="alert alert--danger alert--sm"
+            *ngIf="
+              form.get('type')?.value === 'sortie' &&
+              selectedCaisseSolde < montant.value &&
+              montant.value > 0
+            "
+          >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M8 5v3M8 10v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle
+                cx="8"
+                cy="8"
+                r="6"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M8 5v3M8 10v.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
-            <span>Solde insuffisant ! Le solde de la caisse ({{ selectedCaisseSolde | number:'1.0-0' }} FCFA) est inférieur au montant saisi.</span>
+            <span
+              >Solde insuffisant ! Le solde de la caisse ({{
+                selectedCaisseSolde | number: "1.0-0"
+              }}
+              FCFA) est inférieur au montant saisi.</span
+            >
           </div>
         </div>
 
@@ -151,12 +311,20 @@
             Caisse
             <span class="form-label__required">*</span>
           </label>
-          <select formControlName="caisseId" class="form-control" (change)="onCaisseChange()">
+          <select
+            formControlName="caisseId"
+            class="form-control"
+            (change)="onCaisseChange()"
+          >
             <option value="">-- Sélectionner une caisse --</option>
-            <option *ngFor="let c of caisses" [value]="c.id" [disabled]="c.actif === false">
+            <option
+              *ngFor="let c of caisses"
+              [value]="c.id"
+              [disabled]="c.actif === false"
+            >
               {{ c.nom }}
               <ng-container *ngIf="form.get('type')?.value === 'sortie'">
-                ({{ c.solde | number:'1.0-0' }} FCFA)
+                ({{ c.solde | number: "1.0-0" }} FCFA)
               </ng-container>
             </option>
           </select>
@@ -165,8 +333,16 @@
           <div class="caisse-info" *ngIf="selectedCaisse">
             <div class="caisse-info__row">
               <span class="caisse-info__label">Type :</span>
-              <span class="badge" [class.badge--navy]="selectedCaisse.type === 'principale'" [class.badge--gray]="selectedCaisse.type === 'secondaire'">
-                {{ selectedCaisse.type === 'principale' ? 'Principale' : 'Secondaire' }}
+              <span
+                class="badge"
+                [class.badge--navy]="selectedCaisse.type === 'principale'"
+                [class.badge--gray]="selectedCaisse.type === 'secondaire'"
+              >
+                {{
+                  selectedCaisse.type === "principale"
+                    ? "Principale"
+                    : "Secondaire"
+                }}
               </span>
             </div>
             <div class="caisse-info__row" *ngIf="selectedCaisse.responsableNom">
@@ -175,8 +351,11 @@
             </div>
             <div class="caisse-info__row">
               <span class="caisse-info__label">Solde actuel :</span>
-              <span class="caisse-info__solde" [class.caisse-info__solde--neg]="selectedCaisse.solde < 0">
-                {{ selectedCaisse.solde | number:'1.0-0' }} FCFA
+              <span
+                class="caisse-info__solde"
+                [class.caisse-info__solde--neg]="selectedCaisse.solde < 0"
+              >
+                {{ selectedCaisse.solde | number: "1.0-0" }} FCFA
               </span>
             </div>
           </div>
@@ -184,13 +363,49 @@
 
         <!-- Catégorie (pour entrée/sortie) -->
         <div class="form-group" *ngIf="form.get('type')?.value !== 'transfert'">
-          <label class="form-label">Catégorie</label>
-          <select formControlName="categorieId" class="form-control" (change)="onCategorieChange()">
-            <option value="">-- Sans catégorie --</option>
+          <label class="form-label">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M2 3h3v3H2V3zM7 3h3v3H7V3zM2 8h3v3H2V8zM7 8h3v3H7V8z"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Catégorie
+            <span class="form-label__required">*</span>
+          </label>
+          <select
+            formControlName="categorieId"
+            class="form-control"
+            (change)="onCategorieChange()"
+          >
+            <option value="">-- Sélectionner une catégorie --</option>
             <option *ngFor="let cat of categories" [value]="cat.id">
               {{ cat.nom }}
             </option>
           </select>
+          <div
+            class="form-error"
+            *ngIf="categorieId.touched && categorieId.hasError('required')"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle
+                cx="6"
+                cy="6"
+                r="5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M6 3v3M6 8v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+            </svg>
+            La catégorie est obligatoire
+          </div>
           <div class="form-hint">
             Les catégories vous aident à analyser vos dépenses et revenus
           </div>
@@ -203,16 +418,35 @@
             <span class="form-label__required">*</span>
           </label>
           <select formControlName="transfertCaisseDestId" class="form-control">
-            <option value="">-- Sélectionner la caisse de destination --</option>
-            <option *ngFor="let c of caisses" [value]="c.id" [disabled]="c.id === form.get('caisseId')?.value">
+            <option value="">
+              -- Sélectionner la caisse de destination --
+            </option>
+            <option
+              *ngFor="let c of caisses"
+              [value]="c.id"
+              [disabled]="c.id === form.get('caisseId')?.value"
+            >
               {{ c.nom }}
             </option>
           </select>
-          <div class="form-hint" *ngIf="form.get('caisseId')?.value && form.get('transfertCaisseDestId')?.value">
+          <div
+            class="form-hint"
+            *ngIf="
+              form.get('caisseId')?.value &&
+              form.get('transfertCaisseDestId')?.value
+            "
+          >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path
+                d="M3 6h6M6 3l3 3-3 3"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
-            Transfert de {{ selectedCaisse?.nom }} vers {{ getSelectedDestCaisse()?.nom }}
+            Transfert de {{ selectedCaisse?.nom }} vers
+            {{ getSelectedDestCaisse()?.nom }}
           </div>
         </div>
 
@@ -223,48 +457,93 @@
             <span class="form-label__required">*</span>
           </label>
           <input type="date" formControlName="date" class="form-control" />
-          <div class="form-hint">
-            Par défaut, la date du jour est utilisée
-          </div>
+          <div class="form-hint">Par défaut, la date du jour est utilisée</div>
         </div>
 
         <!-- Notes -->
         <div class="form-group">
           <label class="form-label">Notes / Justificatifs</label>
-          <textarea formControlName="notes"
-                    rows="3"
-                    class="form-control"
-                    placeholder="Informations complémentaires, numéro de justificatif, référence..."></textarea>
+          <textarea
+            formControlName="notes"
+            rows="3"
+            class="form-control"
+            placeholder="Informations complémentaires, numéro de justificatif, référence..."
+          ></textarea>
           <div class="form-hint" *ngIf="form.get('notes')?.value?.length">
-            {{ form.get('notes')?.value?.length }} / 500 caractères
+            {{ form.get("notes")?.value?.length }} / 500 caractères
           </div>
         </div>
 
         <!-- Pièces jointes (optionnel) -->
         <div class="form-group" *ngIf="!isEdit">
           <label class="form-label">Pièces jointes</label>
-          <div class="file-zone" (click)="fileInput.click()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
-            <input type="file" #fileInput multiple style="display:none" (change)="onFilesSelected($event)" />
+          <div
+            class="file-zone"
+            (click)="fileInput.click()"
+            (dragover)="onDragOver($event)"
+            (drop)="onDrop($event)"
+          >
+            <input
+              type="file"
+              #fileInput
+              multiple
+              style="display: none"
+              (change)="onFilesSelected($event)"
+            />
             <div class="file-zone__content">
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <path d="M18 4H8a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10l-8-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M18 4v6h6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M12 18h8M12 22h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path
+                  d="M18 4H8a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10l-8-6z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M18 4v6h6"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12 18h8M12 22h6"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
               </svg>
               <span>Cliquez ou glissez-déposez des fichiers</span>
               <span class="file-zone__hint">PDF, JPG, PNG (max 5MB)</span>
             </div>
           </div>
           <div class="file-list" *ngIf="uploadedFiles.length > 0">
-            <div class="file-item" *ngFor="let file of uploadedFiles; let i = index">
+            <div
+              class="file-item"
+              *ngFor="let file of uploadedFiles; let i = index"
+            >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M8 2H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V5l-3-3z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                <path
+                  d="M8 2H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V5l-3-3z"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linejoin="round"
+                />
               </svg>
               <span class="file-item__name">{{ file.name }}</span>
-              <span class="file-item__size">{{ (file.size / 1024) | number:'1.0-0' }} KB</span>
-              <button type="button" class="file-item__remove" (click)="removeFile(i)">
+              <span class="file-item__size"
+                >{{ file.size / 1024 | number: "1.0-0" }} KB</span
+              >
+              <button
+                type="button"
+                class="file-item__remove"
+                (click)="removeFile(i)"
+              >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path
+                    d="M2 2l8 8M10 2L2 10"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -273,13 +552,25 @@
 
         <!-- Actions -->
         <div class="form-actions">
-          <a routerLink="/operations" class="btn btn--secondary btn--lg">Annuler</a>
-          <button type="submit" class="btn btn--primary btn--lg" [disabled]="loading || form.invalid">
-            <span *ngIf="!loading">{{ isEdit ? 'Enregistrer les modifications' : 'Enregistrer l\'opération' }}</span>
+          <a routerLink="/operations" class="btn btn--secondary btn--lg"
+            >Annuler</a
+          >
+          <!-- Bouton de soumission -->
+          <button
+            type="submit"
+            class="btn btn--primary btn--lg"
+            [disabled]="
+              loading || form.invalid || (!isEdit && isSoldeInsuffisant)
+            "
+          >
+            <span *ngIf="!loading">{{
+              isEdit
+                ? "Enregistrer les modifications"
+                : "Enregistrer l'opération"
+            }}</span>
             <span *ngIf="loading" class="btn-spinner"></span>
           </button>
         </div>
-
       </form>
     </div>
 
@@ -287,13 +578,27 @@
     <div class="help-panel animate-slide-in">
       <div class="help-panel__header">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M9 6v4M9 12v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle
+            cx="9"
+            cy="9"
+            r="7"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M9 6v4M9 12v1"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
         <h3>Aide contextuelle</h3>
       </div>
 
-      <div class="help-panel__section" *ngIf="form.get('type')?.value === 'entree'">
+      <div
+        class="help-panel__section"
+        *ngIf="form.get('type')?.value === 'entree'"
+      >
         <h4>Entrée d'argent</h4>
         <p>Utilisez ce type pour enregistrer :</p>
         <ul>
@@ -304,7 +609,7 @@
         </ul>
       </div>
 
-      <div class="help-panel__section" *ngIf="form.get('type')?.value === 'sortie'">
+      <div class="help-section" *ngIf="form.get('type')?.value === 'sortie'">
         <h4>Sortie d'argent</h4>
         <p>Utilisez ce type pour enregistrer :</p>
         <ul>
@@ -313,15 +618,31 @@
           <li>Salaires et prestations</li>
           <li>Charges et abonnements</li>
         </ul>
-        <div class="help-panel__tip" *ngIf="montant.value >= 100000">
+        <div class="help-tip help-tip--danger" *ngIf="isSoldeInsuffisant">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 2L12 11H2L7 2Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            <circle
+              cx="7"
+              cy="7"
+              r="5.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <path
+              d="M7 4v3M7 9v.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
           </svg>
-          <strong>Montant élevé</strong> - Une validation sera nécessaire
+          <strong>Solde insuffisant !</strong> Vous ne pouvez pas effectuer
+          cette opération. Le solde de la caisse est inférieur au montant saisi.
         </div>
       </div>
 
-      <div class="help-panel__section" *ngIf="form.get('type')?.value === 'transfert'">
+      <div
+        class="help-panel__section"
+        *ngIf="form.get('type')?.value === 'transfert'"
+      >
         <h4>Transfert</h4>
         <p>Déplacez de l'argent entre deux caisses :</p>
         <ul>
@@ -331,10 +652,22 @@
         </ul>
         <div class="help-panel__tip help-panel__tip--info">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/>
-            <path d="M7 5v3M7 9v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <circle
+              cx="7"
+              cy="7"
+              r="5.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <path
+              d="M7 5v3M7 9v.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
           </svg>
-          <strong>Astuce :</strong> Les transferts sont immédiats et ne nécessitent pas de validation
+          <strong>Astuce :</strong> Les transferts sont immédiats et ne
+          nécessitent pas de validation
         </div>
       </div>
 
@@ -342,9 +675,15 @@
         <h4>Validation</h4>
         <p>Les règles de validation :</p>
         <ul>
-          <li><strong>Montant &lt; 100 000 FCFA</strong> : Validation automatique</li>
-          <li><strong>Montant ≥ 100 000 FCFA</strong> : En attente de validation</li>
-          <li>Seuls les <strong>trésoriers et admins</strong> peuvent valider</li>
+          <li>
+            <strong>Montant &lt; 100 000 FCFA</strong> : Validation automatique
+          </li>
+          <li>
+            <strong>Montant ≥ 100 000 FCFA</strong> : En attente de validation
+          </li>
+          <li>
+            Seuls les <strong>trésoriers et admins</strong> peuvent valider
+          </li>
         </ul>
       </div>
 
@@ -362,21 +701,63 @@
   </div>
 
   <!-- Modal résumé — NOUVELLE opération -->
-  <div class="modal-overlay" *ngIf="showResumeModal" (click)="closeResumeModal()">
+  <div
+    class="modal-overlay"
+    *ngIf="showResumeModal"
+    (click)="closeResumeModal()"
+  >
     <div class="modal modal--resume" (click)="$event.stopPropagation()">
-
-      <div class="modal-header" [class.modal-header--entree]="typeClass === 'entree'"
-                                [class.modal-header--sortie]="typeClass === 'sortie'"
-                                [class.modal-header--transfert]="typeClass === 'transfert'">
+      <div
+        class="modal-header"
+        [class.modal-header--entree]="typeClass === 'entree'"
+        [class.modal-header--sortie]="typeClass === 'sortie'"
+        [class.modal-header--transfert]="typeClass === 'transfert'"
+      >
         <div class="modal-header__icon">
-          <svg *ngIf="typeClass === 'entree'" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 17V3M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            *ngIf="typeClass === 'entree'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M10 17V3M3 10l7-7 7 7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          <svg *ngIf="typeClass === 'sortie'" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 3v14M3 10l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            *ngIf="typeClass === 'sortie'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M10 3v14M3 10l7 7 7-7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          <svg *ngIf="typeClass === 'transfert'" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 10h12M11 6l3 3-3 3M9 14l-3-3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            *ngIf="typeClass === 'transfert'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M4 10h12M11 6l3 3-3 3M9 14l-3-3 3-3"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </div>
         <div>
@@ -385,28 +766,55 @@
         </div>
         <button class="modal-close" (click)="closeResumeModal()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path
+              d="M3 3l10 10M13 3L3 13"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
           </svg>
         </button>
       </div>
 
       <div class="modal-body">
-
         <!-- Montant + type bien visibles -->
-        <div class="resume-hero" [class.resume-hero--entree]="typeClass === 'entree'"
-                                 [class.resume-hero--sortie]="typeClass === 'sortie'"
-                                 [class.resume-hero--transfert]="typeClass === 'transfert'">
+        <div
+          class="resume-hero"
+          [class.resume-hero--entree]="typeClass === 'entree'"
+          [class.resume-hero--sortie]="typeClass === 'sortie'"
+          [class.resume-hero--transfert]="typeClass === 'transfert'"
+        >
           <div class="resume-hero__badge">{{ typeLabel }}</div>
           <div class="resume-hero__montant">
-            <span class="resume-hero__sign">{{ typeClass === 'entree' ? '+' : typeClass === 'sortie' ? '−' : '⇄' }}</span>
-            <span class="resume-hero__amount">{{ montantEntier | number:'1.0-0' }}</span>
+            <span class="resume-hero__sign">{{
+              typeClass === "entree" ? "+" : typeClass === "sortie" ? "−" : "⇄"
+            }}</span>
+            <span class="resume-hero__amount">{{
+              montantEntier | number: "1.0-0"
+            }}</span>
             <span class="resume-hero__cur">FCFA</span>
           </div>
           <div class="resume-hero__apres" *ngIf="typeClass !== 'transfert'">
             Solde après :
-            <strong [class.resume-hero__apres--positif]="(typeClass === 'entree' ? selectedCaisseSolde + montantEntier : selectedCaisseSolde - montantEntier) >= 0"
-                    [class.resume-hero__apres--negatif]="(typeClass === 'entree' ? selectedCaisseSolde + montantEntier : selectedCaisseSolde - montantEntier) < 0">
-              {{ (typeClass === 'entree' ? selectedCaisseSolde + montantEntier : selectedCaisseSolde - montantEntier) | number:'1.0-0' }} FCFA
+            <strong
+              [class.resume-hero__apres--positif]="
+                (typeClass === 'entree'
+                  ? selectedCaisseSolde + montantEntier
+                  : selectedCaisseSolde - montantEntier) >= 0
+              "
+              [class.resume-hero__apres--negatif]="
+                (typeClass === 'entree'
+                  ? selectedCaisseSolde + montantEntier
+                  : selectedCaisseSolde - montantEntier) < 0
+              "
+            >
+              {{
+                (typeClass === "entree"
+                  ? selectedCaisseSolde + montantEntier
+                  : selectedCaisseSolde - montantEntier
+                ) | number: "1.0-0"
+              }}
+              FCFA
             </strong>
           </div>
         </div>
@@ -415,18 +823,25 @@
         <div class="resume-details">
           <div class="resume-details__row">
             <span class="resume-details__label">Libellé</span>
-            <span class="resume-details__val">{{ form.get('libelle')?.value }}</span>
+            <span class="resume-details__val">{{
+              form.get("libelle")?.value
+            }}</span>
           </div>
           <div class="resume-details__row">
             <span class="resume-details__label">Caisse</span>
             <span class="resume-details__val">
-              {{ selectedCaisse?.nom || '—' }}
-              <span class="resume-details__hint">(solde actuel : {{ selectedCaisseSolde | number:'1.0-0' }} FCFA)</span>
+              {{ selectedCaisse?.nom || "—" }}
+              <span class="resume-details__hint"
+                >(solde actuel :
+                {{ selectedCaisseSolde | number: "1.0-0" }} FCFA)</span
+              >
             </span>
           </div>
           <div class="resume-details__row" *ngIf="typeClass === 'transfert'">
             <span class="resume-details__label">Vers</span>
-            <span class="resume-details__val">{{ getSelectedDestCaisse()?.nom || '—' }}</span>
+            <span class="resume-details__val">{{
+              getSelectedDestCaisse()?.nom || "—"
+            }}</span>
           </div>
           <div class="resume-details__row" *ngIf="selectedCategorie">
             <span class="resume-details__label">Catégorie</span>
@@ -434,60 +849,104 @@
           </div>
           <div class="resume-details__row">
             <span class="resume-details__label">Date</span>
-            <span class="resume-details__val">{{ form.get('date')?.value | date:'dd/MM/yyyy' }}</span>
+            <span class="resume-details__val">{{
+              form.get("date")?.value | date: "dd/MM/yyyy"
+            }}</span>
           </div>
           <div class="resume-details__row" *ngIf="form.get('notes')?.value">
             <span class="resume-details__label">Notes</span>
-            <span class="resume-details__val">{{ form.get('notes')?.value }}</span>
+            <span class="resume-details__val">{{
+              form.get("notes")?.value
+            }}</span>
           </div>
 
-          <div class="resume-details__alert" *ngIf="typeClass === 'sortie' && montantEntier > selectedCaisseSolde">
+          <div
+            class="resume-details__alert"
+            *ngIf="
+              typeClass === 'sortie' && montantEntier > selectedCaisseSolde
+            "
+          >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path
+                d="M8 2L14 13H2L8 2Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
             </svg>
             Attention : le montant dépasse le solde disponible de la caisse.
           </div>
         </div>
-
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn--secondary" (click)="closeResumeModal()">← Corriger</button>
-        <button class="btn btn--primary" [class.btn--danger]="typeClass === 'sortie'" (click)="confirmResume()" [disabled]="loading">
+        <button class="btn btn--secondary" (click)="closeResumeModal()">
+          ← Corriger
+        </button>
+        <button
+          class="btn btn--primary"
+          [class.btn--danger]="typeClass === 'sortie'"
+          (click)="confirmResume()"
+          [disabled]="loading"
+        >
           <span *ngIf="!loading">✓ Confirmer et enregistrer</span>
           <span *ngIf="loading">Enregistrement...</span>
         </button>
       </div>
-
     </div>
   </div>
 
   <!-- Modal confirmation — MODIFICATION -->
-  <div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div
+    class="modal-overlay"
+    *ngIf="showConfirmModal"
+    (click)="closeConfirmModal()"
+  >
     <div class="modal modal--small" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-header__icon modal-header__icon--warning">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 2L18 17H2L10 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M10 8v4M10 14v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path
+              d="M10 2L18 17H2L10 2Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M10 8v4M10 14v1"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
           </svg>
         </div>
         <h2>Confirmer la modification</h2>
         <button class="modal-close" (click)="closeConfirmModal()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path
+              d="M3 3l10 10M13 3L3 13"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
           </svg>
         </button>
       </div>
       <div class="modal-body">
         <p>Êtes-vous sûr de vouloir modifier cette opération ?</p>
-        <p class="modal-body__hint">Les modifications seront appliquées immédiatement et pourront affecter les soldes des caisses.</p>
+        <p class="modal-body__hint">
+          Les modifications seront appliquées immédiatement et pourront affecter
+          les soldes des caisses.
+        </p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn--secondary" (click)="closeConfirmModal()">Annuler</button>
-        <button class="btn btn--primary" (click)="confirmSubmit()">Confirmer</button>
+        <button class="btn btn--secondary" (click)="closeConfirmModal()">
+          Annuler
+        </button>
+        <button class="btn btn--primary" (click)="confirmSubmit()">
+          Confirmer
+        </button>
       </div>
     </div>
   </div>
-
 </div>

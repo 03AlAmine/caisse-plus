@@ -26,24 +26,29 @@ export class CaisseListComponent implements OnInit, OnDestroy {
   loadingTransfert = false;
   isLoading = true;
   private subscription: Subscription | null = null;
+  viewMode: 'card' | 'list' = 'card';
 
   ngOnInit(): void {
+    const savedView = localStorage.getItem('caisse-view-mode');
+    if (savedView === 'list' || savedView === 'card') {
+      this.viewMode = savedView;
+    }
     // Attendre que l'utilisateur soit chargé AVANT de charger les caisses
     this.subscription = this.auth.currentUser$
       .pipe(
-        filter(user => user !== null && !!user.organisationId),
+        filter((user) => user !== null && !!user.organisationId),
         take(1),
         switchMap(() => {
           this.isLoading = false;
           this.caisses$ = this.caisseService.getAll().pipe(
-            catchError(err => {
+            catchError((err) => {
               console.error('Erreur chargement caisses:', err);
               this.toastr.error('Impossible de charger les caisses');
               return of([]);
-            })
+            }),
           );
           return this.caisses$;
-        })
+        }),
       )
       .subscribe({
         next: (caisses) => {
@@ -54,7 +59,7 @@ export class CaisseListComponent implements OnInit, OnDestroy {
           console.error('Erreur:', err);
           this.toastr.error('Erreur lors du chargement des données');
           this.isLoading = false;
-        }
+        },
       });
   }
 
@@ -63,11 +68,11 @@ export class CaisseListComponent implements OnInit, OnDestroy {
   }
 
   get caissePrincipale(): Caisse | undefined {
-    return this.caissesList.find(c => c.type === 'principale');
+    return this.caissesList.find((c) => c.type === 'principale');
   }
 
   get caissesSecondaires(): Caisse[] {
-    return this.caissesList.filter(c => c.type === 'secondaire');
+    return this.caissesList.filter((c) => c.type === 'secondaire');
   }
 
   get soldeTotal(): number {
@@ -75,11 +80,11 @@ export class CaisseListComponent implements OnInit, OnDestroy {
   }
 
   get selectedSource(): Caisse | undefined {
-    return this.caissesList.find(c => c.id === this.alimenterData.sourceId);
+    return this.caissesList.find((c) => c.id === this.alimenterData.sourceId);
   }
 
   get selectedDest(): Caisse | undefined {
-    return this.caissesList.find(c => c.id === this.alimenterData.destId);
+    return this.caissesList.find((c) => c.id === this.alimenterData.destId);
   }
 
   getMaxMontant(): number | null {
@@ -88,14 +93,18 @@ export class CaisseListComponent implements OnInit, OnDestroy {
     }
     return null;
   }
-
+  setViewMode(mode: 'card' | 'list'): void {
+    this.viewMode = mode;
+    localStorage.setItem('caisse-view-mode', mode);
+  }
   validateMontant(): void {}
 
   isTransfertValid(): boolean {
     const { sourceId, destId, montant, libelle } = this.alimenterData;
     if (!sourceId || !destId || montant <= 0 || !libelle) return false;
     if (sourceId === destId) return false;
-    if (this.selectedSource && montant > this.selectedSource.solde) return false;
+    if (this.selectedSource && montant > this.selectedSource.solde)
+      return false;
     return true;
   }
 
@@ -134,17 +143,19 @@ export class CaisseListComponent implements OnInit, OnDestroy {
         this.alimenterData.montant,
         this.alimenterData.libelle,
         user.uid,
-        user.displayName || 'Utilisateur'
+        user.displayName || 'Utilisateur',
       );
 
       this.toastr.success(
         `Transfert de ${this.alimenterData.montant.toLocaleString('fr-FR')} FCFA effectué avec succès.`,
-        'Succès'
+        'Succès',
       );
       this.closeModal();
       // L'Observable Firestore se met à jour automatiquement
     } catch (err: any) {
-      this.toastr.error(err.message ?? 'Erreur lors du transfert. Vérifiez les soldes.');
+      this.toastr.error(
+        err.message ?? 'Erreur lors du transfert. Vérifiez les soldes.',
+      );
     } finally {
       this.loadingTransfert = false;
     }

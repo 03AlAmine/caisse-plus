@@ -33,7 +33,7 @@ export class OperationFormComponent implements OnInit {
   isEdit = false;
   operationId: string | null = null;
   showConfirmModal = false;
-  showResumeModal  = false;   // résumé avant enregistrement (nouvelle opération)
+  showResumeModal  = false;
   uploadedFiles: File[] = [];
 
   ngOnInit(): void {
@@ -46,6 +46,7 @@ export class OperationFormComponent implements OnInit {
     this.initForm(today, caisseIdParam);
     this.loadData();
     this.setupTypeListener();
+    this.setupSoldeValidator();
   }
 
   private initForm(today: string, caisseIdParam: string): void {
@@ -55,10 +56,50 @@ export class OperationFormComponent implements OnInit {
       type: ['sortie', Validators.required],
       caisseId: [caisseIdParam, Validators.required],
       transfertCaisseDestId: [''],
-      categorieId: [''],
+      categorieId: [''], // Sera rendu obligatoire dynamiquement
       date: [today, Validators.required],
       notes: ['', Validators.maxLength(500)],
     });
+  }
+
+  /**
+   * Valide que le solde est suffisant pour les sorties et transferts
+   */
+  private setupSoldeValidator(): void {
+    // Revalider quand le type, la caisse ou le montant change
+    this.form.get('type')?.valueChanges.subscribe(() => this.validateSolde());
+    this.form.get('caisseId')?.valueChanges.subscribe(() => {
+      this.onCaisseChange();
+      this.validateSolde();
+    });
+    this.form.get('montant')?.valueChanges.subscribe(() => this.validateSolde());
+  }
+
+  /**
+   * Vérifie que le solde est suffisant et ajoute une erreur personnalisée si nécessaire
+   */
+  private validateSolde(): void {
+    const montantControl = this.form.get('montant');
+    const type = this.form.get('type')?.value;
+    const caisse = this.selectedCaisse;
+
+    // Supprimer l'erreur précédente
+    if (montantControl?.hasError('soldeInsuffisant')) {
+      const errors = { ...montantControl.errors };
+      delete errors['soldeInsuffisant'];
+      montantControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
+    }
+
+    // Ne vérifier que pour les sorties et transferts
+    if ((type === 'sortie' || type === 'transfert') && caisse && montantControl?.value > 0) {
+      if (montantControl?.value > caisse.solde ) {
+        montantControl?.setErrors({
+          ...(montantControl.errors || {}),
+          soldeInsuffisant: true
+        });
+        montantControl?.markAsTouched();
+      }
+    }
   }
 
   private async loadData(): Promise<void> {
@@ -94,6 +135,8 @@ export class OperationFormComponent implements OnInit {
     } else {
       // Charger les catégories par défaut
       await this.loadCategories('sortie');
+      // Rendre la catégorie obligatoire pour les nouvelles opérations
+      this.setCategorieRequired(true);
     }
   }
 
@@ -102,10 +145,27 @@ export class OperationFormComponent implements OnInit {
       if (type !== 'transfert') {
         await this.loadCategories(type);
         this.form.get('transfertCaisseDestId')?.setValue('');
+        // Catégorie obligatoire pour entrée et sortie
+        this.setCategorieRequired(true);
       } else {
         this.categories = [];
+        // Pas de catégorie obligatoire pour les transferts
+        this.setCategorieRequired(false);
       }
     });
+  }
+
+  /**
+   * Rend le champ catégorie obligatoire ou optionnel
+   */
+  private setCategorieRequired(required: boolean): void {
+    const control = this.form.get('categorieId');
+    if (required) {
+      control?.setValidators([Validators.required]);
+    } else {
+      control?.clearValidators();
+    }
+    control?.updateValueAndValidity();
   }
 
   private async loadCategories(type: string): Promise<void> {
@@ -116,10 +176,31 @@ export class OperationFormComponent implements OnInit {
 
   get libelle() { return this.form.get('libelle')!; }
   get montant() { return this.form.get('montant')!; }
+  get categorieId() { return this.form.get('categorieId')!; }
 
-  // Arrondi entier pour éviter les erreurs flottantes (5 030 360 - 3 678 660 = 1 351 700)
+  // Arrondi entier pour éviter les erreurs flottantes
   get montantEntier(): number {
     return Math.round(Number(this.montant.value) || 0);
+  }
+
+  /**
+   * Vérifie si le solde est suffisant pour l'opération
+   */
+  get isSoldeInsuffisant(): boolean {
+    return this.montant.hasError('soldeInsuffisant');
+  }
+
+  /**
+   * Vérifie si le formulaire peut être soumis
+   * (valide + solde suffisant pour sorties/transferts)
+   */
+  get canSubmit(): boolean {
+    if (this.form.invalid) return false;
+
+    // Bloquer si solde insuffisant et ce n'est pas une édition
+    if (!this.isEdit && this.isSoldeInsuffisant) return false;
+
+    return true;
   }
 
   get selectedCategorie(): Categorie | undefined {
@@ -128,14 +209,13 @@ export class OperationFormComponent implements OnInit {
 
   get typeLabel(): string {
     const t = this.form.get('type')?.value;
-    return t === 'entree' ? '📈 Entrée' : t === 'sortie' ? '📉 Sortie' : '🔄 Transfert';
+    return t === 'entree' ? 'Entrée' : t === 'sortie' ? 'Sortie' : 'Transfert';
   }
 
   get typeClass(): string {
     return this.form.get('type')?.value ?? 'sortie';
   }
 
-  // Bloque le scroll souris sur le champ montant (évite les incréments accidentels)
   onMontantWheel(event: WheelEvent): void {
     event.preventDefault();
     (event.target as HTMLInputElement).blur();
@@ -156,16 +236,13 @@ export class OperationFormComponent implements OnInit {
   }
 
   onCaisseChange(): void {
-    if (this.form.get('type')?.value === 'sortie' && this.montant.value > this.selectedCaisseSolde) {
-      this.toastr.warning('Attention : Le montant saisi dépasse le solde de la caisse');
-    }
+    this.validateSolde();
   }
 
   onCategorieChange(): void {
     // Optionnel : stocker des informations supplémentaires
   }
 
-  // Gestion des fichiers
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -203,17 +280,29 @@ export class OperationFormComponent implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
+    // Vérifier le solde avant de soumettre
+    this.validateSolde();
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toastr.warning('Veuillez corriger les erreurs dans le formulaire');
+
+      // Message spécifique pour solde insuffisant
+      if (this.isSoldeInsuffisant) {
+        this.toastr.error(
+          `Solde insuffisant ! Le solde de la caisse (${this.selectedCaisseSolde.toLocaleString('fr-FR')} FCFA) est inférieur au montant saisi.`,
+          'Opération impossible'
+        );
+      } else if (this.categorieId.invalid) {
+        this.toastr.warning('Veuillez sélectionner une catégorie');
+      } else {
+        this.toastr.warning('Veuillez corriger les erreurs dans le formulaire');
+      }
       return;
     }
 
     if (this.isEdit) {
-      // Mode édition → modal de confirmation simple (existante)
       this.showConfirmModal = true;
     } else {
-      // Nouvelle opération → modal de résumé (nouvelle)
       this.showResumeModal = true;
     }
   }
@@ -227,18 +316,17 @@ export class OperationFormComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
-  // Résumé nouvelle opération
   confirmResume(): void {
-    this.showResumeModal = false;
-    // Vérification solde insuffisant (sortie) après confirmation du résumé
-    if (this.form.get('type')?.value === 'sortie' && this.montantEntier > this.selectedCaisseSolde) {
-      if (!window.confirm(
-        `⚠️ Solde insuffisant !\n\n` +
-        `Solde disponible : ${this.selectedCaisseSolde.toLocaleString('fr-FR')} FCFA\n` +
-        `Montant saisi    : ${this.montantEntier.toLocaleString('fr-FR')} FCFA\n\n` +
-        `Voulez-vous quand même continuer ?`
-      )) return;
+    // Double vérification du solde avant de confirmer
+    if (!this.isEdit && this.isSoldeInsuffisant) {
+      this.toastr.error(
+        'Opération impossible : solde insuffisant.',
+        'Erreur'
+      );
+      return;
     }
+
+    this.showResumeModal = false;
     this.saveOperation();
   }
 
@@ -254,7 +342,7 @@ export class OperationFormComponent implements OnInit {
     try {
       const data: any = {
         libelle: val.libelle,
-        montant: Math.round(Number(val.montant) || 0), // arrondi entier FCFA
+        montant: Math.round(Number(val.montant) || 0),
         type: val.type,
         caisseId: val.caisseId,
         caisseNom: caisse?.nom ?? '',

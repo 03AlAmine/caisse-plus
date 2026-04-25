@@ -25,7 +25,8 @@ export class CaisseFormComponent implements OnInit {
   isEdit = false;
   caisseId: string | null = null;
   showConfirmModal = false;
-  private pendingSubmit = false;
+  errorMessage: string = '';
+  showError: boolean = false;
 
   COULEURS = [
     '#0A1628', // Navy
@@ -42,7 +43,9 @@ export class CaisseFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.caisseId = this.route.snapshot.paramMap.get('id');
-    this.isEdit = !!this.caisseId && this.route.snapshot.url.some(s => s.path === 'modifier');
+    this.isEdit =
+      !!this.caisseId &&
+      this.route.snapshot.url.some((s) => s.path === 'modifier');
 
     this.initForm();
 
@@ -53,7 +56,14 @@ export class CaisseFormComponent implements OnInit {
 
   private initForm(): void {
     this.form = this.fb.group({
-      nom: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      nom: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(2),
+          Validators.maxLength(50),
+        ],
+      ],
       type: ['secondaire', Validators.required],
       description: ['', [Validators.maxLength(200)]],
       couleur: ['#0A1628'],
@@ -82,8 +92,12 @@ export class CaisseFormComponent implements OnInit {
     }
   }
 
-  get nom() { return this.form.get('nom')!; }
-  get type() { return this.form.get('type')!; }
+  get nom() {
+    return this.form.get('nom')!;
+  }
+  get type() {
+    return this.form.get('type')!;
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {
@@ -108,11 +122,13 @@ export class CaisseFormComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
+  // Dans saveCaisse()
   private async saveCaisse(): Promise<void> {
     this.loading = true;
-    const formValue = this.form.value;
+    this.showError = false;
+    this.errorMessage = '';
 
-    // Ajouter les métadonnées
+    const formValue = this.form.value;
     const data = {
       ...formValue,
       organisationId: this.auth.organisationId,
@@ -122,50 +138,63 @@ export class CaisseFormComponent implements OnInit {
 
     try {
       if (this.isEdit && this.caisseId) {
-        // Vérifier si c'est la caisse principale
-        const caisse = await firstValueFrom(this.caisseService.getById(this.caisseId));
+        const caisse = await firstValueFrom(
+          this.caisseService.getById(this.caisseId),
+        );
         if (caisse?.type === 'principale' && formValue.type !== 'principale') {
-          this.toastr.warning('Impossible de modifier le type de la caisse principale');
+          this.showError = true;
+          this.errorMessage =
+            'Impossible de modifier le type de la caisse principale';
+          this.loading = false;
           return;
         }
-
         await this.caisseService.update(this.caisseId, formValue);
-        this.toastr.success('Caisse mise à jour avec succès', 'Succès');
+        this.toastr.success('Caisse mise à jour avec succès');
       } else {
         // Vérifier si une caisse principale existe déjà
         if (formValue.type === 'principale') {
           const existingPrincipal = await this.checkExistingPrincipal();
           if (existingPrincipal) {
-            this.toastr.error('Une caisse principale existe déjà. Veuillez choisir un type secondaire.');
+            this.showError = true;
+            this.errorMessage =
+              'Une caisse principale existe déjà. Veuillez choisir un type secondaire.';
             this.loading = false;
+            // Faire défiler vers le haut pour voir l'erreur
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
           }
         }
-
         await this.caisseService.create(data);
-        this.toastr.success('Caisse créée avec succès', 'Succès');
+        this.toastr.success('Caisse créée avec succès');
       }
-
       this.router.navigate(['/caisses']);
     } catch (err: any) {
-      const message = err.message || 'Une erreur est survenue lors de l\'enregistrement';
-      this.toastr.error(message, 'Erreur');
+      this.showError = true;
+      this.errorMessage =
+        err.message || "Une erreur est survenue lors de l'enregistrement";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       this.loading = false;
     }
   }
 
+  // Méthode pour fermer l'alerte
+  closeError(): void {
+    this.showError = false;
+    this.errorMessage = '';
+  }
+
   private async checkExistingPrincipal(): Promise<boolean> {
     try {
       const caisses = await firstValueFrom(this.caisseService.getAll());
-      return caisses.some(c => c.type === 'principale' && c.actif === true);
+      return caisses.some((c) => c.type === 'principale' && c.actif === true);
     } catch {
       return false;
     }
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.values(formGroup.controls).forEach(control => {
+    Object.values(formGroup.controls).forEach((control) => {
       control.markAsTouched();
       if (control instanceof FormGroup) {
         this.markFormGroupTouched(control);
