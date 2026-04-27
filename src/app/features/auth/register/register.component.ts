@@ -24,7 +24,7 @@ export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
- private toastr = inject(ToastrService);
+  private toastr = inject(ToastrService);
   // Données
   templates = TEMPLATES;
   selectedTemplate: ActiviteTemplate | null = null;
@@ -264,12 +264,12 @@ export class RegisterComponent implements OnInit {
           take(1),
         )
         .subscribe(() => {
-          // Si nouvelle organisation → rediriger vers les paramètres
           if (type === 'nouvelle') {
-            // Rediriger vers les paramètres avec le paramètre ?completer=true
-            this.router.navigate(['/parametres/organisation'], {
-              queryParams: { completer: 'true' },
-            });
+            // ✅ Forcer l'affichage du modal de bienvenue après inscription
+            localStorage.removeItem('caisseplus_welcome_seen');
+
+            // Rediriger vers le dashboard (le modal s'affichera automatiquement)
+            this.router.navigate(['/dashboard']);
           } else {
             this.router.navigate(['/dashboard']);
           }

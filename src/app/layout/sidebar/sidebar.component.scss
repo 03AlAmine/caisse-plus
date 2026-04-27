@@ -2,7 +2,7 @@
 // Sidebar — Navy Minimaliste
 // ═══════════════════════════════════════════════════════════════════════
 
-$sidebar-width:       240px;
+$sidebar-width: 240px;
 $sidebar-width-collapsed: 64px;
 
 .sidebar {
@@ -19,8 +19,6 @@ $sidebar-width-collapsed: 64px;
     min-width var(--duration-slow) var(--ease-out);
   position: relative;
   z-index: 100;
-
-  // Séparateur droit discret
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 
   &--collapsed {
@@ -95,7 +93,9 @@ $sidebar-width-collapsed: 64px;
   letter-spacing: -0.01em;
   line-height: 1.2;
 
-  span { color: var(--navy-400); }
+  span {
+    color: var(--navy-400);
+  }
 }
 
 .sidebar__logo-sub {
@@ -115,8 +115,12 @@ $sidebar-width-collapsed: 64px;
   flex-direction: column;
   gap: var(--space-5);
 
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-full);
@@ -140,6 +144,7 @@ $sidebar-width-collapsed: 64px;
   }
 }
 
+// ✅ Correction : styles simplifiés et fiabilisés
 .nav-item {
   display: flex;
   align-items: center;
@@ -148,30 +153,39 @@ $sidebar-width-collapsed: 64px;
   border-radius: var(--radius-md);
   color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
   white-space: nowrap;
   overflow: hidden;
   position: relative;
+  // ✅ Transition uniquement sur background et color
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+  // ✅ Empêcher les conflits de styles
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 
+  // ✅ Hover simple et direct
   &:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
   }
-
+  &:active {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: scale(0.97);
+    transition: none !important; // Pas de transition pour l'effet clic
+  }
+  // ✅ État actif
   &--active {
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.2);
     color: var(--navy-300);
 
-    // Indicateur actif
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      width: 2.5px;
+      width: 3px;
       height: 55%;
       background: var(--navy-400);
       border-radius: 0 2px 2px 0;
@@ -194,6 +208,8 @@ $sidebar-width-collapsed: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
+    // ✅ Transition uniquement sur color
+    transition: color 0.15s ease;
   }
 
   &__label {
@@ -202,6 +218,7 @@ $sidebar-width-collapsed: 64px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 0.15s ease;
   }
 
   &__badge {
@@ -302,13 +319,15 @@ $sidebar-width-collapsed: 64px;
   white-space: nowrap;
   overflow: hidden;
   transition:
-    background var(--duration-fast),
-    color var(--duration-fast);
+    background 0.15s ease,
+    color 0.15s ease;
 
-  svg { flex-shrink: 0; }
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover {
-    background: rgba(220, 38, 38, 0.12);
-    color: #FCA5A5;
+    background: rgba(220, 38, 38, 0.15);
+    color: #fca5a5;
   }
 }

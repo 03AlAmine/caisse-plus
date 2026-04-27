@@ -34,31 +34,29 @@ interface NavSection {
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen = true;
   @Output() toggleRequest = new EventEmitter<void>();
-  @Output() navClick = new EventEmitter<void>(); // ✅ Nouvel événement
+  @Output() navClick = new EventEmitter<void>();
 
   auth = inject(AuthService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
 
   private routerSubscription?: Subscription;
-
-  // Forcer la détection de changement
   currentRoute: string = '';
 
   navSections: NavSection[] = [
     {
       label: 'PRINCIPAL',
       items: [
-        { label: 'Tableau de bord', icon: '📊', route: '/dashboard' },
-        { label: 'Caisses', icon: '🏦', route: '/caisses' },
-        { label: 'Opérations', icon: '💸', route: '/operations' },
+        { label: 'Tableau de bord', icon: 'dashboard', route: '/dashboard' },
+        { label: 'Caisses', icon: 'caisses', route: '/caisses' },
+        { label: 'Opérations', icon: 'operations', route: '/operations' },
       ],
     },
     {
       label: 'GESTION',
       items: [
-        { label: 'Budgets', icon: '📈', route: '/budgets' },
-        { label: 'Rapports', icon: '📋', route: '/rapports' },
+        { label: 'Budgets', icon: 'budgets', route: '/budgets' },
+        { label: 'Rapports', icon: 'rapports', route: '/rapports' },
       ],
     },
     {
@@ -66,19 +64,28 @@ export class SidebarComponent implements OnInit, OnDestroy {
       items: [
         {
           label: 'Paramètres',
-          icon: '⚙️',
+          icon: 'parametres',
           route: '/parametres',
           roles: ['admin'],
+        },
+      ],
+    },
+    {
+      label: 'SUPER ADMIN',
+      items: [
+        {
+          label: 'Administration',
+          icon: '🛡️',
+          route: '/super-admin',
+          roles: ['superadmin'],
         },
       ],
     },
   ];
 
   ngOnInit(): void {
-    // Initialiser la route courante
     this.currentRoute = this.router.url;
 
-    // S'abonner aux changements de route pour mettre à jour l'état actif
     this.routerSubscription = this.router.events
       .pipe(
         filter(
@@ -136,27 +143,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   getUserDisplayName(user: any): string {
     if (!user) return 'Utilisateur';
-    if (user.displayName) {
-      const firstName = user.displayName.split(' ')[0];
-      return firstName;
-    }
-    if (user.email) {
-      return user.email.split('@')[0];
-    }
+    if (user.displayName) return user.displayName.split(' ')[0];
+    if (user.email) return user.email.split('@')[0];
     return 'Utilisateur';
   }
 
-  /**
-   * Vérifie si une route est active
-   * Gère correctement les routes enfants (ex: /caisses/xxx)
-   */
   isActive(route: string): boolean {
-    // Pour le dashboard, correspondance exacte
     if (route === '/dashboard') {
       return this.currentRoute === '/dashboard' || this.currentRoute === '/';
     }
-    // Pour les autres routes, correspondance de préfixe
     return this.currentRoute.startsWith(route);
+  }
+
+  onNavItemClick(): void {
+    this.navClick.emit();
   }
 
   async onLogout(): Promise<void> {
@@ -168,12 +168,5 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.toastr.success('Déconnecté avec succès');
       this.router.navigate(['/auth/login']);
     }
-  }
-  /**
-   * Émis quand on clique sur un lien de navigation
-   * Pour fermer le sidebar sur mobile
-   */
-  onNavClick(): void {
-    this.navClick.emit();
   }
 }

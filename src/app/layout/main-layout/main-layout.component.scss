@@ -49,3 +49,9 @@
 @media (max-width: 768px) {
   .app-shell { position: relative; }
 }
+// ─── Padding pour la barre de navigation mobile ────────────────────────
+@media (max-width: 768px) {
+  .page-content {
+    padding-bottom: 80px; // Espace pour la bottom tab bar
+  }
+}

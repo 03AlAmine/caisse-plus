@@ -61,6 +61,15 @@ const routes: Routes = [
         loadChildren: () =>
           import('./modules/parametres.module').then((m) => m.ParametresModule),
       },
+      {
+        path: 'super-admin',
+        canActivate: [RoleGuard],
+        data: { roles: ['superadmin'] },
+        loadChildren: () =>
+          import('./modules/super-admin.module').then(
+            (m) => m.SuperAdminModule,
+          ),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: '404',

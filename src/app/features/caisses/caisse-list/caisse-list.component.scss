@@ -48,7 +48,7 @@
 // ─── Bannière solde global ──────────────────────────────────────────────
 .solde-banner {
   background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-lg);
   padding: var(--space-6) var(--space-8);
   margin-bottom: var(--space-8);
   position: relative;
@@ -115,7 +115,7 @@
     gap: var(--space-2);
     font-size: var(--text-xs);
     color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.09);
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-full);
   }

@@ -68,11 +68,22 @@ export class CaisseListComponent implements OnInit, OnDestroy {
   }
 
   get caissePrincipale(): Caisse | undefined {
-    return this.caissesList.find((c) => c.type === 'principale');
+    // Chercher d'abord une caisse de type 'principale'
+    const principale = this.caissesList.find((c) => c.type === 'principale');
+    if (principale) return principale;
+
+    // Sinon, prendre la première caisse active comme caisse par défaut
+    return this.caissesList.length > 0 ? this.caissesList[0] : undefined;
   }
 
   get caissesSecondaires(): Caisse[] {
-    return this.caissesList.filter((c) => c.type === 'secondaire');
+    // Si on a une caisse principale, retourner les autres
+    if (this.caissesList.some((c) => c.type === 'principale')) {
+      return this.caissesList.filter((c) => c.type !== 'principale');
+    }
+
+    // Si pas de principale, retourner toutes les caisses SAUF la première (qui sert de principale)
+    return this.caissesList.slice(1);
   }
 
   get soldeTotal(): number {

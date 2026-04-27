@@ -150,6 +150,17 @@
             "
             placeholder="Ex: Achat de fournitures, Cotisation mensuelle..."
           />
+          <!-- ✅ Suggestions de libellé -->
+          <div class="libelle-suggestions" *ngIf="suggestedLibelles.length > 0">
+            <button
+              type="button"
+              class="libelle-chip"
+              *ngFor="let lib of suggestedLibelles"
+              (click)="selectLibelleSuggestion(lib)"
+            >
+              {{ lib }}
+            </button>
+          </div>
           <div
             class="form-error"
             *ngIf="libelle.touched && libelle.hasError('required')"
@@ -311,37 +322,83 @@
             Caisse
             <span class="form-label__required">*</span>
           </label>
-          <select
-            formControlName="caisseId"
-            class="form-control"
-            (change)="onCaisseChange()"
-          >
-            <option value="">-- Sélectionner une caisse --</option>
-            <option
+
+          <!-- ✅ Grille visuelle des caisses -->
+          <div class="caisse-grid">
+            <button
+              type="button"
+              class="caisse-card"
               *ngFor="let c of caisses"
-              [value]="c.id"
-              [disabled]="c.actif === false"
+              [class.caisse-card--active]="form.get('caisseId')?.value === c.id"
+              [class.caisse-card--disabled]="c.actif === false"
+              [class.caisse-card--warning]="
+                form.get('type')?.value === 'sortie' &&
+                c.solde < (form.get('montant')?.value || 0)
+              "
+              (click)="selectCaisse(c)"
             >
-              {{ c.nom }}
-              <ng-container *ngIf="form.get('type')?.value === 'sortie'">
-                ({{ c.solde | number: "1.0-0" }} FCFA)
-              </ng-container>
-            </option>
-          </select>
+              <span
+                class="caisse-card__dot"
+                [style.background]="c.couleur || 'var(--gray-400)'"
+              ></span>
+              <span class="caisse-card__name">{{ c.nom }}</span>
+              <span class="caisse-card__role">{{
+                c.role ||
+                  (c.type === "principale" ? "Principale" : "Secondaire")
+              }}</span>
+              <span
+                class="caisse-card__solde"
+                [class.caisse-card__solde--neg]="c.solde < 0"
+              >
+                {{ c.solde | number: "1.0-0" }}
+                <small>FCFA</small>
+              </span>
+              <span
+                class="caisse-card__check"
+                *ngIf="form.get('caisseId')?.value === c.id"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="7" fill="var(--navy-600)" />
+                  <path
+                    d="M3.5 7L6 9.5L10.5 5"
+                    stroke="white"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          <!-- Select de secours (optionnel, pour les longues listes) -->
+          <div class="form-hint" *ngIf="caisses.length > 6">
+            <button
+              type="button"
+              class="role-show-all"
+              (click)="showAllCaisses = !showAllCaisses"
+            >
+              {{
+                showAllCaisses
+                  ? "Réduire"
+                  : "Voir toutes les caisses (" + caisses.length + ")"
+              }}
+            </button>
+          </div>
 
           <!-- Informations caisse sélectionnée -->
           <div class="caisse-info" *ngIf="selectedCaisse">
             <div class="caisse-info__row">
-              <span class="caisse-info__label">Type :</span>
+              <span class="caisse-info__label">Rôle :</span>
               <span
                 class="badge"
                 [class.badge--navy]="selectedCaisse.type === 'principale'"
-                [class.badge--gray]="selectedCaisse.type === 'secondaire'"
+                [class.badge--gray]="selectedCaisse.type !== 'principale'"
               >
                 {{
-                  selectedCaisse.type === "principale"
-                    ? "Principale"
-                    : "Secondaire"
+                  selectedCaisse.role ||
+                    (selectedCaisse.type === "principale"
+                      ? "Principale"
+                      : "Secondaire")
                 }}
               </span>
             </div>
@@ -375,16 +432,74 @@
             Catégorie
             <span class="form-label__required">*</span>
           </label>
-          <select
-            formControlName="categorieId"
-            class="form-control"
-            (change)="onCategorieChange()"
+
+          <!-- ✅ Grille visuelle des catégories -->
+          <div class="categorie-grid">
+            <button
+              type="button"
+              class="categorie-card"
+              *ngFor="let cat of visibleCategories"
+              [class.categorie-card--active]="
+                form.get('categorieId')?.value === cat.id
+              "
+              [class.categorie-card--entree]="cat.type === 'entree'"
+              [class.categorie-card--sortie]="cat.type === 'sortie'"
+              (click)="selectCategorie(cat)"
+            >
+              <span
+                class="categorie-card__color"
+                [style.background]="cat.couleur"
+              ></span>
+              <span class="categorie-card__name">{{ cat.nom }}</span>
+              <span
+                class="categorie-card__check"
+                *ngIf="form.get('categorieId')?.value === cat.id"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="7" fill="var(--navy-600)" />
+                  <path
+                    d="M3.5 7L6 9.5L10.5 5"
+                    stroke="white"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          <!-- Voir plus/moins -->
+          <button
+            type="button"
+            class="role-show-all"
+            *ngIf="categories.length > 8"
+            (click)="showAllCategories = !showAllCategories"
           >
-            <option value="">-- Sélectionner une catégorie --</option>
-            <option *ngFor="let cat of categories" [value]="cat.id">
-              {{ cat.nom }}
-            </option>
-          </select>
+            {{
+              showAllCategories
+                ? "Réduire"
+                : "Voir toutes les catégories (" + categories.length + ")"
+            }}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                *ngIf="!showAllCategories"
+                d="M3 4.5L6 7.5L9 4.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                *ngIf="showAllCategories"
+                d="M3 7.5L6 4.5L9 7.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
           <div
             class="form-error"
             *ngIf="categorieId.touched && categorieId.hasError('required')"
@@ -405,9 +520,6 @@
               />
             </svg>
             La catégorie est obligatoire
-          </div>
-          <div class="form-hint">
-            Les catégories vous aident à analyser vos dépenses et revenus
           </div>
         </div>
 

@@ -1,0 +1,183 @@
+<div class="page-wrapper">
+  <header class="page-header">
+    <div class="page-header__content">
+      <h1 class="page-header__title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M2 8h20M8 2v20" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+        Administration globale
+      </h1>
+      <p class="page-header__subtitle">Gérez toutes les organisations de la plateforme</p>
+    </div>
+    <div class="page-header__actions">
+      <button class="btn btn--secondary btn--sm" (click)="loadData()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9 4l2-2M4 10l-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Actualiser
+      </button>
+    </div>
+  </header>
+
+  <div class="loading-center" *ngIf="loading">
+    <span class="spinner"></span>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- KPIs globaux -->
+    <section class="kpi-grid animate-fade-in" *ngIf="statsGlobales">
+      <div class="kpi-card">
+        <div class="kpi-card__indicator" style="background: var(--navy-600)"></div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Organisations</span>
+          <span class="kpi-card__value">{{ statsGlobales.nbOrganisations }}</span>
+          <span class="kpi-card__sub">{{ statsGlobales.nbOrganisationsActives }} actives</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__indicator" style="background: var(--color-success)"></div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Utilisateurs</span>
+          <span class="kpi-card__value">{{ statsGlobales.nbUtilisateurs }}</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__indicator" style="background: var(--color-warning)"></div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Opérations</span>
+          <span class="kpi-card__value">{{ statsGlobales.nbOperations }}</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__indicator" style="background: var(--navy-400)"></div>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Caisses</span>
+          <span class="kpi-card__value">{{ statsGlobales.nbCaisses }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barre de recherche -->
+    <div class="filter-panel card animate-fade-in">
+      <div class="filter-search">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input type="text" [(ngModel)]="filtreSearch" (ngModelChange)="applyFilter()" placeholder="Rechercher une organisation..." />
+      </div>
+      <span class="filter-count">{{ filteredOrganisations.length }} / {{ organisations.length }} organisation(s)</span>
+    </div>
+
+    <!-- Tableau des organisations -->
+    <div class="card table-wrapper animate-fade-in">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Organisation</th>
+            <th>Modèle</th>
+            <th>Membres</th>
+            <th>Caisses</th>
+            <th>Opérations</th>
+            <th>Solde total</th>
+            <th>Créée le</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let org of filteredOrganisations" [class.row--inactive]="!org.actif">
+            <td>
+              <strong>{{ org.nom }}</strong>
+              <span class="text-muted" style="display:block;font-size:10px;">{{ org.id.slice(0, 8) }}...</span>
+            </td>
+            <td>
+              <span class="badge badge--navy">{{ getTemplateName(org.templateId) }}</span>
+            </td>
+            <td>{{ org.membres.length || 0 }}</td>
+            <td>{{ org.nbCaisses || 0 }}</td>
+            <td>{{ org.nbOperations || 0 }}</td>
+            <td>
+              <span class="amount" [class.amount--positive]="(org.soldeTotal || 0) >= 0" [class.amount--negative]="(org.soldeTotal || 0) < 0">
+                {{ org.soldeTotal | number:'1.0-0' }} FCFA
+              </span>
+            </td>
+            <td>{{ org.createdAt | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <span class="badge" [class.badge--success]="org.actif" [class.badge--danger]="!org.actif">
+                {{ org.actif ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn" (click)="viewOrganisation(org)" title="Détails">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="2" fill="currentColor"/>
+                    <circle cx="2" cy="7" r="2" fill="currentColor"/>
+                    <circle cx="12" cy="7" r="2" fill="currentColor"/>
+                  </svg>
+                </button>
+                <button class="action-btn" [class.action-btn--danger]="org.actif" [class.action-btn--success]="!org.actif" (click)="toggleOrgStatus(org)" [title]="org.actif ? 'Désactiver' : 'Réactiver'">
+                  <svg *ngIf="org.actif" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M3 4h8M5 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M11 4v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                  </svg>
+                  <svg *ngIf="!org.actif" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M7 4v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="filteredOrganisations.length === 0">
+        <p>Aucune organisation trouvée</p>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Modal détail organisation -->
+<div class="modal-overlay" *ngIf="showOrgDetail && selectedOrg" (click)="closeDetail()">
+  <div class="modal modal--large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ selectedOrg.nom }}</h2>
+      <button class="modal-close" (click)="closeDetail()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-row"><strong>ID :</strong> {{ selectedOrg.id }}</div>
+        <div class="detail-row"><strong>Modèle :</strong> {{ getTemplateName(selectedOrg.templateId) }}</div>
+        <div class="detail-row"><strong>Créée le :</strong> {{ selectedOrg.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div class="detail-row"><strong>Statut :</strong> {{ selectedOrg.actif ? 'Actif' : 'Inactif' }}</div>
+        <div class="detail-row"><strong>Membres :</strong> {{ selectedOrg.membres.length || 0 }}</div>
+        <div class="detail-row"><strong>Caisses :</strong> {{ selectedOrg.nbCaisses || 0 }}</div>
+        <div class="detail-row"><strong>Opérations :</strong> {{ selectedOrg.nbOperations || 0 }}</div>
+      </div>
+
+      <h4 style="margin-top: var(--space-4);">Utilisateurs</h4>
+      <table class="data-table" *ngIf="selectedOrgUsers.length > 0">
+        <thead>
+          <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Créé le</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of selectedOrgUsers">
+            <td>{{ u.displayName || '—' }}</td>
+            <td>{{ u.email }}</td>
+            <td><span class="badge badge--navy">{{ u.role }}</span></td>
+            <td>{{ u.createdAt?.toDate() | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="selectedOrgUsers.length === 0" class="text-muted">Aucun utilisateur</p>
+    </div>
+  </div>
+</div>

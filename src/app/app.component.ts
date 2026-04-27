@@ -26,10 +26,12 @@ import { filter, take } from 'rxjs/operators';
       <router-outlet></router-outlet>
     </ng-container>
 
-    <!-- ✅ Loader de navigation (avec délai) -->
-    <app-navigation-loader></app-navigation-loader>
+    <!-- Loader de navigation (caché pendant le splash) -->
+    <ng-container *ngIf="!showSplash">
+      <app-navigation-loader></app-navigation-loader>
+    </ng-container>
 
-    <!-- Modal de bienvenue (première connexion) -->
+    <!-- Modal de bienvenue -->
     <app-welcome-modal
       *ngIf="showWelcomeModal"
       [userName]="welcomeUserName"
@@ -38,8 +40,6 @@ import { filter, take } from 'rxjs/operators';
       (goToDashboard)="goToDashboard()"
     >
     </app-welcome-modal>
-    <!-- ✅ Bannière d'installation PWA -->
-    <app-install-prompt></app-install-prompt>
   `,
   styles: [
     `
@@ -88,15 +88,15 @@ export class AppComponent implements OnInit {
   showWelcomeModal = false;
   welcomeUserName = '';
 
-  // ✅ Timer pour le délai du loader
   private loaderTimer: any = null;
-  private readonly LOADER_DELAY = 400; // ms — afficher le loader après 400ms
+  private readonly LOADER_DELAY = 200;
+  private firstCheckDone = false;
 
   constructor() {
-    // ✅ Loader intelligent : ne s'affiche que si la navigation prend plus de 400ms
     this.router.events.subscribe((event) => {
+      if (this.showSplash) return;
+
       if (event instanceof NavigationStart) {
-        // Démarrer un timer : si la navigation n'est pas finie dans 400ms, afficher le loader
         this.loaderTimer = setTimeout(() => {
           this.navigationLoader.show();
         }, this.LOADER_DELAY);
@@ -107,19 +107,25 @@ export class AppComponent implements OnInit {
         event instanceof NavigationCancel ||
         event instanceof NavigationError
       ) {
-        // Annuler le timer
         if (this.loaderTimer) {
           clearTimeout(this.loaderTimer);
           this.loaderTimer = null;
         }
-        // Cacher le loader (s'il était affiché)
         this.navigationLoader.hide();
+
+        // ✅ Vérifier le modal de bienvenue après CHAQUE navigation
+        if (!this.firstCheckDone) {
+          this.firstCheckDone = true;
+          // Déjà fait dans ngOnInit, ne pas refaire
+        } else {
+          // Pour les navigations suivantes, on vérifie quand même
+          this.checkFirstLogin();
+        }
       }
     });
   }
 
   ngOnInit(): void {
-    // Attendre la première réponse de Firebase Auth
     this.auth.authReady$
       .pipe(
         filter((ready) => ready !== null),
@@ -127,23 +133,21 @@ export class AppComponent implements OnInit {
       )
       .subscribe((ready) => {
         this.showSplash = false;
+        this.firstCheckDone = true;
 
         if (ready) {
-          this.router.events
-            .pipe(
-              filter((event) => event instanceof NavigationEnd),
-              take(1),
-            )
-            .subscribe(() => {
-              setTimeout(() => {
-                this.checkFirstLogin();
-              }, 1000);
-            });
+          // Vérifier après le premier rendu
+          setTimeout(() => {
+            this.checkFirstLogin();
+          }, 1000);
         }
       });
   }
 
   private checkFirstLogin(): void {
+    // ✅ Ne pas vérifier si le modal est déjà ouvert
+    if (this.showWelcomeModal) return;
+
     const hasSeenWelcome = localStorage.getItem('caisseplus_welcome_seen');
 
     if (!hasSeenWelcome) {

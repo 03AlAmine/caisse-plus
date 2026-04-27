@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { NavigationLoaderService } from '../../../services/navigation-loader.service';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-navigation-loader',
   template: `
-    <div class="nav-loader-overlay" *ngIf="loader.loading$ | async" @fadeIn>
+    <div class="nav-loader-overlay" *ngIf="loader.loading$ | async" @fadeInOut>
       <div class="nav-loader">
         <div class="nav-loader__spinner">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -34,7 +35,6 @@ import { NavigationLoaderService } from '../../../services/navigation-loader.ser
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.15s ease;
     }
 
     .nav-loader {
@@ -46,7 +46,6 @@ import { NavigationLoaderService } from '../../../services/navigation-loader.ser
       border-radius: var(--radius-xl);
       padding: var(--space-8) var(--space-10);
       box-shadow: var(--shadow-xl);
-      animation: scaleIn 0.2s ease;
     }
 
     .nav-loader__text {
@@ -54,17 +53,19 @@ import { NavigationLoaderService } from '../../../services/navigation-loader.ser
       font-weight: 600;
       color: var(--gray-500);
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-  `]
+  `],
+  // ✅ Définir l'animation dans le composant
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('150ms ease-out', style({ opacity: 1 })),
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class NavigationLoaderComponent {
   loader = inject(NavigationLoaderService);

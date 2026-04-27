@@ -7,10 +7,15 @@ export class NavigationLoaderService {
   loading$ = this.loadingSubject.asObservable();
 
   show(): void {
-    this.loadingSubject.next(true);
+    // ✅ Ne pas bloquer le thread principal
+    requestAnimationFrame(() => {
+      this.loadingSubject.next(true);
+    });
   }
 
   hide(): void {
-    this.loadingSubject.next(false);
+    requestAnimationFrame(() => {
+      this.loadingSubject.next(false);
+    });
   }
 }

@@ -2,17 +2,16 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { OperationService } from '../../../services/operation.service';
 import { CaisseService } from '../../../services/caisse.service';
 import { CategorieService } from '../../../services/categorie.service';
 import { AuthService } from '../../../services/auth.service';
 import { Caisse } from '../../../models/caisse.model';
 import { Categorie } from '../../../models/categorie.model';
-import { Operation } from '../../../models/operation.model';
 import { ToastrService } from 'ngx-toastr';
 import { VocabulaireMetier } from '../../../models/templates.data';
 import { VocabulaireService } from '../../../services/vocabulaire.service';
-
 @Component({
   selector: 'app-operation-form',
   templateUrl: './operation-form.component.html',
@@ -38,6 +37,10 @@ export class OperationFormComponent implements OnInit {
   showConfirmModal = false;
   showResumeModal = false;
   uploadedFiles: File[] = [];
+  suggestedLibelles: string[] = [];
+  recentOperations: { libelle: string; categorieId: string }[] = [];
+  showAllCaisses = false;
+  showAllCategories = false;
 
   get v(): VocabulaireMetier {
     return this.vocabulaireService.vocabulaire;
@@ -425,5 +428,72 @@ export class OperationFormComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  private async loadRecentOperations(): Promise<void> {
+    this.opService
+      .getAll()
+      .pipe(take(1))
+      .subscribe((ops) => {
+        // Récupérer les 10 dernières opérations uniques
+        const seen = new Set<string>();
+        this.recentOperations = [];
+        for (const op of ops.slice(0, 20)) {
+          const key = `${op.libelle}|${op.categorieId}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            this.recentOperations.push({
+              libelle: op.libelle,
+              categorieId: op.categorieId || '',
+            });
+          }
+          if (this.recentOperations.length >= 8) break;
+        }
+      });
+  }
+
+  onLibelleInput(value: string): void {
+    if (value.length >= 2) {
+      // Chercher des libellés similaires dans l'historique
+      this.suggestedLibelles = this.recentOperations
+        .filter((op) => op.libelle.toLowerCase().includes(value.toLowerCase()))
+        .map((op) => op.libelle)
+        .slice(0, 5);
+    } else {
+      this.suggestedLibelles = [];
+    }
+  }
+
+  selectLibelleSuggestion(libelle: string): void {
+    this.form.get('libelle')?.setValue(libelle);
+
+    // Auto-sélectionner la catégorie associée
+    const match = this.recentOperations.find((op) => op.libelle === libelle);
+    if (match?.categorieId) {
+      this.form.get('categorieId')?.setValue(match.categorieId);
+    }
+
+    this.suggestedLibelles = [];
+  }
+
+  get visibleCaisses(): Caisse[] {
+    if (this.showAllCaisses) return this.caisses;
+    return this.caisses.slice(0, 6);
+  }
+
+  get visibleCategories(): Categorie[] {
+    if (this.showAllCategories) return this.categories;
+    return this.categories.slice(0, 8);
+  }
+
+  selectCaisse(caisse: Caisse): void {
+    if (caisse.actif === false) return;
+    this.form.get('caisseId')?.setValue(caisse.id);
+    this.onCaisseChange();
+  }
+
+  selectCategorie(categorie: Categorie): void {
+    this.form.get('categorieId')?.setValue(categorie.id);
+    this.onCategorieChange();
   }
 }

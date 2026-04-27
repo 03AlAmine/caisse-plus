@@ -6,7 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 import { Caisse } from '../../../models/caisse.model';
 import { ToastrService } from 'ngx-toastr';
 import { firstValueFrom } from 'rxjs';
-
+import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-caisse-form',
   templateUrl: './caisse-form.component.html',
@@ -27,6 +27,7 @@ export class CaisseFormComponent implements OnInit {
   showConfirmModal = false;
   errorMessage: string = '';
   showError: boolean = false;
+  showAllRoles = false;
 
   COULEURS = [
     '#0A1628', // Navy
@@ -204,5 +205,118 @@ export class CaisseFormComponent implements OnInit {
         this.markFormGroupTouched(control);
       }
     });
+  }
+  /**
+   * Sélectionne un rôle et met à jour le nom suggéré
+   */
+  selectRole(role: string): void {
+    this.form.get('role')?.setValue(role);
+    // ✅ Toujours mettre à jour le nom suggéré, même si déjà rempli
+    this.updateSuggestedName(role);
+  }
+
+  /**
+   * Met à jour le nom de la caisse en fonction du rôle choisi
+   */
+  private updateSuggestedName(role: string): void {
+    if (!role) return;
+
+    this.caisseService
+      .getAll()
+      .pipe(take(1))
+      .subscribe((caisses) => {
+        const count = caisses.filter((c: Caisse) => c.role === role).length;
+        const name =
+          count > 0 ? `Caisse ${role} ${count + 1}` : `Caisse ${role}`;
+        this.form.get('nom')?.setValue(name);
+      });
+  }
+
+  /**
+   * Appelé quand on change le type de caisse
+   */
+  onTypeChange(): void {
+    const type = this.type.value;
+    const roleControl = this.form.get('role');
+    const nomControl = this.form.get('nom');
+
+    if (type === 'principale') {
+      nomControl?.setValue('Caisse principale');
+      roleControl?.setValue('Principale');
+    } else if (type === 'secondaire') {
+      // Réinitialiser si on passe de principale à secondaire
+      if (roleControl?.value === 'Principale') {
+        roleControl?.setValue('');
+        nomControl?.setValue('');
+      }
+    }
+    // Pour "libre", on laisse l'utilisateur choisir
+  }
+  get suggestedName(): string {
+    const role = this.form.get('role')?.value;
+    const nom = this.form.get('nom')?.value;
+
+    if (!role) return '';
+    if (nom && nom.length > 0) return nom;
+
+    // ✅ Au lieu de getExistingCaisses(), utiliser une valeur simple
+    // Le compteur sera fait dans suggestCaisseName()
+    return `Caisse ${role}`;
+  }
+
+  suggestCaisseName(role: string): void {
+    if (!role || this.form.get('nom')?.value) return;
+
+    // ✅ Compter les caisses existantes via le service
+    this.caisseService
+      .getAll()
+      .pipe(take(1))
+      .subscribe((caisses) => {
+        const count = caisses.filter((c: Caisse) => c.role === role).length;
+        const name =
+          count > 0 ? `Caisse ${role} ${count + 1}` : `Caisse ${role}`;
+        this.form.get('nom')?.setValue(name);
+      });
+  }
+
+  allRoles = [
+    'Boutique',
+    'Dépôt',
+    'Livraison',
+    'Cuisine',
+    'Terrasse',
+    'Atelier',
+    'Tissus',
+    'Retouches',
+    'Outillage',
+    'Déplacement',
+    'Projets',
+    'Donateurs',
+    'Carburant',
+    'Péage',
+    'Intrants',
+    'Matériel',
+    'Sécurité',
+    'Événements',
+    'Divers',
+    'Générale',
+    'Secondaire',
+    'Principale',
+  ];
+
+  // Rôles suggérés en fonction du template
+  get suggestedRoles(): string[] {
+    // Récupérer les rôles depuis le template de l'organisation
+    const template = this.auth.getOrganisationTemplate(); // ou via un service
+    // Pour l'instant, retourner les plus courants
+    return [
+      'Boutique',
+      'Dépôt',
+      'Cuisine',
+      'Atelier',
+      'Projets',
+      'Générale',
+      'Divers',
+    ];
   }
 }
