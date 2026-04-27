@@ -10,6 +10,8 @@ import { Caisse } from '../../../models/caisse.model';
 import { Categorie } from '../../../models/categorie.model';
 import { Operation } from '../../../models/operation.model';
 import { ToastrService } from 'ngx-toastr';
+import { VocabulaireMetier } from '../../../models/templates.data';
+import { VocabulaireService } from '../../../services/vocabulaire.service';
 
 @Component({
   selector: 'app-operation-form',
@@ -25,6 +27,7 @@ export class OperationFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toastr = inject(ToastrService);
+  private vocabulaireService = inject(VocabulaireService);
 
   form!: FormGroup;
   caisses: Caisse[] = [];
@@ -33,15 +36,23 @@ export class OperationFormComponent implements OnInit {
   isEdit = false;
   operationId: string | null = null;
   showConfirmModal = false;
-  showResumeModal  = false;
+  showResumeModal = false;
   uploadedFiles: File[] = [];
 
+  get v(): VocabulaireMetier {
+    return this.vocabulaireService.vocabulaire;
+  }
+
   ngOnInit(): void {
+    this.vocabulaireService.loadVocabulaire();
     this.operationId = this.route.snapshot.paramMap.get('id');
-    this.isEdit = !!this.operationId && this.route.snapshot.url.some(s => s.path === 'modifier');
+    this.isEdit =
+      !!this.operationId &&
+      this.route.snapshot.url.some((s) => s.path === 'modifier');
 
     const today = new Date().toISOString().split('T')[0];
-    const caisseIdParam = this.route.snapshot.queryParamMap.get('caisseId') ?? '';
+    const caisseIdParam =
+      this.route.snapshot.queryParamMap.get('caisseId') ?? '';
 
     this.initForm(today, caisseIdParam);
     this.loadData();
@@ -51,7 +62,14 @@ export class OperationFormComponent implements OnInit {
 
   private initForm(today: string, caisseIdParam: string): void {
     this.form = this.fb.group({
-      libelle: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      libelle: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(100),
+        ],
+      ],
       montant: [null, [Validators.required, Validators.min(1)]],
       type: ['sortie', Validators.required],
       caisseId: [caisseIdParam, Validators.required],
@@ -72,7 +90,9 @@ export class OperationFormComponent implements OnInit {
       this.onCaisseChange();
       this.validateSolde();
     });
-    this.form.get('montant')?.valueChanges.subscribe(() => this.validateSolde());
+    this.form
+      .get('montant')
+      ?.valueChanges.subscribe(() => this.validateSolde());
   }
 
   /**
@@ -91,11 +111,15 @@ export class OperationFormComponent implements OnInit {
     }
 
     // Ne vérifier que pour les sorties et transferts
-    if ((type === 'sortie' || type === 'transfert') && caisse && montantControl?.value > 0) {
-      if (montantControl?.value > caisse.solde ) {
+    if (
+      (type === 'sortie' || type === 'transfert') &&
+      caisse &&
+      montantControl?.value > 0
+    ) {
+      if (montantControl?.value > caisse.solde) {
         montantControl?.setErrors({
           ...(montantControl.errors || {}),
-          soldeInsuffisant: true
+          soldeInsuffisant: true,
         });
         montantControl?.markAsTouched();
       }
@@ -104,18 +128,22 @@ export class OperationFormComponent implements OnInit {
 
   private async loadData(): Promise<void> {
     // Charger les caisses
-    this.caisseService.getAll().subscribe(c => {
-      this.caisses = c.filter(caisse => caisse.actif === true);
+    this.caisseService.getAll().subscribe((c) => {
+      this.caisses = c.filter((caisse) => caisse.actif === true);
       if (!this.form.get('caisseId')?.value && this.caisses.length > 0) {
-        const principale = this.caisses.find(x => x.type === 'principale');
-        this.form.get('caisseId')?.setValue(principale?.id ?? this.caisses[0].id);
+        const principale = this.caisses.find((x) => x.type === 'principale');
+        this.form
+          .get('caisseId')
+          ?.setValue(principale?.id ?? this.caisses[0].id);
       }
     });
 
     // Charger l'opération si édition
     if (this.isEdit && this.operationId) {
       try {
-        const op = await firstValueFrom(this.opService.getById(this.operationId));
+        const op = await firstValueFrom(
+          this.opService.getById(this.operationId),
+        );
         if (op) {
           this.form.patchValue({
             libelle: op.libelle,
@@ -129,7 +157,7 @@ export class OperationFormComponent implements OnInit {
           await this.loadCategories(op.type);
         }
       } catch (error) {
-        this.toastr.error('Erreur lors du chargement de l\'opération');
+        this.toastr.error("Erreur lors du chargement de l'opération");
         this.router.navigate(['/operations']);
       }
     } else {
@@ -169,14 +197,22 @@ export class OperationFormComponent implements OnInit {
   }
 
   private async loadCategories(type: string): Promise<void> {
-    this.categorieService.getByType(type as 'entree' | 'sortie').subscribe(cats => {
-      this.categories = cats;
-    });
+    this.categorieService
+      .getByType(type as 'entree' | 'sortie')
+      .subscribe((cats) => {
+        this.categories = cats;
+      });
   }
 
-  get libelle() { return this.form.get('libelle')!; }
-  get montant() { return this.form.get('montant')!; }
-  get categorieId() { return this.form.get('categorieId')!; }
+  get libelle() {
+    return this.form.get('libelle')!;
+  }
+  get montant() {
+    return this.form.get('montant')!;
+  }
+  get categorieId() {
+    return this.form.get('categorieId')!;
+  }
 
   // Arrondi entier pour éviter les erreurs flottantes
   get montantEntier(): number {
@@ -204,7 +240,9 @@ export class OperationFormComponent implements OnInit {
   }
 
   get selectedCategorie(): Categorie | undefined {
-    return this.categories.find(c => c.id === this.form.get('categorieId')?.value);
+    return this.categories.find(
+      (c) => c.id === this.form.get('categorieId')?.value,
+    );
   }
 
   get typeLabel(): string {
@@ -223,7 +261,7 @@ export class OperationFormComponent implements OnInit {
 
   get selectedCaisse(): Caisse | undefined {
     const id = this.form.get('caisseId')?.value;
-    return this.caisses.find(c => c.id === id);
+    return this.caisses.find((c) => c.id === id);
   }
 
   get selectedCaisseSolde(): number {
@@ -232,7 +270,7 @@ export class OperationFormComponent implements OnInit {
 
   getSelectedDestCaisse(): Caisse | undefined {
     const id = this.form.get('transfertCaisseDestId')?.value;
-    return this.caisses.find(c => c.id === id);
+    return this.caisses.find((c) => c.id === id);
   }
 
   onCaisseChange(): void {
@@ -265,7 +303,7 @@ export class OperationFormComponent implements OnInit {
   }
 
   private addFiles(files: File[]): void {
-    const validFiles = files.filter(f => {
+    const validFiles = files.filter((f) => {
       const isValid = f.size <= 5 * 1024 * 1024;
       if (!isValid) {
         this.toastr.warning(`${f.name} dépasse la taille maximale (5MB)`);
@@ -290,7 +328,7 @@ export class OperationFormComponent implements OnInit {
       if (this.isSoldeInsuffisant) {
         this.toastr.error(
           `Solde insuffisant ! Le solde de la caisse (${this.selectedCaisseSolde.toLocaleString('fr-FR')} FCFA) est inférieur au montant saisi.`,
-          'Opération impossible'
+          'Opération impossible',
         );
       } else if (this.categorieId.invalid) {
         this.toastr.warning('Veuillez sélectionner une catégorie');
@@ -319,10 +357,7 @@ export class OperationFormComponent implements OnInit {
   confirmResume(): void {
     // Double vérification du solde avant de confirmer
     if (!this.isEdit && this.isSoldeInsuffisant) {
-      this.toastr.error(
-        'Opération impossible : solde insuffisant.',
-        'Erreur'
-      );
+      this.toastr.error('Opération impossible : solde insuffisant.', 'Erreur');
       return;
     }
 
@@ -351,13 +386,15 @@ export class OperationFormComponent implements OnInit {
       };
 
       if (val.categorieId) {
-        const categorie = this.categories.find(c => c.id === val.categorieId);
+        const categorie = this.categories.find((c) => c.id === val.categorieId);
         data.categorieId = val.categorieId;
         data.categorieNom = categorie?.nom ?? '';
       }
 
       if (val.type === 'transfert' && val.transfertCaisseDestId) {
-        const destCaisse = this.caisses.find(c => c.id === val.transfertCaisseDestId);
+        const destCaisse = this.caisses.find(
+          (c) => c.id === val.transfertCaisseDestId,
+        );
         data.transfertCaisseDestId = val.transfertCaisseDestId;
         data.transfertCaisseDestNom = destCaisse?.nom ?? '';
       }
@@ -367,12 +404,13 @@ export class OperationFormComponent implements OnInit {
         this.toastr.success('Opération modifiée avec succès', 'Succès');
       } else {
         await this.opService.create(data);
-        const needsValidation = data.montant >= 100000 && !this.auth.isTresorier();
+        const needsValidation =
+          data.montant >= 100000 && !this.auth.isTresorier();
 
         if (needsValidation) {
           this.toastr.info(
             'Opération soumise à validation. Un trésorier doit valider cette transaction.',
-            'En attente de validation'
+            'En attente de validation',
           );
         } else {
           this.toastr.success('Opération enregistrée et validée', 'Succès');
@@ -380,7 +418,10 @@ export class OperationFormComponent implements OnInit {
       }
       this.router.navigate(['/operations']);
     } catch (err: any) {
-      this.toastr.error(err.message ?? 'Erreur lors de l\'enregistrement', 'Erreur');
+      this.toastr.error(
+        err.message ?? "Erreur lors de l'enregistrement",
+        'Erreur',
+      );
     } finally {
       this.loading = false;
     }

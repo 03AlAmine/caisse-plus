@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, Output, inject, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  inject,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastrService } from 'ngx-toastr';
@@ -26,6 +34,7 @@ interface NavSection {
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen = true;
   @Output() toggleRequest = new EventEmitter<void>();
+  @Output() navClick = new EventEmitter<void>(); // ✅ Nouvel événement
 
   auth = inject(AuthService);
   private router = inject(Router);
@@ -72,7 +81,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // S'abonner aux changements de route pour mettre à jour l'état actif
     this.routerSubscription = this.router.events
       .pipe(
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
       )
       .subscribe((event: NavigationEnd) => {
         this.currentRoute = event.urlAfterRedirects || event.url;
@@ -157,5 +168,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.toastr.success('Déconnecté avec succès');
       this.router.navigate(['/auth/login']);
     }
+  }
+  /**
+   * Émis quand on clique sur un lien de navigation
+   * Pour fermer le sidebar sur mobile
+   */
+  onNavClick(): void {
+    this.navClick.emit();
   }
 }

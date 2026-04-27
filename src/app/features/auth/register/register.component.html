@@ -539,7 +539,7 @@
                   ></span>
                   <span class="caisse-suggeree__name">{{ c.nom }}</span>
                   <span class="caisse-suggeree__type">{{
-                    c.type === "principale" ? "Principale" : "Secondaire"
+                    c.role || "Caisse"
                   }}</span>
                 </div>
               </div>

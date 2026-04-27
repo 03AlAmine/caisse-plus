@@ -17,8 +17,9 @@
         }}</span>
       </div>
     </header>
-
-    <!-- KPI Grid -->
+    <!-- Checklist de démarrage -->
+    <app-getting-started-checklist></app-getting-started-checklist>
+    <!-- KPI Grid — ✅ Vocabulaire métier -->
     <section class="kpi-grid">
       <article
         class="kpi-card animate-fade-in stagger-{{ i + 1 }}"
@@ -66,12 +67,123 @@
         </div>
       </article>
     </section>
+    <!-- Indicateurs visuels — Résumé parlant -->
+    <section class="insight-cards animate-fade-in">
+      <!-- Carte résumé principal -->
+      <div class="insight-card insight-card--main">
+        <div class="insight-card__header">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle
+              cx="10"
+              cy="10"
+              r="8"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M10 6v4M10 13v.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span>Analyse du mois</span>
+        </div>
+        <div class="insight-card__body">
+          <p class="insight-message">{{ getInsightMessage() }}</p>
+          <div class="insight-emoji">{{ getInsightEmoji() }}</div>
+        </div>
+      </div>
 
+      <!-- Activité récente -->
+      <div class="insight-card">
+        <div class="insight-card__header">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect
+              x="3"
+              y="4"
+              width="14"
+              height="12"
+              rx="2"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path d="M3 8h14" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+          <span>Activité récente</span>
+        </div>
+        <div class="insight-card__body">
+          <div class="insight-stats">
+            <div class="insight-stat">
+              <span class="insight-stat__value">{{ getTodayOpsCount() }}</span>
+              <span class="insight-stat__label">aujourd'hui</span>
+            </div>
+            <div class="insight-stat">
+              <span class="insight-stat__value">{{ getWeekOpsCount() }}</span>
+              <span class="insight-stat__label">cette semaine</span>
+            </div>
+            <div class="insight-stat">
+              <span class="insight-stat__value">{{ getMonthOpsCount() }}</span>
+              <span class="insight-stat__label">ce mois</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tendances -->
+      <div class="insight-card" *ngIf="hasTrends()">
+        <div class="insight-card__header">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path
+              d="M3 17L7 12L11 16L17 8"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>Tendances</span>
+        </div>
+        <div class="insight-card__body">
+          <div class="insight-trend" *ngIf="getTrendEntrees() > 0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M8 14V2M2 8l6-6 6 6"
+                stroke="#10B981"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span
+              >Les {{ v.entreePluriel }} sont en hausse de
+              <strong>{{ getTrendEntrees() }}%</strong> ce mois</span
+            >
+          </div>
+          <div class="insight-trend" *ngIf="getTrendSorties() > 0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M8 2v12M2 8l6 6 6-6"
+                stroke="#EF4444"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span
+              >Les {{ v.sortiePluriel }} ont augmenté de
+              <strong>{{ getTrendSorties() }}%</strong> ce mois</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- Notifications inline -->
     <section
       class="notifications-section"
       *ngIf="operationsEnAttente.length > 0 || budgetsEnAlerte.length > 0"
     >
+      <!-- Opérations en attente -->
       <div
         class="inline-alert inline-alert--warning animate-slide-in"
         *ngIf="operationsEnAttente.length > 0"
@@ -101,6 +213,7 @@
         </a>
       </div>
 
+      <!-- Budgets en alerte -->
       <ng-container *ngFor="let b of budgetsEnAlerte">
         <div
           class="inline-alert animate-slide-in"
@@ -157,16 +270,18 @@
             </div>
             <div>
               <h3 class="chart-card__title">Évolution sur 6 mois</h3>
-              <p class="chart-card__sub">Entrées et sorties validées</p>
+              <p class="chart-card__sub">
+                {{ v.entreePluriel }} et {{ v.sortiePluriel }} validées
+              </p>
             </div>
           </div>
           <div class="chart-legend">
-            <span class="chart-legend__item chart-legend__item--entree"
-              >Entrées</span
-            >
-            <span class="chart-legend__item chart-legend__item--sortie"
-              >Sorties</span
-            >
+            <span class="chart-legend__item chart-legend__item--entree">{{
+              v.entreePluriel
+            }}</span>
+            <span class="chart-legend__item chart-legend__item--sortie">{{
+              v.sortiePluriel
+            }}</span>
           </div>
         </div>
         <div class="chart-card__body">
@@ -180,7 +295,7 @@
         </div>
         <div class="chart-card__summary">
           <div class="chart-card__summary-item">
-            <span class="chart-card__summary-label">Entrées</span>
+            <span class="chart-card__summary-label">{{ v.entreePluriel }}</span>
             <span
               class="chart-card__summary-val chart-card__summary-val--entree"
             >
@@ -188,7 +303,7 @@
             </span>
           </div>
           <div class="chart-card__summary-item">
-            <span class="chart-card__summary-label">Sorties</span>
+            <span class="chart-card__summary-label">{{ v.sortiePluriel }}</span>
             <span
               class="chart-card__summary-val chart-card__summary-val--sortie"
             >
@@ -212,7 +327,7 @@
         </div>
       </div>
 
-      <!-- Graphique circulaire — Répartition des dépenses -->
+      <!-- Graphique circulaire — Répartition des dépenses/achats/charges... -->
       <div class="chart-card card animate-fade-in">
         <div class="chart-card__header">
           <div class="chart-card__title-group">
@@ -234,7 +349,9 @@
               </svg>
             </div>
             <div>
-              <h3 class="chart-card__title">Répartition des dépenses</h3>
+              <h3 class="chart-card__title">
+                Répartition des {{ v.sortiePluriel }}
+              </h3>
               <p class="chart-card__sub">
                 {{
                   topCategories.length > 0
@@ -290,7 +407,7 @@
               stroke-linecap="round"
             />
           </svg>
-          <p>Aucune dépense enregistrée</p>
+          <p>Aucune {{ v.sortie }} enregistrée</p>
           <span>Les 6 derniers mois</span>
         </div>
 
@@ -525,6 +642,7 @@
                   />
                 </svg>
               </div>
+
               <div class="op-row__info">
                 <span class="op-row__libelle">{{ op.libelle }}</span>
                 <div class="op-row__meta">
@@ -533,6 +651,7 @@
                   <span>{{ toDate(op.date) | date: "dd/MM/yy" }}</span>
                 </div>
               </div>
+
               <div class="op-row__right">
                 <span
                   class="op-row__montant"

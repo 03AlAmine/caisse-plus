@@ -44,19 +44,29 @@ const routes: Routes = [
       {
         path: 'rapports',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'tresorier', 'auditeur'] }, // utilisateur exclu
+        data: { roles: ['admin', 'tresorier', 'auditeur'] },
         loadChildren: () =>
           import('./modules/rapports.module').then((m) => m.RapportsModule),
+      },
+      // ✅ Route profil corrigée
+      {
+        path: 'profil',
+        loadChildren: () =>
+          import('./modules/profil.module').then((m) => m.ProfilModule),
       },
       {
         path: 'parametres',
         canActivate: [RoleGuard],
-        data: { roles: ['admin'] },
+        data: { roles: ['admin', 'tresorier', 'auditeur', 'utilisateur'] },
         loadChildren: () =>
           import('./modules/parametres.module').then((m) => m.ParametresModule),
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: '404', loadChildren: () => import('./modules/not-found.module').then(m => m.NotFoundModule) },
+      {
+        path: '404',
+        loadChildren: () =>
+          import('./modules/not-found.module').then((m) => m.NotFoundModule),
+      },
       { path: '**', redirectTo: '404' },
     ],
   },

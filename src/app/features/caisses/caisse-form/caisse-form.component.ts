@@ -65,11 +65,14 @@ export class CaisseFormComponent implements OnInit {
         ],
       ],
       type: ['secondaire', Validators.required],
+      role: [''], // ← Nouveau champ
       description: ['', [Validators.maxLength(200)]],
       couleur: ['#0A1628'],
       responsableNom: ['', [Validators.maxLength(100)]],
     });
   }
+
+  // Dans loadCaisse()
 
   private async loadCaisse(id: string): Promise<void> {
     this.loading = true;
@@ -79,6 +82,7 @@ export class CaisseFormComponent implements OnInit {
         this.form.patchValue({
           nom: caisse.nom,
           type: caisse.type,
+          role: caisse.role || '', // ← Charger le rôle
           description: caisse.description || '',
           couleur: caisse.couleur || '#0A1628',
           responsableNom: caisse.responsableNom || '',

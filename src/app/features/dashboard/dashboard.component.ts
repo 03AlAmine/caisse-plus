@@ -7,6 +7,8 @@ import { CaisseService } from '../../services/caisse.service';
 import { OperationService } from '../../services/operation.service';
 import { BudgetService } from '../../services/budget.service';
 import { AuthService } from '../../services/auth.service';
+import { VocabulaireService } from '../../services/vocabulaire.service'; // ✅ Ajouter l'import
+import { VocabulaireMetier } from '../../models/templates.data'; // ✅ Ajouter l'import
 import { Caisse } from '../../models/caisse.model';
 import { Operation } from '../../models/operation.model';
 import { BudgetAvecStats } from '../../models/budget.model';
@@ -22,12 +24,13 @@ interface KPI {
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private caisseService = inject(CaisseService);
   private opService = inject(OperationService);
   private budgetService = inject(BudgetService);
+  private vocabulaireService = inject(VocabulaireService); // ✅ Utiliser inject()
   auth = inject(AuthService);
   private router = inject(Router);
 
@@ -50,7 +53,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   chartMois: string[] = [];
   chartEntrees: number[] = [];
   chartSorties: number[] = [];
-  chartColors: string[] = ['#2563EB', '#059669', '#D97706', '#7C3AED', '#DC2626', '#0EA5E9', '#EC4899', '#6B7280'];
+  chartColors: string[] = [
+    '#2563EB',
+    '#059669',
+    '#D97706',
+    '#7C3AED',
+    '#DC2626',
+    '#0EA5E9',
+    '#EC4899',
+    '#6B7280',
+  ];
 
   // Catégories
   topCategories: { nom: string; total: number; pct: number }[] = [];
@@ -64,19 +76,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
+  // ✅ Getter pour le vocabulaire
+  get v(): VocabulaireMetier {
+    return this.vocabulaireService.vocabulaire;
+  }
+
   ngOnInit(): void {
-    this.loadData();
+    // ✅ Charger le vocabulaire d'abord, puis les données
+    this.vocabulaireService.loadVocabulaire().then(() => {
+      this.loadData();
+    });
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
-
   private loadData(): void {
     this.loading = true;
     this.chartLoading = true;
 
-    this.auth.currentUser$.pipe(take(1)).subscribe(user => {
+    this.auth.currentUser$.pipe(take(1)).subscribe((user) => {
       if (!user) {
         this.loading = false;
         return;
@@ -85,64 +104,100 @@ export class DashboardComponent implements OnInit, OnDestroy {
       combineLatest([
         this.caisseService.getAll(),
         this.opService.getAll(),
-        this.budgetService.getAll()
-      ]).pipe(take(1)).subscribe({
-        next: ([caisses, operations, budgets]) => {
-          // Normaliser les dates
-          const operationsNormalisees = operations.map(op => ({
-            ...op,
-            date: this.toDate(op.date)
-          }));
+        this.budgetService.getAll(),
+      ])
+        .pipe(take(1))
+        .subscribe({
+          next: ([caisses, operations, budgets]) => {
+            // Normaliser les dates
+            const operationsNormalisees = operations.map((op) => ({
+              ...op,
+              date: this.toDate(op.date),
+            }));
 
-          this.caisses = caisses;
-          this.budgets = budgets;
+            this.caisses = caisses;
+            this.budgets = budgets;
 
-          // Opérations en attente
-          this.operationsEnAttente = operationsNormalisees.filter(o => o.statut === 'en_attente');
+            // Opérations en attente
+            this.operationsEnAttente = operationsNormalisees.filter(
+              (o) => o.statut === 'en_attente',
+            );
 
-          // Dernières opérations (10 max, toutes opérations confondues)
-          this.dernieresOperations = operationsNormalisees
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 10);
+            // Dernières opérations (10 max, toutes opérations confondues)
+            this.dernieresOperations = operationsNormalisees
+              .sort(
+                (a, b) =>
+                  new Date(b.date).getTime() - new Date(a.date).getTime(),
+              )
+              .slice(0, 10);
 
-          // Budgets en alerte
-          this.budgetsEnAlerte = budgets.filter(b => b.estEnAlerte || b.tauxConsommation >= 100);
+            // Budgets en alerte
+            this.budgetsEnAlerte = budgets.filter(
+              (b) => b.estEnAlerte || b.tauxConsommation >= 100,
+            );
 
-          // Calculer les KPIs
-          this.calculateKPIs(operationsNormalisees, budgets);
+            // Calculer les KPIs
+            this.calculateKPIs(operationsNormalisees, budgets);
 
-          // Charger le graphique
-          this.loadChartData(operationsNormalisees);
+            // Charger le graphique
+            this.loadChartData(operationsNormalisees);
 
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Erreur chargement dashboard:', err);
-          this.loading = false;
-          this.chartLoading = false;
-        }
-      });
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error('Erreur chargement dashboard:', err);
+            this.loading = false;
+            this.chartLoading = false;
+          },
+        });
     });
   }
 
-  private calculateKPIs(operations: Operation[], budgets: BudgetAvecStats[]): void {
+  private calculateKPIs(
+    operations: Operation[],
+    budgets: BudgetAvecStats[],
+  ): void {
     const now = new Date();
 
     // Début du mois en cours (1er jour à 00:00:00)
-    const debutMois = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const debutMois = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+      0,
+      0,
+      0,
+      0,
+    );
 
     // Début du mois précédent
-    const debutMoisPrecedent = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    const debutMoisPrecedent = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1,
+      0,
+      0,
+      0,
+      0,
+    );
 
     // Fin du mois précédent (dernier jour à 23:59:59)
-    const finMoisPrecedent = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const finMoisPrecedent = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
 
     // Filtrer les opérations validées
-    const opsValidees = operations.filter(o => o.statut === 'validee');
+    const opsValidees = operations.filter((o) => o.statut === 'validee');
 
     // Entrées du mois en cours
     const entreesMois = opsValidees
-      .filter(o => {
+      .filter((o) => {
         const dateOp = this.toDate(o.date);
         const isEntree = this.estEntree(o);
         const dansLeMois = dateOp >= debutMois;
@@ -153,7 +208,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     // Sorties du mois en cours
     const sortiesMois = opsValidees
-      .filter(o => {
+      .filter((o) => {
         const dateOp = this.toDate(o.date);
         const isSortie = this.estSortie(o);
         const dansLeMois = dateOp >= debutMois;
@@ -163,49 +218,101 @@ export class DashboardComponent implements OnInit, OnDestroy {
       })
       .reduce((s, o) => s + o.montant, 0);
 
-
-
     // Mois précédent pour les tendances
     const entreesMoisPrecedent = opsValidees
-      .filter(o => {
+      .filter((o) => {
         const dateOp = this.toDate(o.date);
-        return this.estEntree(o) && dateOp >= debutMoisPrecedent && dateOp <= finMoisPrecedent;
+        return (
+          this.estEntree(o) &&
+          dateOp >= debutMoisPrecedent &&
+          dateOp <= finMoisPrecedent
+        );
       })
       .reduce((s, o) => s + o.montant, 0);
 
     const sortiesMoisPrecedent = opsValidees
-      .filter(o => {
+      .filter((o) => {
         const dateOp = this.toDate(o.date);
-        return this.estSortie(o) && dateOp >= debutMoisPrecedent && dateOp <= finMoisPrecedent;
+        return (
+          this.estSortie(o) &&
+          dateOp >= debutMoisPrecedent &&
+          dateOp <= finMoisPrecedent
+        );
       })
       .reduce((s, o) => s + o.montant, 0);
 
     const soldeTotal = this.caisses.reduce((s, c) => s + (c.solde || 0), 0);
-    const nbBudgetsActifs = budgets.filter(b => b.actif).length;
+    const nbBudgetsActifs = budgets.filter((b) => b.actif).length;
     const nbBudgetsAlerte = this.budgetsEnAlerte.length;
 
-    const trendEntrees = entreesMoisPrecedent > 0
-      ? Math.round(((entreesMois - entreesMoisPrecedent) / entreesMoisPrecedent) * 100)
-      : 0;
+    const trendEntrees =
+      entreesMoisPrecedent > 0
+        ? Math.round(
+            ((entreesMois - entreesMoisPrecedent) / entreesMoisPrecedent) * 100,
+          )
+        : 0;
 
-    const trendSorties = sortiesMoisPrecedent > 0
-      ? Math.round(((sortiesMois - sortiesMoisPrecedent) / sortiesMoisPrecedent) * 100)
-      : 0;
+    const trendSorties =
+      sortiesMoisPrecedent > 0
+        ? Math.round(
+            ((sortiesMois - sortiesMoisPrecedent) / sortiesMoisPrecedent) * 100,
+          )
+        : 0;
 
     this.kpis = [
-      { label: 'Solde total', value: soldeTotal, color: 'var(--navy-600)', isMontant: true },
-      { label: 'Entrées ce mois', value: entreesMois, color: 'var(--color-success)', isMontant: true, trend: trendEntrees },
-      { label: 'Sorties ce mois', value: sortiesMois, color: 'var(--color-danger)', isMontant: true, trend: trendSorties },
-      { label: 'Budgets actifs', value: nbBudgetsActifs, color: 'var(--navy-400)', isMontant: false },
+      {
+        label: 'Solde total',
+        value: soldeTotal,
+        color: 'var(--navy-600)',
+        isMontant: true,
+      },
+      {
+        label: this.v.entreePluriel + ' ce mois',
+        value: entreesMois,
+        color: 'var(--color-success)',
+        isMontant: true,
+        trend: trendEntrees,
+      },
+      {
+        label: this.v.sortiePluriel + ' ce mois',
+        value: sortiesMois,
+        color: 'var(--color-danger)',
+        isMontant: true,
+        trend: trendSorties,
+      },
+      {
+        label: 'Budgets actifs',
+        value: nbBudgetsActifs,
+        color: 'var(--navy-400)',
+        isMontant: false,
+      },
     ];
 
     if (nbBudgetsAlerte > 0) {
-      this.kpis.push({ label: 'Budgets en alerte', value: nbBudgetsAlerte, color: 'var(--color-warning)', isMontant: false });
+      this.kpis.push({
+        label: 'Budgets en alerte',
+        value: nbBudgetsAlerte,
+        color: 'var(--color-warning)',
+        isMontant: false,
+      });
     }
   }
 
   private loadChartData(operations: Operation[]): void {
-    const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const MOIS = [
+      'Jan',
+      'Fév',
+      'Mar',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Aoû',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Déc',
+    ];
     const now = new Date();
     const labels: string[] = [];
     const entrees: number[] = [];
@@ -221,18 +328,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     // Date de début : il y a 6 mois, 1er jour du mois
-    const debut = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+    const debut = new Date(
+      now.getFullYear(),
+      now.getMonth() - 5,
+      1,
+      0,
+      0,
+      0,
+      0,
+    );
 
     // Filtrer les opérations validées dans la période
-    const opsValidees = operations.filter(o => o.statut === 'validee');
+    const opsValidees = operations.filter((o) => o.statut === 'validee');
 
-    opsValidees.forEach(op => {
+    opsValidees.forEach((op) => {
       const dateOp = this.toDate(op.date);
 
       if (dateOp < debut) return; // Hors période
 
       // Calculer l'index du mois (0 = il y a 5 mois, 5 = mois courant)
-      const diffMonths = (dateOp.getFullYear() - debut.getFullYear()) * 12 + (dateOp.getMonth() - debut.getMonth());
+      const diffMonths =
+        (dateOp.getFullYear() - debut.getFullYear()) * 12 +
+        (dateOp.getMonth() - debut.getMonth());
       const idx = diffMonths;
 
       if (idx < 0 || idx > 5) return;
@@ -249,7 +366,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-
     this.chartMois = labels;
     this.chartEntrees = entrees;
     this.chartSorties = sorties;
@@ -262,9 +378,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .map(([nom, total]) => ({
         nom,
         total,
-        pct: totalSorties > 0 ? Math.round((total / totalSorties) * 100) : 0
+        pct: totalSorties > 0 ? Math.round((total / totalSorties) * 100) : 0,
       }));
-
 
     this.updateChartData();
 
@@ -285,7 +400,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           backgroundColor: '#10B981',
           borderRadius: 6,
           barPercentage: 0.6,
-          categoryPercentage: 0.8
+          categoryPercentage: 0.8,
         },
         {
           label: 'Sorties',
@@ -293,21 +408,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
           backgroundColor: '#EF4444',
           borderRadius: 6,
           barPercentage: 0.6,
-          categoryPercentage: 0.8
-        }
-      ]
+          categoryPercentage: 0.8,
+        },
+      ],
     };
   }
 
   private updatePieChartData(): void {
     this.pieChartData = {
-      labels: this.topCategories.map(c => c.nom),
-      datasets: [{
-        data: this.topCategories.map(c => c.total),
-        backgroundColor: this.chartColors.slice(0, this.topCategories.length),
-        borderWidth: 0,
-        hoverOffset: 4
-      }]
+      labels: this.topCategories.map((c) => c.nom),
+      datasets: [
+        {
+          data: this.topCategories.map((c) => c.total),
+          backgroundColor: this.chartColors.slice(0, this.topCategories.length),
+          borderWidth: 0,
+          hoverOffset: 4,
+        },
+      ],
     };
   }
 
@@ -327,14 +444,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
             label: (context) => {
               const value = context.raw as number;
               return `${context.dataset.label}: ${value.toLocaleString('fr-FR')} FCFA`;
-            }
-          }
-        }
+            },
+          },
+        },
       },
       scales: {
         x: {
           grid: { display: false },
-          ticks: { font: { family: 'Plus Jakarta Sans', size: 11, weight: 600 }, color: '#68708A' }
+          ticks: {
+            font: { family: 'Plus Jakarta Sans', size: 11, weight: 600 },
+            color: '#68708A',
+          },
         },
         y: {
           beginAtZero: true,
@@ -347,10 +467,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
               if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
               if (num >= 1000) return (num / 1000).toFixed(0) + 'k';
               return num.toString();
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     };
   }
 
@@ -370,14 +490,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
           callbacks: {
             label: (context) => {
               const value = context.raw as number;
-              const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
-              const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+              const total = (context.dataset.data as number[]).reduce(
+                (a, b) => a + b,
+                0,
+              );
+              const percent =
+                total > 0 ? ((value / total) * 100).toFixed(1) : '0';
               return `${context.label}: ${value.toLocaleString('fr-FR')} FCFA (${percent}%)`;
-            }
-          }
-        }
+            },
+          },
+        },
       },
-      ...({ cutout: '65%' } as any)
+      ...({ cutout: '65%' } as any),
     };
   }
 
@@ -423,5 +547,115 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   get soldeTotal(): number {
     return this.caisses.reduce((s, c) => s + (c.solde || 0), 0);
+  }
+  // Dans la classe DashboardComponent, ajouter ces méthodes :
+
+  /**
+   * Message principal qui résume la situation
+   */
+  getInsightMessage(): string {
+    const solde = this.soldeTotal;
+    const entrees =
+      this.kpis.find((k) => k.label.includes(this.v.entreePluriel))?.value || 0;
+    const sorties =
+      this.kpis.find((k) => k.label.includes(this.v.sortiePluriel))?.value || 0;
+
+    if (solde === 0 && entrees === 0 && sorties === 0) {
+      return `Commencez par enregistrer votre première ${this.v.entree.toLowerCase()} ou ${this.v.sortie.toLowerCase()} !`;
+    }
+
+    if (solde < 0) {
+      return `Attention ! Votre solde est négatif (${solde.toLocaleString('fr-FR')} FCFA). Pensez à rééquilibrer vos comptes.`;
+    }
+
+    if (entrees > sorties) {
+      const ratio = Math.round((sorties / entrees) * 100);
+      return `Bonne gestion ! Vos ${this.v.sortiePluriel} représentent ${ratio}% de vos ${this.v.entreePluriel}. Continuez ainsi !`;
+    }
+
+    if (sorties > entrees) {
+      const ratio = Math.round((entrees / sorties) * 100);
+      return `Vos ${this.v.sortiePluriel} dépassent vos ${this.v.entreePluriel}. ${this.v.entreePluriel} = ${ratio}% des ${this.v.sortiePluriel}.`;
+    }
+
+    return `Vos comptes sont à l'équilibre ce mois-ci.`;
+  }
+
+  getInsightEmoji(): string {
+    const solde = this.soldeTotal;
+    const entrees =
+      this.kpis.find((k) => k.label.includes(this.v.entreePluriel))?.value || 0;
+    const sorties =
+      this.kpis.find((k) => k.label.includes(this.v.sortiePluriel))?.value || 0;
+
+    if (solde === 0 && entrees === 0 && sorties === 0) return '👋';
+    if (solde < 0) return '⚠️';
+    if (entrees > sorties) return '✅';
+    if (sorties > entrees) return '📊';
+    return '⚖️';
+  }
+
+  /**
+   * Compte les opérations du jour
+   */
+  getTodayOpsCount(): number {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.dernieresOperations.filter((o) => {
+      const d = this.toDate(o.date);
+      return d >= today;
+    }).length;
+  }
+
+  /**
+   * Compte les opérations de la semaine
+   */
+  getWeekOpsCount(): number {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    return this.dernieresOperations.filter((o) => {
+      const d = this.toDate(o.date);
+      return d >= startOfWeek;
+    }).length;
+  }
+
+  /**
+   * Compte les opérations du mois
+   */
+  getMonthOpsCount(): number {
+    const startOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1,
+    );
+    return this.dernieresOperations.filter((o) => {
+      const d = this.toDate(o.date);
+      return d >= startOfMonth;
+    }).length;
+  }
+
+  /**
+   * Vérifie s'il y a des tendances à afficher
+   */
+  hasTrends(): boolean {
+    return this.getTrendEntrees() > 5 || this.getTrendSorties() > 5;
+  }
+
+  /**
+   * Tendance des entrées
+   */
+  getTrendEntrees(): number {
+    const kpi = this.kpis.find((k) => k.label.includes(this.v.entreePluriel));
+    return Math.abs(kpi?.trend || 0);
+  }
+
+  /**
+   * Tendance des sorties
+   */
+  getTrendSorties(): number {
+    const kpi = this.kpis.find((k) => k.label.includes(this.v.sortiePluriel));
+    return Math.abs(kpi?.trend || 0);
   }
 }

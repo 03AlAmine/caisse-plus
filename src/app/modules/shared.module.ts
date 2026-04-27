@@ -12,7 +12,11 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner/lo
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
 import { ChartComponent } from '../shared/components/chart/chart.component';
 import { WelcomeModalComponent } from '../shared/components/welcome-modal/welcome-modal.component';
-
+import { QuickAddComponent } from '../shared/components/quick-add/quick-add.component';
+import { GettingStartedChecklistComponent } from '../shared/components/getting-started-checklist/getting-started-checklist.component';
+import { MobileNavComponent } from '../shared/components/mobile-nav/mobile-nav.component';
+import { NavigationLoaderComponent } from '../shared/components/navigation-loader/navigation-loader.component';
+import { InstallPromptComponent } from '../shared/components/install-prompt/install-prompt.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +29,11 @@ import { WelcomeModalComponent } from '../shared/components/welcome-modal/welcom
     PageHeaderComponent,
     ChartComponent,
     WelcomeModalComponent,
+    QuickAddComponent,
+    GettingStartedChecklistComponent,
+    MobileNavComponent,
+    NavigationLoaderComponent,
+    InstallPromptComponent,
   ],
   imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   exports: [
@@ -46,8 +55,13 @@ import { WelcomeModalComponent } from '../shared/components/welcome-modal/welcom
     // Components
     LoadingSpinnerComponent,
     PageHeaderComponent,
-    ChartComponent, // ← AJOUTÉ ICI
+    ChartComponent,
     WelcomeModalComponent,
+    QuickAddComponent,
+    GettingStartedChecklistComponent,
+    MobileNavComponent,
+    NavigationLoaderComponent,
+    InstallPromptComponent,
   ],
 })
 export class SharedModule {}

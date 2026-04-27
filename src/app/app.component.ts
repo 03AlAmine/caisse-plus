@@ -1,6 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import {
+  Router,
+  NavigationEnd,
+  NavigationStart,
+  NavigationCancel,
+  NavigationError,
+} from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { NavigationLoaderService } from './services/navigation-loader.service';
 import { filter, take } from 'rxjs/operators';
 
 @Component({
@@ -19,14 +26,20 @@ import { filter, take } from 'rxjs/operators';
       <router-outlet></router-outlet>
     </ng-container>
 
-    <!-- Modal de bienvenue (première connexion) — TOUJOURS en dehors du router-outlet -->
+    <!-- ✅ Loader de navigation (avec délai) -->
+    <app-navigation-loader></app-navigation-loader>
+
+    <!-- Modal de bienvenue (première connexion) -->
     <app-welcome-modal
       *ngIf="showWelcomeModal"
       [userName]="welcomeUserName"
       (close)="closeWelcomeModal()"
       (completeProfile)="goToOrganisation()"
-      (goToDashboard)="goToDashboard()">
+      (goToDashboard)="goToDashboard()"
+    >
     </app-welcome-modal>
+    <!-- ✅ Bannière d'installation PWA -->
+    <app-install-prompt></app-install-prompt>
   `,
   styles: [
     `
@@ -59,7 +72,9 @@ import { filter, take } from 'rxjs/operators';
         animation: spin 0.7s linear infinite;
       }
       @keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+          transform: rotate(360deg);
+        }
       }
     `,
   ],
@@ -67,10 +82,41 @@ import { filter, take } from 'rxjs/operators';
 export class AppComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private navigationLoader = inject(NavigationLoaderService);
 
   showSplash = true;
   showWelcomeModal = false;
   welcomeUserName = '';
+
+  // ✅ Timer pour le délai du loader
+  private loaderTimer: any = null;
+  private readonly LOADER_DELAY = 400; // ms — afficher le loader après 400ms
+
+  constructor() {
+    // ✅ Loader intelligent : ne s'affiche que si la navigation prend plus de 400ms
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        // Démarrer un timer : si la navigation n'est pas finie dans 400ms, afficher le loader
+        this.loaderTimer = setTimeout(() => {
+          this.navigationLoader.show();
+        }, this.LOADER_DELAY);
+      }
+
+      if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        // Annuler le timer
+        if (this.loaderTimer) {
+          clearTimeout(this.loaderTimer);
+          this.loaderTimer = null;
+        }
+        // Cacher le loader (s'il était affiché)
+        this.navigationLoader.hide();
+      }
+    });
+  }
 
   ngOnInit(): void {
     // Attendre la première réponse de Firebase Auth
@@ -82,7 +128,6 @@ export class AppComponent implements OnInit {
       .subscribe((ready) => {
         this.showSplash = false;
 
-        // Si l'utilisateur est connecté, attendre que la navigation soit terminée
         if (ready) {
           this.router.events
             .pipe(
@@ -90,7 +135,6 @@ export class AppComponent implements OnInit {
               take(1),
             )
             .subscribe(() => {
-              // Petit délai pour que la page soit complètement rendue
               setTimeout(() => {
                 this.checkFirstLogin();
               }, 1000);
@@ -99,9 +143,6 @@ export class AppComponent implements OnInit {
       });
   }
 
-  /**
-   * Vérifie si c'est la première connexion et affiche le modal de bienvenue
-   */
   private checkFirstLogin(): void {
     const hasSeenWelcome = localStorage.getItem('caisseplus_welcome_seen');
 
@@ -109,10 +150,9 @@ export class AppComponent implements OnInit {
       const user = this.auth.currentUser;
 
       if (user) {
-        // Marquer comme vu pour ne pas réafficher
         localStorage.setItem('caisseplus_welcome_seen', 'true');
-
-        this.welcomeUserName = user.displayName || user.email?.split('@')[0] || '';
+        this.welcomeUserName =
+          user.displayName || user.email?.split('@')[0] || '';
         this.showWelcomeModal = true;
       }
     }

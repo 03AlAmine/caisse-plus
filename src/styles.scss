@@ -1444,3 +1444,14 @@ select.form-control {
     animation-delay: #{$i * 60}ms;
   }
 }
+// ─── Padding pour la barre de navigation mobile ────────────────────────
+@media (max-width: 768px) {
+  .page-content {
+    padding-bottom: 80px; // Espace pour la bottom tab bar
+  }
+
+  // Cacher le Quick Add sur mobile (déjà dans la tab bar)
+  app-quick-add {
+    display: none;
+  }
+}

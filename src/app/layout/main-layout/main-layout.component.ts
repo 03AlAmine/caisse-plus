@@ -1,4 +1,6 @@
 import { Component, HostListener } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-main-layout',
@@ -9,8 +11,21 @@ export class MainLayoutComponent {
   sidebarOpen = true;
   isMobile = false;
 
-  constructor() {
+  constructor(private router: Router) {
     this.checkMobile();
+
+    // ✅ Fermer le sidebar sur mobile après chaque navigation
+    this.router.events
+      .pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
+      )
+      .subscribe(() => {
+        if (this.isMobile) {
+          this.sidebarOpen = false;
+        }
+      });
   }
 
   @HostListener('window:resize')
@@ -27,5 +42,14 @@ export class MainLayoutComponent {
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
+  }
+  /**
+   * Appelé quand on clique sur un lien dans le sidebar
+   * Ferme le sidebar sur mobile
+   */
+  onSidebarNavClick(): void {
+    if (this.isMobile) {
+      this.sidebarOpen = false;
+    }
   }
 }

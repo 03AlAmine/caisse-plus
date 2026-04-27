@@ -165,6 +165,7 @@
       </div>
 
       <!-- Type -->
+      <!-- Type de caisse -->
       <div class="form-group">
         <label class="form-label">
           Type de caisse
@@ -174,32 +175,25 @@
           <div
             class="type-option"
             [class.type-option--selected]="type.value === 'principale'"
-            (click)="type.setValue('principale')"
+            (click)="
+              type.setValue('principale');
+              form.get('role')?.setValue('Principale')
+            "
           >
             <div class="type-option__radio">
               <div class="radio-dot" *ngIf="type.value === 'principale'"></div>
             </div>
             <div class="type-option__content">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect
-                  x="2.5"
-                  y="6.5"
-                  width="15"
-                  height="11"
-                  rx="2"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path
-                  d="M6 6.5V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2.5"
-                  stroke="currentColor"
-                  stroke-width="1.5"
+                <polygon
+                  points="10,1 13,8 20,8 14.5,12.5 16.5,20 10,15 3.5,20 5.5,12.5 0,8 7,8"
+                  fill="currentColor"
                 />
               </svg>
               <div class="type-option__info">
                 <span class="type-option__label">Principale</span>
                 <span class="type-option__desc"
-                  >Caisse centrale de l'organisation</span
+                  >Caisse centrale — une seule par organisation</span
                 >
               </div>
             </div>
@@ -215,17 +209,39 @@
             </div>
             <div class="type-option__content">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path
-                  d="M3.5 7.5h13M7.5 7.5v-2a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v2"
+                <rect
+                  x="2.5"
+                  y="6.5"
+                  width="6"
+                  height="5"
+                  rx="1"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <rect
+                  x="11.5"
+                  y="6.5"
+                  width="6"
+                  height="5"
+                  rx="1"
                   stroke="currentColor"
                   stroke-width="1.5"
                 />
                 <rect
                   x="2.5"
-                  y="7.5"
-                  width="15"
-                  height="10"
-                  rx="2"
+                  y="13.5"
+                  width="6"
+                  height="5"
+                  rx="1"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <rect
+                  x="11.5"
+                  y="13.5"
+                  width="6"
+                  height="5"
+                  rx="1"
                   stroke="currentColor"
                   stroke-width="1.5"
                 />
@@ -238,13 +254,74 @@
               </div>
             </div>
           </div>
+
+          <div
+            class="type-option"
+            [class.type-option--selected]="type.value === 'libre'"
+            (click)="type.setValue('libre')"
+          >
+            <div class="type-option__radio">
+              <div class="radio-dot" *ngIf="type.value === 'libre'"></div>
+            </div>
+            <div class="type-option__content">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="7"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M10 6v8M6 10h8"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <div class="type-option__info">
+                <span class="type-option__label">Libre</span>
+                <span class="type-option__desc"
+                  >Caisse sans rôle défini — flexible</span
+                >
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="form-hint" *ngIf="type.value === 'principale'">
-          La caisse principale est unique et centralise les fonds de
-          l'organisation
-        </div>
-        <div class="form-hint" *ngIf="type.value === 'secondaire'">
-          Les caisses secondaires permettent de gérer des budgets spécifiques
+      </div>
+
+      <!-- Rôle de la caisse (afficher quand secondaire ou libre) -->
+      <div
+        class="form-group"
+        *ngIf="type.value === 'secondaire' || type.value === 'libre'"
+      >
+        <label class="form-label">Rôle</label>
+        <select class="form-control" formControlName="role">
+          <option value="">-- Choisir un rôle --</option>
+          <option value="Boutique">Boutique</option>
+          <option value="Dépôt">Dépôt</option>
+          <option value="Livraison">Livraison</option>
+          <option value="Cuisine">Cuisine</option>
+          <option value="Terrasse">Terrasse</option>
+          <option value="Atelier">Atelier</option>
+          <option value="Tissus">Tissus</option>
+          <option value="Retouches">Retouches</option>
+          <option value="Outillage">Outillage</option>
+          <option value="Déplacement">Déplacement</option>
+          <option value="Projets">Projets</option>
+          <option value="Donateurs">Donateurs</option>
+          <option value="Carburant">Carburant</option>
+          <option value="Péage">Péage</option>
+          <option value="Intrants">Intrants</option>
+          <option value="Matériel">Matériel</option>
+          <option value="Sécurité">Sécurité</option>
+          <option value="Événements">Événements</option>
+          <option value="Divers">Divers</option>
+          <option value="Générale">Générale</option>
+          <option value="Secondaire">Secondaire</option>
+        </select>
+        <div class="form-hint">
+          Le rôle permet d'identifier la fonction de cette caisse
         </div>
       </div>
 

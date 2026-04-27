@@ -1,42 +1,78 @@
 <div class="page-wrapper">
-
   <!-- En-tête -->
   <header class="page-header">
     <div class="page-header__content">
       <h1 class="page-header__title">Opérations</h1>
-      <p class="page-header__subtitle">Toutes les transactions de votre organisation</p>
+      <p class="page-header__subtitle">
+        Toutes les transactions de votre organisation
+      </p>
     </div>
     <div class="page-header__actions">
-      <button class="btn btn--secondary" (click)="exportToCSV()" *canDo="'RAPPORT_EXPORTER'">
+      <button
+        class="btn btn--secondary"
+        (click)="exportToCSV()"
+        *canDo="'RAPPORT_EXPORTER'"
+      >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 10v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1M7 2v8M4 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path
+            d="M2 10v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1M7 2v8M4 7l3 3 3-3"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
         Exporter CSV
       </button>
-      <a routerLink="nouveau" class="btn btn--primary" *canDo="'OPERATION_CREER'">
+      <a
+        routerLink="nouveau"
+        class="btn btn--primary"
+        *canDo="'OPERATION_CREER'"
+      >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path
+            d="M7 3v8M3 7h8"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
         Nouvelle opération
       </a>
     </div>
   </header>
 
-  <!-- Stats strip -->
+  <!-- Stats strip — ✅ Vocabulaire métier -->
   <div class="stats-strip animate-fade-in">
     <div class="stat-card stat-card--entree">
       <div class="stat-card__icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 17V3M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path
+            d="M10 17V3M3 10l7-7 7 7"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       </div>
       <div class="stat-card__content">
-        <span class="stat-card__label">Total entrées</span>
-        <span class="stat-card__value stat-card__value--positive">{{ totalEntrees | number:'1.0-0' }} FCFA</span>
+        <span class="stat-card__label">{{ v.totalEntrees }}</span>
+        <span class="stat-card__value stat-card__value--positive"
+          >{{ totalEntrees | number: "1.0-0" }} FCFA</span
+        >
         <span class="stat-card__trend" *ngIf="evolutionEntrees !== null">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path *ngIf="evolutionEntrees > 0" d="M5 2L9 8H1L5 2Z" fill="currentColor"/>
-            <path *ngIf="evolutionEntrees < 0" d="M5 8L1 2H9L5 8Z" fill="currentColor"/>
+            <path
+              *ngIf="evolutionEntrees > 0"
+              d="M5 2L9 8H1L5 2Z"
+              fill="currentColor"
+            />
+            <path
+              *ngIf="evolutionEntrees < 0"
+              d="M5 8L1 2H9L5 8Z"
+              fill="currentColor"
+            />
           </svg>
           {{ Math.abs(evolutionEntrees) }}%
         </span>
@@ -46,16 +82,32 @@
     <div class="stat-card stat-card--sortie">
       <div class="stat-card__icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 3v14M3 10l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path
+            d="M10 3v14M3 10l7 7 7-7"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       </div>
       <div class="stat-card__content">
-        <span class="stat-card__label">Total sorties</span>
-        <span class="stat-card__value stat-card__value--negative">{{ totalSorties | number:'1.0-0' }} FCFA</span>
+        <span class="stat-card__label">{{ v.totalSorties }}</span>
+        <span class="stat-card__value stat-card__value--negative"
+          >{{ totalSorties | number: "1.0-0" }} FCFA</span
+        >
         <span class="stat-card__trend" *ngIf="evolutionSorties !== null">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path *ngIf="evolutionSorties > 0" d="M5 2L9 8H1L5 2Z" fill="currentColor"/>
-            <path *ngIf="evolutionSorties < 0" d="M5 8L1 2H9L5 8Z" fill="currentColor"/>
+            <path
+              *ngIf="evolutionSorties > 0"
+              d="M5 2L9 8H1L5 2Z"
+              fill="currentColor"
+            />
+            <path
+              *ngIf="evolutionSorties < 0"
+              d="M5 8L1 2H9L5 8Z"
+              fill="currentColor"
+            />
           </svg>
           {{ Math.abs(evolutionSorties) }}%
         </span>
@@ -65,14 +117,32 @@
     <div class="stat-card stat-card--solde">
       <div class="stat-card__icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <rect x="3" y="6" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/>
-          <circle cx="10" cy="11" r="2" stroke="currentColor" stroke-width="1.8"/>
+          <rect
+            x="3"
+            y="6"
+            width="14"
+            height="10"
+            rx="2"
+            stroke="currentColor"
+            stroke-width="1.8"
+          />
+          <circle
+            cx="10"
+            cy="11"
+            r="2"
+            stroke="currentColor"
+            stroke-width="1.8"
+          />
         </svg>
       </div>
       <div class="stat-card__content">
         <span class="stat-card__label">Solde net</span>
-        <span class="stat-card__value" [class.stat-card__value--positive]="soldeNet > 0" [class.stat-card__value--negative]="soldeNet < 0">
-          {{ soldeNet | number:'1.0-0' }} FCFA
+        <span
+          class="stat-card__value"
+          [class.stat-card__value--positive]="soldeNet > 0"
+          [class.stat-card__value--negative]="soldeNet < 0"
+        >
+          {{ soldeNet | number: "1.0-0" }} FCFA
         </span>
       </div>
     </div>
@@ -80,8 +150,19 @@
     <div class="stat-card stat-card--attente" *ngIf="nbEnAttente > 0">
       <div class="stat-card__icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M10 6v4l2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <circle
+            cx="10"
+            cy="10"
+            r="7"
+            stroke="currentColor"
+            stroke-width="1.8"
+          />
+          <path
+            d="M10 6v4l2 2"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
         </svg>
       </div>
       <div class="stat-card__content">
@@ -92,33 +173,60 @@
     </div>
   </div>
 
-  <!-- Filtres -->
+  <!-- Filtres — ✅ Vocabulaire métier -->
   <div class="filter-panel card animate-slide-in">
     <div class="filter-panel__row">
       <div class="filter-search">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle
+            cx="6"
+            cy="6"
+            r="4.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M9.5 9.5L12.5 12.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
-        <input type="text" [(ngModel)]="filtreSearch" (ngModelChange)="applyFiltres()"
-               placeholder="Rechercher par libellé, responsable..." />
+        <input
+          type="text"
+          [(ngModel)]="filtreSearch"
+          (ngModelChange)="applyFiltres()"
+          placeholder="Rechercher par libellé, responsable..."
+        />
       </div>
 
-      <select class="form-control filter-select" [(ngModel)]="filtreType" (ngModelChange)="applyFiltres()">
+      <select
+        class="form-control filter-select"
+        [(ngModel)]="filtreType"
+        (ngModelChange)="applyFiltres()"
+      >
         <option value="tous">Tous types</option>
-        <option value="entree">Entrées</option>
-        <option value="sortie">Sorties</option>
+        <option value="entree">{{ v.entreePluriel }}</option>
+        <option value="sortie">{{ v.sortiePluriel }}</option>
         <option value="transfert">Transferts</option>
       </select>
 
-      <select class="form-control filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="applyFiltres()">
+      <select
+        class="form-control filter-select"
+        [(ngModel)]="filtreStatut"
+        (ngModelChange)="applyFiltres()"
+      >
         <option value="tous">Tous statuts</option>
         <option value="validee">Validées</option>
         <option value="en_attente">En attente</option>
         <option value="rejetee">Rejetées</option>
       </select>
 
-      <select class="form-control filter-select" [(ngModel)]="filtreCaisseId" (ngModelChange)="applyFiltres()">
+      <select
+        class="form-control filter-select"
+        [(ngModel)]="filtreCaisseId"
+        (ngModelChange)="applyFiltres()"
+      >
         <option value="toutes">Toutes les caisses</option>
         <option *ngFor="let c of caisses" [value]="c.id">{{ c.nom }}</option>
       </select>
@@ -128,30 +236,81 @@
       <div class="filter-date">
         <div class="filter-date__input">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-            <path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <rect
+              x="2"
+              y="3"
+              width="10"
+              height="9"
+              rx="1.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <path
+              d="M4 1v2M10 1v2"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
           </svg>
-          <input type="date" [(ngModel)]="filtreDateDebut" (ngModelChange)="applyFiltres()" placeholder="Date début" />
+          <input
+            type="date"
+            [(ngModel)]="filtreDateDebut"
+            (ngModelChange)="applyFiltres()"
+            placeholder="Date début"
+          />
         </div>
         <span>—</span>
         <div class="filter-date__input">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-            <path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <rect
+              x="2"
+              y="3"
+              width="10"
+              height="9"
+              rx="1.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <path
+              d="M4 1v2M10 1v2"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
           </svg>
-          <input type="date" [(ngModel)]="filtreDateFin" (ngModelChange)="applyFiltres()" placeholder="Date fin" />
+          <input
+            type="date"
+            [(ngModel)]="filtreDateFin"
+            (ngModelChange)="applyFiltres()"
+            placeholder="Date fin"
+          />
         </div>
       </div>
 
       <div class="filter-actions">
-        <button class="filter-actions__reset" (click)="resetFiltres()" *ngIf="hasActiveFilters()">
+        <button
+          class="filter-actions__reset"
+          (click)="resetFiltres()"
+          *ngIf="hasActiveFilters()"
+        >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M2 6a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" stroke="currentColor" stroke-width="1.2"/>
-            <path d="M8 3l2-2M3 9l-2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <path
+              d="M2 6a4 4 0 1 0 8 0 4 4 0 0 0-8 0z"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <path
+              d="M8 3l2-2M3 9l-2 2"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
           </svg>
           Réinitialiser
         </button>
-        <span class="filter-actions__count">{{ operationsFiltered.length }} résultat(s)</span>
+        <span class="filter-actions__count"
+          >{{ operationsFiltered.length }} résultat(s)</span
+        >
       </div>
     </div>
   </div>
@@ -161,9 +320,12 @@
     <span class="spinner"></span>
   </div>
 
-  <!-- Tableau -->
+  <!-- Tableau — ✅ Vocabulaire métier -->
   <ng-container *ngIf="!loading">
-    <div class="table-wrapper card" *ngIf="operationsFiltered.length > 0; else noOps">
+    <div
+      class="table-wrapper card"
+      *ngIf="operationsFiltered.length > 0; else noOps"
+    >
       <table class="data-table">
         <thead>
           <tr>
@@ -180,94 +342,198 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let op of operationsFiltered"
-              [class.row--pending]="op.statut === 'en_attente'"
-              [class.row--rejected]="op.statut === 'rejetee'">
+          <tr
+            *ngFor="let op of operationsFiltered"
+            [class.row--pending]="op.statut === 'en_attente'"
+            [class.row--rejected]="op.statut === 'rejetee'"
+          >
             <td>
-              <span class="piece-badge" *ngIf="op.numeroPiece">{{ op.numeroPiece }}</span>
+              <span class="piece-badge" *ngIf="op.numeroPiece">{{
+                op.numeroPiece
+              }}</span>
               <span class="text-muted" *ngIf="!op.numeroPiece">—</span>
             </td>
             <td>
               <div class="date-cell">
-                <span class="date-cell__day">{{ toDate(op.date) | date:'dd' }}</span>
-                <span class="date-cell__month">{{ toDate(op.date) | date:'MMM' }}</span>
+                <span class="date-cell__day">{{
+                  toDate(op.date) | date: "dd"
+                }}</span>
+                <span class="date-cell__month">{{
+                  toDate(op.date) | date: "MMM"
+                }}</span>
               </div>
             </td>
             <td>
               <div class="libelle-cell">
                 <span class="libelle-cell__main">{{ op.libelle }}</span>
-                <span class="libelle-cell__notes" *ngIf="op.notes">{{ op.notes }}</span>
+                <span class="libelle-cell__notes" *ngIf="op.notes">{{
+                  op.notes
+                }}</span>
               </div>
             </td>
             <td>
-              <span class="caisse-badge" [style.background]="getCaisseColor(op.caisseId)">
-                {{ op.caisseNom || '—' }}
+              <span
+                class="caisse-badge"
+                [style.background]="getCaisseColor(op.caisseId)"
+              >
+                {{ op.caisseNom || "—" }}
               </span>
             </td>
             <td>
-              <span class="cat-badge" *ngIf="op.categorieNom">{{ op.categorieNom }}</span>
+              <span class="cat-badge" *ngIf="op.categorieNom">{{
+                op.categorieNom
+              }}</span>
               <span class="text-muted" *ngIf="!op.categorieNom">—</span>
             </td>
             <td>
               <div class="responsable-cell">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
-                  <path d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  <circle
+                    cx="6"
+                    cy="4"
+                    r="2.5"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                  />
+                  <path
+                    d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                    stroke-linecap="round"
+                  />
                 </svg>
-                {{ op.responsableNom || '—' }}
+                {{ op.responsableNom || "—" }}
               </div>
             </td>
             <td>
-              <span class="type-badge" [class.type-badge--entree]="op.type === 'entree'"
-                                         [class.type-badge--sortie]="op.type === 'sortie'"
-                                         [class.type-badge--transfert]="op.type === 'transfert'">
-                {{ op.type === 'entree' ? 'Entrée' : op.type === 'sortie' ? 'Sortie' : 'Transfert' }}
+              <!-- ✅ Vocabulaire métier pour le type -->
+              <span
+                class="type-badge"
+                [class.type-badge--entree]="op.type === 'entree'"
+                [class.type-badge--sortie]="op.type === 'sortie'"
+                [class.type-badge--transfert]="op.type === 'transfert'"
+              >
+                {{
+                  op.type === "entree"
+                    ? v.entree
+                    : op.type === "sortie"
+                      ? v.sortie
+                      : "Transfert"
+                }}
               </span>
             </td>
             <td>
-              <span class="status-badge" [class.status-badge--validee]="op.statut === 'validee'"
-                                         [class.status-badge--pending]="op.statut === 'en_attente'"
-                                         [class.status-badge--rejected]="op.statut === 'rejetee'">
+              <span
+                class="status-badge"
+                [class.status-badge--validee]="op.statut === 'validee'"
+                [class.status-badge--pending]="op.statut === 'en_attente'"
+                [class.status-badge--rejected]="op.statut === 'rejetee'"
+              >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <circle *ngIf="op.statut === 'validee'" cx="5" cy="5" r="4" fill="currentColor"/>
-                  <circle *ngIf="op.statut === 'en_attente'" cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/>
-                  <path *ngIf="op.statut === 'rejetee'" d="M2 2l6 6M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <circle
+                    *ngIf="op.statut === 'validee'"
+                    cx="5"
+                    cy="5"
+                    r="4"
+                    fill="currentColor"
+                  />
+                  <circle
+                    *ngIf="op.statut === 'en_attente'"
+                    cx="5"
+                    cy="5"
+                    r="4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <path
+                    *ngIf="op.statut === 'rejetee'"
+                    d="M2 2l6 6M8 2L2 8"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
                 </svg>
-                {{ op.statut === 'validee' ? 'Validée' : op.statut === 'en_attente' ? 'Attente' : 'Rejetée' }}
+                {{
+                  op.statut === "validee"
+                    ? "Validée"
+                    : op.statut === "en_attente"
+                      ? "Attente"
+                      : "Rejetée"
+                }}
               </span>
             </td>
             <td class="text-right">
-              <span class="montant" [class.montant--entree]="estEntree(op)"
-                                    [class.montant--sortie]="!estEntree(op) && op.type !== 'transfert'"
-                                    [class.montant--transfert]="op.type === 'transfert'">
-                {{ estEntree(op) ? '+' : '-' }}{{ op.montant | number:'1.0-0' }}
+              <span
+                class="montant"
+                [class.montant--entree]="estEntree(op)"
+                [class.montant--sortie]="
+                  !estEntree(op) && op.type !== 'transfert'
+                "
+                [class.montant--transfert]="op.type === 'transfert'"
+              >
+                {{ estEntree(op) ? "+" : "-"
+                }}{{ op.montant | number: "1.0-0" }}
                 <span class="montant__currency">FCFA</span>
               </span>
             </td>
             <td>
               <div class="action-buttons">
-                <button class="action-btn" (click)="openDetail(op)" title="Voir détails">
+                <button
+                  class="action-btn"
+                  (click)="openDetail(op)"
+                  title="Voir détails"
+                >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <circle cx="7" cy="7" r="2" fill="currentColor"/>
-                    <circle cx="2" cy="7" r="2" fill="currentColor"/>
-                    <circle cx="12" cy="7" r="2" fill="currentColor"/>
+                    <circle cx="7" cy="7" r="2" fill="currentColor" />
+                    <circle cx="2" cy="7" r="2" fill="currentColor" />
+                    <circle cx="12" cy="7" r="2" fill="currentColor" />
                   </svg>
                 </button>
-                <ng-container *ngIf="auth.isTresorier() && op.statut === 'en_attente'">
-                  <button class="action-btn action-btn--success" (click)="onValider(op)" title="Valider">
+                <ng-container
+                  *ngIf="auth.isTresorier() && op.statut === 'en_attente'"
+                >
+                  <button
+                    class="action-btn action-btn--success"
+                    (click)="onValider(op)"
+                    title="Valider"
+                  >
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M2 7L6 11L12 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      <path
+                        d="M2 7L6 11L12 3"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                      />
                     </svg>
                   </button>
-                  <button class="action-btn action-btn--danger" (click)="onRejeter(op)" title="Rejeter">
+                  <button
+                    class="action-btn action-btn--danger"
+                    (click)="onRejeter(op)"
+                    title="Rejeter"
+                  >
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M3 3l8 8M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      <path
+                        d="M3 3l8 8M11 3L3 11"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
                     </svg>
                   </button>
                 </ng-container>
-                <a *ngIf="auth.isTresorier()" [routerLink]="[op.id, 'modifier']" class="action-btn" title="Modifier">
+                <a
+                  *ngIf="auth.isTresorier()"
+                  [routerLink]="[op.id, 'modifier']"
+                  class="action-btn"
+                  title="Modifier"
+                >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2 10L10 2L12 4L4 12L1 13L2 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path
+                      d="M2 10L10 2L12 4L4 12L1 13L2 10Z"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </a>
               </div>
@@ -281,22 +547,49 @@
       <div class="card empty-state">
         <div class="empty-state__icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <path d="M6 12h36M6 24h24M6 36h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path
+              d="M6 12h36M6 24h24M6 36h18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
           </svg>
         </div>
         <h3>Aucune opération trouvée</h3>
         <p>Aucune opération ne correspond à vos critères de recherche.</p>
         <div class="empty-state__actions">
-          <button class="btn btn--secondary" (click)="resetFiltres()" *ngIf="hasActiveFilters()">
+          <button
+            class="btn btn--secondary"
+            (click)="resetFiltres()"
+            *ngIf="hasActiveFilters()"
+          >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M9 4l2-2M4 10l-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path
+                d="M2 7a5 5 0 1 0 10 0 5 5 0 0 0-10 0z"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M9 4l2-2M4 10l-2 2"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
             Réinitialiser les filtres
           </button>
-          <a routerLink="nouveau" class="btn btn--primary" *canDo="'OPERATION_CREER'">
+          <a
+            routerLink="nouveau"
+            class="btn btn--primary"
+            *canDo="'OPERATION_CREER'"
+          >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path
+                d="M7 3v8M3 7h8"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
             Nouvelle opération
           </a>
@@ -305,86 +598,184 @@
     </ng-template>
   </ng-container>
 
-  <!-- Modal détail opération -->
+  <!-- Modal détail opération — ✅ Vocabulaire métier -->
   <div class="modal-overlay" *ngIf="selectedOperation" (click)="closeDetail()">
     <div class="modal modal--detail" (click)="$event.stopPropagation()">
-
-      <div class="modal-header" [class.modal-header--entree]="selectedOperation.type === 'entree'"
-                                [class.modal-header--sortie]="selectedOperation.type === 'sortie'"
-                                [class.modal-header--transfert]="selectedOperation.type === 'transfert'">
+      <div
+        class="modal-header"
+        [class.modal-header--entree]="selectedOperation.type === 'entree'"
+        [class.modal-header--sortie]="selectedOperation.type === 'sortie'"
+        [class.modal-header--transfert]="selectedOperation.type === 'transfert'"
+      >
         <div class="modal-header__icon">
-          <svg *ngIf="selectedOperation.type === 'entree'" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 17V3M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            *ngIf="selectedOperation.type === 'entree'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M10 17V3M3 10l7-7 7 7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          <svg *ngIf="selectedOperation.type === 'sortie'" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 3v14M3 10l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            *ngIf="selectedOperation.type === 'sortie'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M10 3v14M3 10l7 7 7-7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          <svg *ngIf="selectedOperation.type === 'transfert'" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 10h12M11 6l3 3-3 3M9 14l-3-3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            *ngIf="selectedOperation.type === 'transfert'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M4 10h12M11 6l3 3-3 3M9 14l-3-3 3-3"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </div>
         <div class="modal-header__text">
           <h2>Détail de l'opération</h2>
-          <span class="modal-header__piece" *ngIf="selectedOperation.numeroPiece">{{ selectedOperation.numeroPiece }}</span>
+          <span
+            class="modal-header__piece"
+            *ngIf="selectedOperation.numeroPiece"
+            >{{ selectedOperation.numeroPiece }}</span
+          >
         </div>
         <button class="modal-close" (click)="closeDetail()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path
+              d="M3 3l10 10M13 3L3 13"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
           </svg>
         </button>
       </div>
 
       <div class="modal-body">
-        <div class="detail-montant" [class.detail-montant--entree]="estEntree(selectedOperation)"
-                                   [class.detail-montant--sortie]="!estEntree(selectedOperation)">
-          <span class="detail-montant__sign">{{ estEntree(selectedOperation) ? '+' : '−' }}</span>
-          <span class="detail-montant__val">{{ selectedOperation.montant | number:'1.0-0' }}</span>
+        <div
+          class="detail-montant"
+          [class.detail-montant--entree]="estEntree(selectedOperation)"
+          [class.detail-montant--sortie]="!estEntree(selectedOperation)"
+        >
+          <span class="detail-montant__sign">{{
+            estEntree(selectedOperation) ? "+" : "−"
+          }}</span>
+          <span class="detail-montant__val">{{
+            selectedOperation.montant | number: "1.0-0"
+          }}</span>
           <span class="detail-montant__cur">FCFA</span>
         </div>
 
         <div class="detail-statut">
-          <span class="status-badge status-badge--large" [class.status-badge--validee]="selectedOperation.statut === 'validee'"
-                                                         [class.status-badge--pending]="selectedOperation.statut === 'en_attente'"
-                                                         [class.status-badge--rejected]="selectedOperation.statut === 'rejetee'">
-            {{ selectedOperation.statut === 'validee' ? '✓ Validée' : selectedOperation.statut === 'en_attente' ? '⏳ En attente' : '✗ Rejetée' }}
+          <span
+            class="status-badge status-badge--large"
+            [class.status-badge--validee]="
+              selectedOperation.statut === 'validee'
+            "
+            [class.status-badge--pending]="
+              selectedOperation.statut === 'en_attente'
+            "
+            [class.status-badge--rejected]="
+              selectedOperation.statut === 'rejetee'
+            "
+          >
+            {{
+              selectedOperation.statut === "validee"
+                ? "✓ Validée"
+                : selectedOperation.statut === "en_attente"
+                  ? "⏳ En attente"
+                  : "✗ Rejetée"
+            }}
           </span>
         </div>
 
         <div class="detail-grid">
           <div class="detail-grid__row">
             <span class="detail-grid__label">Libellé</span>
-            <span class="detail-grid__val">{{ selectedOperation.libelle }}</span>
+            <span class="detail-grid__val">{{
+              selectedOperation.libelle
+            }}</span>
           </div>
 
           <div class="detail-grid__row" *ngIf="selectedOperation.numeroPiece">
             <span class="detail-grid__label">N° Pièce</span>
-            <span class="detail-grid__val detail-grid__val--piece">{{ selectedOperation.numeroPiece }}</span>
+            <span class="detail-grid__val detail-grid__val--piece">{{
+              selectedOperation.numeroPiece
+            }}</span>
           </div>
 
           <div class="detail-grid__row">
             <span class="detail-grid__label">Date</span>
-            <span class="detail-grid__val">{{ selectedOperation.date | date:'EEEE dd MMMM yyyy':'':'fr' }}</span>
+            <span class="detail-grid__val">{{
+              selectedOperation.date | date: "EEEE dd MMMM yyyy" : "" : "fr"
+            }}</span>
           </div>
 
           <div class="detail-grid__row">
             <span class="detail-grid__label">Type</span>
+            <!-- ✅ Vocabulaire métier -->
             <span class="detail-grid__val">
-              {{ selectedOperation.type === 'entree' ? 'Entrée'
-               : selectedOperation.type === 'sortie' ? 'Sortie'
-               : estEntree(selectedOperation) ? 'Transfert entrant' : 'Transfert sortant' }}
+              {{
+                selectedOperation.type === "entree"
+                  ? v.entree
+                  : selectedOperation.type === "sortie"
+                    ? v.sortie
+                    : estEntree(selectedOperation)
+                      ? "Transfert entrant"
+                      : "Transfert sortant"
+              }}
             </span>
           </div>
 
           <div class="detail-grid__row">
             <span class="detail-grid__label">Caisse</span>
-            <span class="detail-grid__val">{{ selectedOperation.caisseNom || '—' }}</span>
+            <span class="detail-grid__val">{{
+              selectedOperation.caisseNom || "—"
+            }}</span>
           </div>
 
-          <div class="detail-grid__row" *ngIf="selectedOperation.type === 'transfert' && selectedOperation.transfertCaisseDestNom">
-            <span class="detail-grid__label">{{ selectedOperation.sens === 'sortie' ? 'Vers' : 'Depuis' }}</span>
+          <div
+            class="detail-grid__row"
+            *ngIf="
+              selectedOperation.type === 'transfert' &&
+              selectedOperation.transfertCaisseDestNom
+            "
+          >
+            <span class="detail-grid__label">{{
+              selectedOperation.sens === "sortie" ? "Vers" : "Depuis"
+            }}</span>
             <span class="detail-grid__val">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M3 6h6M6 3l3 3-3 3"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
               {{ selectedOperation.transfertCaisseDestNom }}
             </span>
@@ -392,41 +783,63 @@
 
           <div class="detail-grid__row" *ngIf="selectedOperation.categorieNom">
             <span class="detail-grid__label">Catégorie</span>
-            <span class="detail-grid__val">{{ selectedOperation.categorieNom }}</span>
+            <span class="detail-grid__val">{{
+              selectedOperation.categorieNom
+            }}</span>
           </div>
 
           <div class="detail-grid__row">
             <span class="detail-grid__label">Responsable</span>
             <span class="detail-grid__val">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
-                <path d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                <circle
+                  cx="6"
+                  cy="4"
+                  r="2.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                />
+                <path
+                  d="M1.5 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                />
               </svg>
-              {{ selectedOperation.responsableNom || '—' }}
+              {{ selectedOperation.responsableNom || "—" }}
             </span>
           </div>
 
           <div class="detail-grid__row" *ngIf="selectedOperation.notes">
             <span class="detail-grid__label">Notes</span>
-            <span class="detail-grid__val detail-grid__val--notes">{{ selectedOperation.notes }}</span>
+            <span class="detail-grid__val detail-grid__val--notes">{{
+              selectedOperation.notes
+            }}</span>
           </div>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn--secondary" (click)="closeDetail()">Fermer</button>
-        <a *ngIf="auth.isTresorier()"
-           [routerLink]="[selectedOperation.id, 'modifier']"
-           class="btn btn--primary"
-           (click)="closeDetail()">
+        <button class="btn btn--secondary" (click)="closeDetail()">
+          Fermer
+        </button>
+        <a
+          *ngIf="auth.isTresorier()"
+          [routerLink]="[selectedOperation.id, 'modifier']"
+          class="btn btn--primary"
+          (click)="closeDetail()"
+        >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2 10L10 2L12 4L4 12L1 13L2 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path
+              d="M2 10L10 2L12 4L4 12L1 13L2 10Z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+            />
           </svg>
           Modifier
         </a>
       </div>
-
     </div>
   </div>
-
 </div>

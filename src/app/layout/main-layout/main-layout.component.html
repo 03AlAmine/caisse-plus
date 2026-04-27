@@ -1,11 +1,16 @@
 <div class="app-shell">
-  <app-sidebar [isOpen]="sidebarOpen"></app-sidebar>
+  <app-sidebar
+    [isOpen]="sidebarOpen"
+    (navClick)="onSidebarNavClick()">
+  </app-sidebar>
   <div class="main-content">
     <app-topbar (toggleSidebar)="toggleSidebar()" [isSidebarOpen]="sidebarOpen"></app-topbar>
     <div class="page-content">
       <router-outlet></router-outlet>
     </div>
   </div>
+  <app-quick-add></app-quick-add>
+  <app-mobile-nav></app-mobile-nav>
 </div>
 
 <div class="mobile-overlay" *ngIf="sidebarOpen && isMobile" (click)="toggleSidebar()"></div>

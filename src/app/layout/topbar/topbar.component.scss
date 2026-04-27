@@ -742,3 +742,161 @@
     transform: translateY(0);
   }
 }
+// ─── Suggestions ────────────────────────────────────────────────────────
+.search-suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+
+  &:hover,
+  &--selected {
+    background: var(--gray-50);
+  }
+
+  &__icon {
+    color: var(--gray-400);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: var(--text-sm);
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__type {
+    font-size: 10px;
+    color: var(--gray-400);
+    flex-shrink: 0;
+  }
+}
+// ─── Mobile search button ──────────────────────────────────────────────
+.topbar__mobile-search {
+  display: none !important; // Caché par défaut
+
+  @media (max-width: 640px) {
+    display: flex !important; // Visible uniquement sur mobile
+  }
+}
+
+// ─── Page title ────────────────────────────────────────────────────────
+.topbar__page-title {
+  @media (max-width: 480px) {
+    display: none; // Caché sur très petit écran
+  }
+}
+
+// ─── Greeting ──────────────────────────────────────────────────────────
+.topbar__greeting {
+  @media (max-width: 480px) {
+    font-size: 11px;
+  }
+}
+
+// ─── Search ────────────────────────────────────────────────────────────
+.topbar__search {
+  @media (max-width: 640px) {
+    display: none; // Caché sur mobile → remplacé par le bouton loupe
+  }
+}
+
+// ─── Menu button ───────────────────────────────────────────────────────
+.topbar__menu-btn {
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+// ─── Icon buttons ──────────────────────────────────────────────────────
+.topbar__icon-btn {
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+// ─── User button ──────────────────────────────────────────────────────
+.topbar__user {
+  @media (max-width: 480px) {
+    padding: var(--space-1) var(--space-2);
+    gap: var(--space-1);
+  }
+}
+
+.topbar__avatar {
+  @media (max-width: 480px) {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+}
+// ─── Barre de recherche mobile (overlay) ────────────────────────────────
+.topbar__search-mobile {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 600;
+  background: var(--color-white);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: var(--shadow-lg);
+  animation: slideDown var(--duration-base) var(--ease-out);
+
+  @media (max-width: 640px) {
+    display: block;
+  }
+}
+
+.search-wrap--mobile {
+  width: 100%;
+  max-width: 100%;
+  height: 42px;
+  padding: 0 var(--space-2) 0 var(--space-3);
+
+  .search-wrap__icon {
+    flex-shrink: 0;
+  }
+
+  .search-wrap__back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gray-400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+
+    &:hover {
+      color: var(--navy-600);
+      background: var(--gray-50);
+    }
+  }
+}
+
+.search-panel--mobile {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  max-height: calc(100vh - 56px);
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid var(--gray-100);
+  box-shadow: none;
+}

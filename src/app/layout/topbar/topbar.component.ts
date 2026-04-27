@@ -1,10 +1,27 @@
-import { Component, Output, EventEmitter, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  OnInit,
+  OnDestroy,
+  inject,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription, filter, take } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { NotificationService, Notification } from '../../services/notification.service';
-import { SearchService, ResultatsGroupes, ResultatRecherche } from '../../services/search.service';
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notification.service';
+import {
+  SearchService,
+  ResultatsGroupes,
+  ResultatRecherche,
+  SuggestionRecherche,
+} from '../../services/search.service';
 import { ToastrService } from 'ngx-toastr';
+import { ViewChild, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-topbar',
@@ -18,7 +35,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   private notifService = inject(NotificationService);
   private router = inject(Router);
-  private toastr       = inject(ToastrService);
+  private toastr = inject(ToastrService);
   private searchService = inject(SearchService);
 
   today = new Date();
@@ -29,18 +46,28 @@ export class TopbarComponent implements OnInit, OnDestroy {
   private notifSub?: Subscription;
 
   // ── Recherche globale ────────────────────────────────────────────────────
-  searchQuery     = '';
-  showSearch      = false;
-  searchLoading   = false;
+  searchQuery = '';
+  showSearch = false;
+  searchLoading = false;
   searchResultats: ResultatsGroupes | null = null;
   private searchTimer: any;
 
+  suggestions: SuggestionRecherche[] = [];
+  showSuggestions = false;
+  selectedSuggestionIndex = -1;
+
+  // ✅ Nouvelle propriété
+  showMobileSearch = false;
+
+  // Dans la classe
+  @ViewChild('mobileSearchInput') mobileSearchInput!: ElementRef;
+
   get hasNotifications(): boolean {
-    return this.notifications.some(n => !n.read);
+    return this.notifications.some((n) => !n.read);
   }
 
   get notificationsCount(): number {
-    return this.notifications.filter(n => !n.read).length;
+    return this.notifications.filter((n) => !n.read).length;
   }
 
   ngOnInit(): void {
@@ -50,10 +77,14 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     // Charger les vraies notifications Firestore dès que le user est prêt
     this.auth.currentUser$
-      .pipe(filter(user => user !== null && !!user.organisationId), take(1))
+      .pipe(
+        filter((user) => user !== null && !!user.organisationId),
+        take(1),
+      )
       .subscribe(() => {
-        this.notifSub = this.notifService.getNotifications()
-          .subscribe(notifs => this.notifications = notifs);
+        this.notifSub = this.notifService
+          .getNotifications()
+          .subscribe((notifs) => (this.notifications = notifs));
       });
   }
 
@@ -72,7 +103,8 @@ export class TopbarComponent implements OnInit, OnDestroy {
   getUserInitial(): string {
     const user = this.auth.currentUser;
     if (!user) return '?';
-    if (user.displayName?.length > 0) return user.displayName.charAt(0).toUpperCase();
+    if (user.displayName?.length > 0)
+      return user.displayName.charAt(0).toUpperCase();
     if (user.email?.length > 0) return user.email.charAt(0).toUpperCase();
     return 'U';
   }
@@ -93,7 +125,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
     };
     return roles[role || 'utilisateur'];
   }
-
 
   toDate(val: any): Date {
     if (val instanceof Date) return val;
@@ -143,41 +174,14 @@ export class TopbarComponent implements OnInit, OnDestroy {
   getNotifIcon(type: string): string {
     if (type === 'warning') return '⚠️';
     if (type === 'success') return '✅';
-    if (type === 'error')   return '❌';
+    if (type === 'error') return '❌';
     return 'ℹ️';
   }
 
   // ── Méthodes de recherche ────────────────────────────────────────────────
 
-  onSearchInput(): void {
-    clearTimeout(this.searchTimer);
-    if (!this.searchQuery.trim()) {
-      this.searchResultats = null;
-      this.showSearch = false;
-      return;
-    }
-    this.showSearch   = true;
-    this.searchLoading = true;
-    // Debounce 350ms pour éviter une requête à chaque frappe
-    this.searchTimer = setTimeout(async () => {
-      try {
-        this.searchResultats = await this.searchService.rechercher(this.searchQuery);
-      } finally {
-        this.searchLoading = false;
-      }
-    }, 350);
-  }
-
-  onSearchFocus(): void {
-    if (this.searchQuery.trim().length >= 2) {
-      this.showSearch = true;
-    }
-    this.showUserMenu      = false;
-    this.showNotifications = false;
-  }
-
   closeSearch(): void {
-    this.showSearch  = false;
+    this.showSearch = false;
     this.searchQuery = '';
     this.searchResultats = null;
   }
@@ -192,17 +196,107 @@ export class TopbarComponent implements OnInit, OnDestroy {
   }
 
   closeMenus(): void {
-    this.showUserMenu      = false;
+    this.showUserMenu = false;
     this.showNotifications = false;
-    this.showSearch        = false;
+    this.showSearch = false;
   }
 
   async onLogout(): Promise<void> {
-    const confirmLogout = confirm('Êtes-vous sûr de vouloir vous déconnecter ?');
+    const confirmLogout = confirm(
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+    );
     if (confirmLogout) {
       await this.auth.logout();
       this.toastr.success('Déconnecté avec succès');
       this.router.navigate(['/auth/login']);
     }
+  }
+
+  async onSearchInput(): Promise<void> {
+    if (this.searchQuery && this.searchQuery.length >= 1) {
+      this.suggestions = await this.searchService.getSuggestions(
+        this.searchQuery,
+      );
+      this.showSuggestions = true;
+    } else {
+      this.suggestions = await this.searchService.getSuggestions('');
+      this.showSuggestions = this.suggestions.length > 0;
+    }
+    this.selectedSuggestionIndex = -1;
+  }
+
+  async onSearchFocus(): Promise<void> {
+    if (!this.searchQuery) {
+      this.suggestions = await this.searchService.getSuggestions('');
+      this.showSuggestions = this.suggestions.length > 0;
+    }
+  }
+  // Ajouter dans la classe TopbarComponent
+  async onSearch(): Promise<void> {
+    if (!this.searchQuery || this.searchQuery.trim().length < 2) return;
+
+    this.showSuggestions = false;
+    this.showSearch = true;
+    this.searchLoading = true;
+
+    try {
+      this.searchResultats = await this.searchService.rechercher(
+        this.searchQuery,
+      );
+      // Sauvegarder la recherche
+      this.searchService.sauvegarderRecherche(this.searchQuery);
+    } catch (error) {
+      console.error('Erreur recherche:', error);
+    } finally {
+      this.searchLoading = false;
+    }
+  }
+  selectSuggestion(suggestion: SuggestionRecherche): void {
+    this.searchQuery = suggestion.texte;
+    this.showSuggestions = false;
+    this.onSearch(); // Lancer la recherche
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.selectedSuggestionIndex = Math.min(
+        this.selectedSuggestionIndex + 1,
+        this.suggestions.length - 1,
+      );
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.selectedSuggestionIndex = Math.max(
+        this.selectedSuggestionIndex - 1,
+        -1,
+      );
+    } else if (event.key === 'Enter') {
+      if (
+        this.selectedSuggestionIndex >= 0 &&
+        this.suggestions[this.selectedSuggestionIndex]
+      ) {
+        this.selectSuggestion(this.suggestions[this.selectedSuggestionIndex]);
+      } else {
+        this.onSearch();
+      }
+    } else if (event.key === 'Escape') {
+      this.showSuggestions = false;
+    }
+  }
+
+  // ✅ Garder UNIQUEMENT cette version
+  toggleMobileSearch(): void {
+    this.showMobileSearch = !this.showMobileSearch;
+    if (this.showMobileSearch) {
+      setTimeout(() => {
+        this.mobileSearchInput?.nativeElement?.focus();
+      }, 100);
+    }
+  }
+
+  closeMobileSearch(): void {
+    this.searchQuery = '';
+    this.showMobileSearch = false;
+    this.showSuggestions = false;
   }
 }

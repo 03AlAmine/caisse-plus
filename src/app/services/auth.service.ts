@@ -25,7 +25,13 @@ import {
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User, UserRole, Permission, peutFaire } from '../models/user.model';
-import { getTemplateById, getAllCategoriesFromTemplate, ActiviteTemplate } from '../models/templates.data';
+import {
+  getTemplateById,
+  getAllCategoriesFromTemplate,
+  ActiviteTemplate,
+  VocabulaireMetier,
+  VOCABULAIRE_DEFAUT,
+} from '../models/templates.data';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -76,9 +82,15 @@ export class AuthService {
     return roles.includes(this.role);
   }
 
-  isAdmin(): boolean { return this.hasRole('admin'); }
-  isTresorier(): boolean { return this.hasRole('admin', 'tresorier'); }
-  isAuditeur(): boolean { return this.hasRole('admin', 'tresorier', 'auditeur'); }
+  isAdmin(): boolean {
+    return this.hasRole('admin');
+  }
+  isTresorier(): boolean {
+    return this.hasRole('admin', 'tresorier');
+  }
+  isAuditeur(): boolean {
+    return this.hasRole('admin', 'tresorier', 'auditeur');
+  }
 
   peut(permission: Permission): boolean {
     return peutFaire(this.role, permission);
@@ -100,7 +112,11 @@ export class AuthService {
     organisationNom: string,
     templateId: string = 'libre',
   ): Promise<void> {
-    const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+    const credential = await createUserWithEmailAndPassword(
+      this.auth,
+      email,
+      password,
+    );
     const uid = credential.user.uid;
     await updateProfile(credential.user, { displayName });
 
@@ -148,7 +164,9 @@ export class AuthService {
     const orgSnap = await getDoc(orgRef);
 
     if (!orgSnap.exists()) {
-      throw new Error("Organisation introuvable. Vérifiez le code d'invitation.");
+      throw new Error(
+        "Organisation introuvable. Vérifiez le code d'invitation.",
+      );
     }
 
     const orgData = orgSnap.data();
@@ -161,7 +179,11 @@ export class AuthService {
       throw new Error("Code d'invitation invalide.");
     }
 
-    const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+    const credential = await createUserWithEmailAndPassword(
+      this.auth,
+      email,
+      password,
+    );
     const uid = credential.user.uid;
     await updateProfile(credential.user, { displayName });
 
@@ -196,15 +218,22 @@ export class AuthService {
 
   async updateUserProfile(data: Partial<User>): Promise<void> {
     if (!this.currentUser) return;
-    await updateDoc(doc(this.firestore, `users/${this.currentUser.uid}`), { ...data });
+    await updateDoc(doc(this.firestore, `users/${this.currentUser.uid}`), {
+      ...data,
+    });
     this.currentUserSubject.next({ ...this.currentUser, ...data });
   }
 
   async generateInvitationCode(): Promise<string> {
     if (!this.isAdmin()) {
-      throw new Error("Seul un administrateur peut générer un code d'invitation");
+      throw new Error(
+        "Seul un administrateur peut générer un code d'invitation",
+      );
     }
-    const invitationCode = Math.random().toString(36).substring(2, 15).toUpperCase();
+    const invitationCode = Math.random()
+      .toString(36)
+      .substring(2, 15)
+      .toUpperCase();
     const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
     await updateDoc(orgRef, {
       invitationCode: invitationCode,
@@ -235,7 +264,9 @@ export class AuthService {
    */
   async changerTemplate(templateId: string): Promise<void> {
     if (!this.isAdmin()) {
-      throw new Error("Seul un administrateur peut changer le modèle d'activité");
+      throw new Error(
+        "Seul un administrateur peut changer le modèle d'activité",
+      );
     }
 
     const template = getTemplateById(templateId);
@@ -262,7 +293,9 @@ export class AuthService {
     const orgData = orgSnap.data();
 
     if (orgData['ownerId'] === this.currentUser.uid) {
-      throw new Error("Vous êtes le propriétaire. Transférez la propriété ou supprimez l'organisation avant de quitter.");
+      throw new Error(
+        "Vous êtes le propriétaire. Transférez la propriété ou supprimez l'organisation avant de quitter.",
+      );
     }
 
     await updateDoc(orgRef, { membres: arrayRemove(this.currentUser.uid) });
@@ -281,10 +314,15 @@ export class AuthService {
    * Initialise les catégories à partir du template sélectionné.
    * Stratégie non-destructive : n'ajoute que les catégories absentes.
    */
-  private async initFromTemplate(organisationId: string, templateId: string): Promise<number> {
+  private async initFromTemplate(
+    organisationId: string,
+    templateId: string,
+  ): Promise<number> {
     const template = getTemplateById(templateId);
     if (!template) {
-      console.warn(`Template ${templateId} introuvable, utilisation des catégories par défaut.`);
+      console.warn(
+        `Template ${templateId} introuvable, utilisation des catégories par défaut.`,
+      );
       return 0;
     }
 
@@ -292,29 +330,36 @@ export class AuthService {
 
     // Récupérer les catégories existantes pour éviter les doublons
     const existingSnap = await getDocs(
-      query(collection(this.firestore, 'categories'), where('organisationId', '==', organisationId))
+      query(
+        collection(this.firestore, 'categories'),
+        where('organisationId', '==', organisationId),
+      ),
     );
 
     const nomsExistants = new Set(
-      existingSnap.docs.map(d => (d.data()['nom'] as string).toLowerCase().trim())
+      existingSnap.docs.map((d) =>
+        (d.data()['nom'] as string).toLowerCase().trim(),
+      ),
     );
 
     // Filtrer les catégories à ajouter
     const aAjouter = allCategories.filter(
-      cat => !nomsExistants.has(cat.nom.toLowerCase().trim())
+      (cat) => !nomsExistants.has(cat.nom.toLowerCase().trim()),
     );
 
     // Ajouter en batch
     const batch = [];
     for (const cat of aAjouter) {
       const ref = doc(collection(this.firestore, 'categories'));
-      batch.push(setDoc(ref, {
-        nom: cat.nom,
-        type: cat.type,
-        couleur: cat.couleur,
-        organisationId: organisationId,
-        systeme: true, // Marquer comme catégorie système venant du template
-      }));
+      batch.push(
+        setDoc(ref, {
+          nom: cat.nom,
+          type: cat.type,
+          couleur: cat.couleur,
+          organisationId: organisationId,
+          systeme: true, // Marquer comme catégorie système venant du template
+        }),
+      );
     }
 
     if (batch.length > 0) {
@@ -328,34 +373,45 @@ export class AuthService {
    * Initialise les caisses suggérées par le template.
    * Ne crée pas de caisse principale s'il en existe déjà une.
    */
-  private async initCaissesFromTemplate(organisationId: string, template: ActiviteTemplate): Promise<number> {
-    // Vérifier les caisses existantes
+  private async initCaissesFromTemplate(
+    organisationId: string,
+    template: ActiviteTemplate,
+  ): Promise<number> {
     const existingSnap = await getDocs(
-      query(collection(this.firestore, 'caisses'), where('organisationId', '==', organisationId))
+      query(
+        collection(this.firestore, 'caisses'),
+        where('organisationId', '==', organisationId),
+      ),
     );
 
-    const existingCaisses = existingSnap.docs.map(d => d.data());
-    const hasPrincipale = existingCaisses.some(c => c['type'] === 'principale');
+    const existingCaisses = existingSnap.docs.map((d) => d.data());
+    const hasPrincipale = existingCaisses.some(
+      (c) => c['type'] === 'principale',
+    );
 
     let addedCount = 0;
 
     for (const caisseSuggeree of template.caissesSuggerees) {
       // Ne pas créer de caisse principale s'il en existe déjà une
-      if (caisseSuggeree.type === 'principale' && hasPrincipale) {
-        continue;
-      }
+      if (caisseSuggeree.role === 'Principale' && hasPrincipale) continue;
 
-      // Vérifier si une caisse avec le même nom existe déjà
       const nomExiste = existingCaisses.some(
-        c => (c['nom'] as string).toLowerCase().trim() === caisseSuggeree.nom.toLowerCase().trim()
+        (c) =>
+          (c['nom'] as string).toLowerCase().trim() ===
+          caisseSuggeree.nom.toLowerCase().trim(),
       );
 
       if (nomExiste) continue;
 
-      // Créer la caisse
+      // Déterminer le type en fonction du rôle
+      let type: 'principale' | 'secondaire' | 'libre' = 'libre';
+      if (caisseSuggeree.role === 'Principale') type = 'principale';
+      else if (caisseSuggeree.role === 'Secondaire') type = 'secondaire';
+
       await addDoc(collection(this.firestore, 'caisses'), {
         nom: caisseSuggeree.nom,
-        type: caisseSuggeree.type,
+        type: type,
+        role: caisseSuggeree.role, // ← Stocker le rôle
         description: caisseSuggeree.description || '',
         couleur: caisseSuggeree.couleur || '#6B7280',
         solde: 0,
@@ -388,15 +444,28 @@ export class AuthService {
   }
 
   /**
- * Met à jour les informations de l'organisation
- */
-async updateOrganisation(data: { nom?: string; description?: string; adresse?: string; telephone?: string; email?: string }): Promise<void> {
-  if (!this.organisationId) throw new Error('Aucune organisation');
+   * Met à jour les informations de l'organisation
+   */
+  async updateOrganisation(data: {
+    nom?: string;
+    description?: string;
+    adresse?: string;
+    telephone?: string;
+    email?: string;
+  }): Promise<void> {
+    if (!this.organisationId) throw new Error('Aucune organisation');
 
-  const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
-  await updateDoc(orgRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
-}
+    const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
+    await updateDoc(orgRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  /**
+   * Récupère le vocabulaire de l'organisation courante
+   */
+  async getVocabulaire(): Promise<VocabulaireMetier> {
+    const template = await this.getOrganisationTemplate();
+    return template?.vocabulaire || VOCABULAIRE_DEFAUT;
+  }
 }

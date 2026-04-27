@@ -68,7 +68,7 @@
     <!-- Formulaire principal -->
     <div class="card form-card animate-slide-in">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <!-- Type d'opération -->
+        <!-- Type d'opération — ✅ Vocabulaire métier -->
         <div class="form-group">
           <label class="form-label">
             Type d'opération
@@ -90,7 +90,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              <span>Entrée</span>
+              <span>{{ v.entree }}</span>
             </button>
             <button
               type="button"
@@ -107,7 +107,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              <span>Sortie</span>
+              <span>{{ v.sortie }}</span>
             </button>
             <button
               type="button"
@@ -555,7 +555,7 @@
           <a routerLink="/operations" class="btn btn--secondary btn--lg"
             >Annuler</a
           >
-          <!-- Bouton de soumission -->
+          <!-- Bouton de soumission — ✅ Vocabulaire métier -->
           <button
             type="submit"
             class="btn btn--primary btn--lg"
@@ -563,11 +563,15 @@
               loading || form.invalid || (!isEdit && isSoldeInsuffisant)
             "
           >
-            <span *ngIf="!loading">{{
-              isEdit
-                ? "Enregistrer les modifications"
-                : "Enregistrer l'opération"
-            }}</span>
+            <span *ngIf="!loading">
+              {{
+                isEdit
+                  ? "Enregistrer les modifications"
+                  : form.get("type")?.value === "entree"
+                    ? v.entreeAction
+                    : v.sortieAction
+              }}
+            </span>
             <span *ngIf="loading" class="btn-spinner"></span>
           </button>
         </div>
@@ -599,7 +603,7 @@
         class="help-panel__section"
         *ngIf="form.get('type')?.value === 'entree'"
       >
-        <h4>Entrée d'argent</h4>
+        <h4>{{ v.entree }} d'argent</h4>
         <p>Utilisez ce type pour enregistrer :</p>
         <ul>
           <li>Cotisations des membres</li>
@@ -607,6 +611,39 @@
           <li>Revenus d'activités</li>
           <li>Remboursements</li>
         </ul>
+      </div>
+
+      <div
+        class="help-panel__section"
+        *ngIf="form.get('type')?.value === 'sortie'"
+      >
+        <h4>{{ v.sortie }} d'argent</h4>
+        <p>Utilisez ce type pour enregistrer :</p>
+        <ul>
+          <li>Achats et fournitures</li>
+          <li>Frais de transport</li>
+          <li>Salaires et prestations</li>
+          <li>Charges et abonnements</li>
+        </ul>
+        <div class="help-tip help-tip--danger" *ngIf="isSoldeInsuffisant">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle
+              cx="7"
+              cy="7"
+              r="5.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <path
+              d="M7 4v3M7 9v.5"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <strong>Solde insuffisant !</strong> Vous ne pouvez pas effectuer
+          cette opération.
+        </div>
       </div>
 
       <div class="help-section" *ngIf="form.get('type')?.value === 'sortie'">

@@ -7,6 +7,8 @@ import { AuthService } from '../../../services/auth.service';
 import { Operation } from '../../../models/operation.model';
 import { Caisse } from '../../../models/caisse.model';
 import { ToastrService } from 'ngx-toastr';
+import { VocabulaireMetier } from '../../../models/templates.data';
+import { VocabulaireService } from '../../../services/vocabulaire.service';
 
 @Component({
   selector: 'app-operation-list',
@@ -42,8 +44,14 @@ export class OperationListComponent implements OnInit, OnDestroy {
   private opsSub?: Subscription;
   private userSub?: Subscription;
 
-  ngOnInit(): void {
-    // Attendre que le profil utilisateur soit chargé avant de lancer les requêtes Firestore
+private vocabulaireService = inject(VocabulaireService);
+
+get v(): VocabulaireMetier {
+  return this.vocabulaireService.vocabulaire;
+}
+
+ngOnInit(): void {
+  this.vocabulaireService.loadVocabulaire();    // Attendre que le profil utilisateur soit chargé avant de lancer les requêtes Firestore
     this.userSub = this.auth.currentUser$
       .pipe(
         filter(user => user !== null && !!user.organisationId),
