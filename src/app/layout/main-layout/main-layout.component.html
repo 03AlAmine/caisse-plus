@@ -6,7 +6,10 @@
   <div class="main-content">
     <app-topbar (toggleSidebar)="toggleSidebar()" [isSidebarOpen]="sidebarOpen"></app-topbar>
     <div class="page-content">
-      <router-outlet></router-outlet>
+      <!-- [@routeAnim] déclenche l'animation à chaque changement de route -->
+      <div class="page-wrapper" [@routeAnim]="getRouteAnimState(outlet)">
+        <router-outlet #outlet="outlet"></router-outlet>
+      </div>
     </div>
   </div>
   <app-quick-add></app-quick-add>

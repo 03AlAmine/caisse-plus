@@ -40,13 +40,13 @@
   <!-- Carte profil -->
   <div class="card profil-card animate-fade-in">
     <!-- Avatar + infos -->
-    <div class="profil-header">
-      <div class="profil-avatar">
+    <div class="profil-card__header">
+      <div class="profil-card__avatar">
         {{ getUserInitial() }}
       </div>
-      <div class="profil-header__info">
+      <div class="profil-card__info">
         <h2>{{ user?.displayName || "Utilisateur" }}</h2>
-        <span class="profil-role">
+        <span class="profil-card__role">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <polygon
               points="7,1 9,5 13,5 10,8 11,13 7,10 3,13 4,8 1,5 5,5"
@@ -59,7 +59,7 @@
     </div>
 
     <!-- Mode affichage -->
-    <div class="profil-body" *ngIf="!isEditing">
+    <div class="profil-card__body" *ngIf="!isEditing">
       <div class="profil-field">
         <span class="profil-field__label">Nom complet</span>
         <p class="profil-field__value">{{ user?.displayName || "—" }}</p>
@@ -81,7 +81,7 @@
         <div class="profil-field">
           <span class="profil-field__label">Membre depuis</span>
           <p class="profil-field__value">
-            {{ (user?.createdAt | date: "dd/MM/yyyy") ?? "—" }}
+            {{ (user?.createdAt | date: "dd/MM/yyyy") || "—" }}
           </p>
         </div>
       </div>
@@ -92,7 +92,7 @@
       [formGroup]="form"
       (ngSubmit)="onSave()"
       *ngIf="isEditing"
-      class="profil-body"
+      class="profil-card__body"
     >
       <div class="form-group">
         <label class="form-label">
@@ -131,7 +131,7 @@
 
       <!-- Changement de mot de passe -->
       <div class="profil-section">
-        <h3>
+        <h3 class="profil-section__title">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <rect
               x="3"
@@ -157,13 +157,61 @@
 
         <div class="form-group">
           <label class="form-label">Nouveau mot de passe</label>
-          <input
-            [type]="showPassword ? 'text' : 'password'"
-            class="form-control"
-            formControlName="newPassword"
-            placeholder="Minimum 6 caractères"
-          />
+          <div class="password-input-wrapper">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              formControlName="newPassword"
+              placeholder="Minimum 6 caractères"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword"
+            >
+              <svg
+                *ngIf="!showPassword"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M2 8s3-5 6-5 6 5 6 5-3 5-6 5-6-5-6-5z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="2"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+              </svg>
+              <svg
+                *ngIf="showPassword"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M2 8s3-5 6-5 6 5 6 5-3 5-6 5-6-5-6-5z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M3 3l10 10"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
+
         <div class="form-group">
           <label class="form-label">Confirmer le mot de passe</label>
           <input
@@ -182,36 +230,9 @@
             Les mots de passe ne correspondent pas
           </div>
         </div>
-        <button
-          type="button"
-          class="btn-show-password"
-          (click)="showPassword = !showPassword"
-        >
-          <svg
-            *ngIf="!showPassword"
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-          >
-            <path
-              d="M7 3c-3 0-5.5 4-5.5 4s2.5 4 5.5 4 5.5-4 5.5-4-2.5-4-5.5-4z"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <circle
-              cx="7"
-              cy="7"
-              r="1.5"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-          </svg>
-          <span>Afficher le mot de passe</span>
-        </button>
       </div>
 
-      <div class="form-actions">
+      <div class="form-actions-inline">
         <button
           type="button"
           class="btn btn--secondary"
@@ -232,43 +253,49 @@
   </div>
 
   <!-- Section sécurité -->
-  <div
-    class="card profil-card animate-fade-in"
-    style="margin-top: var(--space-4)"
-  >
-    <div class="profil-section">
-      <h3>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <rect
-            x="3"
-            y="7"
-            width="10"
-            height="7"
-            rx="1.5"
-            stroke="currentColor"
-            stroke-width="1.5"
-          />
-          <path
-            d="M5 7V5a3 3 0 0 1 6 0v2"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-        Sécurité
-      </h3>
-      <p class="profil-section__hint">Gérez la sécurité de votre compte</p>
-      <button class="btn btn--secondary btn--sm" (click)="resetPassword()">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path
-            d="M2 7l2-2 3 3 3-5 2 2-5 7-5-5z"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linejoin="round"
-          />
-        </svg>
-        Réinitialiser mon mot de passe par email
-      </button>
+  <div class="card profil-card animate-fade-in">
+    <div class="profil-card__body">
+      <div class="profil-section">
+        <h3 class="profil-section__title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect
+              x="3"
+              y="7"
+              width="10"
+              height="7"
+              rx="1.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M5 7V5a3 3 0 0 1 6 0v2"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          Sécurité
+        </h3>
+        <p class="profil-section__hint">Gérez la sécurité de votre compte</p>
+        <button
+          class="btn btn--secondary btn--sm"
+          (click)="resetPassword()"
+          [disabled]="resettingPassword"
+        >
+          <span *ngIf="!resettingPassword">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M2 7l2-2 3 3 3-5 2 2-5 7-5-5z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Réinitialiser mon mot de passe par email
+          </span>
+          <span *ngIf="resettingPassword" class="btn-spinner"></span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

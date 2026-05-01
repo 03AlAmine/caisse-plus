@@ -48,7 +48,6 @@ const routes: Routes = [
         loadChildren: () =>
           import('./modules/rapports.module').then((m) => m.RapportsModule),
       },
-      // ✅ Route profil corrigée
       {
         path: 'profil',
         loadChildren: () =>

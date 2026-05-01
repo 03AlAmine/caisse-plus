@@ -970,3 +970,96 @@
     color: var(--navy-800);
   }
 }
+
+// ─── Zone "À faire" ────────────────────────────────────────────────────
+.todo-section {
+  margin-bottom: var(--space-4);
+}
+
+.todo-card {
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    border-bottom: 1px solid #BFDBFE;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--navy-700);
+  }
+
+  &__count {
+    margin-left: auto;
+    background: var(--navy-600);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+  transition: background var(--duration-fast);
+  border-bottom: 1px solid var(--gray-50);
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: var(--gray-50);
+  }
+
+  &__icon {
+    color: var(--gray-400);
+    flex-shrink: 0;
+  }
+
+  &--warning &__icon { color: var(--color-warning); }
+  &--danger &__icon { color: var(--color-danger); }
+  &--info &__icon { color: var(--navy-500); }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    display: block;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  &__desc {
+    display: block;
+    font-size: 10px;
+    color: var(--gray-400);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  & + & {
+    border-top: 1px solid var(--gray-50);
+  }
+
+  svg:last-child {
+    color: var(--gray-300);
+    flex-shrink: 0;
+  }
+}

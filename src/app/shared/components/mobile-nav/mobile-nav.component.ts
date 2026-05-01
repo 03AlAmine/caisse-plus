@@ -144,6 +144,8 @@ interface MobileNavItem {
 export class MobileNavComponent {
   private router = inject(Router);
   private vocabulaireService = inject(VocabulaireService);
+  comportement$ = this.vocabulaireService.comportement$;
+
 
   visible = true;
   currentRoute = '';
@@ -156,7 +158,7 @@ export class MobileNavComponent {
 
   constructor() {
     this.initItems();
-    // ✅ Correction : type predicate dans le filter
+    //  Correction : type predicate dans le filter
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd)

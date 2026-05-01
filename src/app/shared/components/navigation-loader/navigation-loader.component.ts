@@ -54,7 +54,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
       color: var(--gray-500);
     }
   `],
-  // ✅ Définir l'animation dans le composant
+  //  Définir l'animation dans le composant
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

@@ -62,7 +62,7 @@ export class SearchService {
   }
 
   /**
-   * ✅ NOUVEAU : Suggestions rapides d'autocomplétion
+   *  NOUVEAU : Suggestions rapides d'autocomplétion
    */
   async getSuggestions(terme: string): Promise<SuggestionRecherche[]> {
     if (!terme || terme.trim().length < 1) return this._getSuggestionsRecentes();
@@ -116,7 +116,7 @@ export class SearchService {
   }
 
   /**
-   * ✅ NOUVEAU : Suggestions récentes (quand le champ est vide)
+   *  NOUVEAU : Suggestions récentes (quand le champ est vide)
    */
   private _getSuggestionsRecentes(): SuggestionRecherche[] {
     const recentes = localStorage.getItem('recherches_recentes');
@@ -133,7 +133,7 @@ export class SearchService {
   }
 
   /**
-   * ✅ NOUVEAU : Sauvegarder une recherche récente
+   *  NOUVEAU : Sauvegarder une recherche récente
    */
   sauvegarderRecherche(terme: string): void {
     const recentes = localStorage.getItem('recherches_recentes');

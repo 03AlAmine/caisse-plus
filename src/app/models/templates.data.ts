@@ -41,6 +41,15 @@ export interface CaisseSuggeree {
   couleur?: string;
 }
 
+export interface TemplateComportement {
+  transfertActif: boolean; // Affiche le module Transferts
+  budgetParCategorie: boolean; // Active les budgets par catégorie
+  soldeMinimumActif: boolean; // Bloque si solde < seuil
+  multiCaisse: boolean; // Permet les opérations multi-caisses
+  rapportsAvances: boolean; // Active les exports Excel/PDF
+  validationActive: boolean; // Active le workflow de validation
+}
+
 export interface ActiviteTemplate {
   id: string;
   nom: string;
@@ -49,12 +58,12 @@ export interface ActiviteTemplate {
   icone: string;
   couleur: string;
   vocabulaire: VocabulaireMetier;
+  comportement: TemplateComportement; 
   categoriesEntree: CategorieTemplate[];
   categoriesSortie: CategorieTemplate[];
   caissesSuggerees: CaisseSuggeree[];
   motsCles: string[];
 }
-
 export const TEMPLATES: ActiviteTemplate[] = [
   // ═══════════════════════════════════════════════════════════════════════
   // 1. ENTREPRISE / CABINET / BUREAU
@@ -145,6 +154,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#7C3AED',
       },
     ],
+    comportement: {
+      transfertActif: true,
+      budgetParCategorie: true,
+      soldeMinimumActif: true,
+      multiCaisse: true,
+      rapportsAvances: true,
+      validationActive: true,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -232,6 +249,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#6B7280',
       },
     ],
+    comportement: {
+      transfertActif: false,
+      budgetParCategorie: false,
+      soldeMinimumActif: true,
+      multiCaisse: false,
+      rapportsAvances: false,
+      validationActive: false,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -311,6 +336,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#0EA5E9',
       },
     ],
+    comportement: {
+      transfertActif: false,
+      budgetParCategorie: false,
+      soldeMinimumActif: false,
+      multiCaisse: false,
+      rapportsAvances: false,
+      validationActive: false,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -397,6 +430,15 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#7C3AED',
       },
     ],
+    // RESTAURATION
+    comportement: {
+      transfertActif: false,
+      budgetParCategorie: true,
+      soldeMinimumActif: true,
+      multiCaisse: false,
+      rapportsAvances: true,
+      validationActive: false,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -475,6 +517,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#0EA5E9',
       },
     ],
+    comportement: {
+      transfertActif: false,
+      budgetParCategorie: false,
+      soldeMinimumActif: false,
+      multiCaisse: false,
+      rapportsAvances: false,
+      validationActive: false,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -553,6 +603,15 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#7C3AED',
       },
     ],
+    // ONG
+    comportement: {
+      transfertActif: true,
+      budgetParCategorie: true,
+      soldeMinimumActif: true,
+      multiCaisse: true,
+      rapportsAvances: true,
+      validationActive: true,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -630,6 +689,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#7C3AED',
       },
     ],
+    comportement: {
+      transfertActif: false,
+      budgetParCategorie: true,
+      soldeMinimumActif: true,
+      multiCaisse: false,
+      rapportsAvances: false,
+      validationActive: false,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -700,6 +767,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#D97706',
       },
     ],
+    comportement: {
+      transfertActif: false,
+      budgetParCategorie: false,
+      soldeMinimumActif: true,
+      multiCaisse: true,
+      rapportsAvances: false,
+      validationActive: false,
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -744,6 +819,14 @@ export const TEMPLATES: ActiviteTemplate[] = [
         couleur: '#0F172A',
       },
     ],
+    comportement: {
+      transfertActif: true,
+      budgetParCategorie: true,
+      soldeMinimumActif: true,
+      multiCaisse: true,
+      rapportsAvances: true,
+      validationActive: true,
+    },
   },
 ];
 

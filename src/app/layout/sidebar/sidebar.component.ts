@@ -12,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { VocabulaireService } from '../../services/vocabulaire.service';
 
 interface NavItem {
   label: string;
@@ -39,7 +40,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
-
+  private vocabulaireService = inject(VocabulaireService);
   private routerSubscription?: Subscription;
   currentRoute: string = '';
 
@@ -102,13 +103,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get visibleSections(): NavSection[] {
+    const transfertActif =
+      this.vocabulaireService.comportement?.transfertActif ?? true;
+
     return this.navSections
       .map((section) => ({
         ...section,
-        items: section.items.filter(
-          (item) =>
-            !item.roles || item.roles.some((r) => this.auth.hasRole(r as any)),
-        ),
+        items: section.items.filter((item) => {
+          // Filtre par rôle
+          const roleOk =
+            !item.roles || item.roles.some((r) => this.auth.hasRole(r as any));
+
+          if (item.route === '/operations/transfert' && !transfertActif)
+            return false;
+          if (
+            item.route === '/budgets' &&
+            !(this.vocabulaireService.comportement?.budgetParCategorie ?? true)
+          )
+            return false;
+
+          return roleOk;
+        }),
       }))
       .filter((section) => section.items.length > 0);
   }

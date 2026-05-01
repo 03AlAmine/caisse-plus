@@ -7,8 +7,8 @@ import { CaisseService } from '../../services/caisse.service';
 import { OperationService } from '../../services/operation.service';
 import { BudgetService } from '../../services/budget.service';
 import { AuthService } from '../../services/auth.service';
-import { VocabulaireService } from '../../services/vocabulaire.service'; // ✅ Ajouter l'import
-import { VocabulaireMetier } from '../../models/templates.data'; // ✅ Ajouter l'import
+import { VocabulaireService } from '../../services/vocabulaire.service';
+import { VocabulaireMetier } from '../../models/templates.data';
 import { Caisse } from '../../models/caisse.model';
 import { Operation } from '../../models/operation.model';
 import { BudgetAvecStats } from '../../models/budget.model';
@@ -30,7 +30,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private caisseService = inject(CaisseService);
   private opService = inject(OperationService);
   private budgetService = inject(BudgetService);
-  private vocabulaireService = inject(VocabulaireService); // ✅ Utiliser inject()
+  private vocabulaireService = inject(VocabulaireService);
   auth = inject(AuthService);
   private router = inject(Router);
 
@@ -76,13 +76,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  // ✅ Getter pour le vocabulaire
   get v(): VocabulaireMetier {
     return this.vocabulaireService.vocabulaire;
   }
 
   ngOnInit(): void {
-    // ✅ Charger le vocabulaire d'abord, puis les données
     this.vocabulaireService.loadVocabulaire().then(() => {
       this.loadData();
     });
@@ -103,7 +101,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       combineLatest([
         this.caisseService.getAll(),
-        this.opService.getAll(),
+        this.opService.getAllForDashboard(),
         this.budgetService.getAll(),
       ])
         .pipe(take(1))
@@ -657,5 +655,68 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getTrendSorties(): number {
     const kpi = this.kpis.find((k) => k.label.includes(this.v.sortiePluriel));
     return Math.abs(kpi?.trend || 0);
+  }
+
+  /**
+   *  Zone "À faire" — Retourne les actions en attente
+   */
+  getTodoItems(): {
+    title: string;
+    description: string;
+    link: string;
+    priority: string;
+  }[] {
+    const items: {
+      title: string;
+      description: string;
+      link: string;
+      priority: string;
+    }[] = [];
+
+    // 1. Opérations en attente de validation (trésorier/admin)
+    if (this.auth.isTresorier() && this.operationsEnAttente.length > 0) {
+      items.push({
+        title: `${this.operationsEnAttente.length} opération(s) en attente`,
+        description: 'Validez ou rejetez les opérations',
+        link: '/operations?statut=en_attente',
+        priority: 'warning',
+      });
+    }
+
+    // 2. Budgets en alerte
+    for (const b of this.budgetsEnAlerte.slice(0, 3)) {
+      items.push({
+        title: `Budget ${b.nom} ${b.tauxConsommation >= 100 ? 'dépassé' : 'en alerte'}`,
+        description: `${b.tauxConsommation}% consommé (${b.montantDepense.toLocaleString('fr-FR')} / ${b.montantPrevu.toLocaleString('fr-FR')} FCFA)`,
+        link: '/budgets',
+        priority: b.tauxConsommation >= 100 ? 'danger' : 'warning',
+      });
+    }
+
+    // 3. Première caisse pas encore créée
+    if (this.caisses.length === 0) {
+      items.push({
+        title: 'Créez votre première caisse',
+        description: 'Une caisse est nécessaire pour commencer',
+        link: '/caisses/nouveau',
+        priority: 'info',
+      });
+    }
+
+    // 4. Profil incomplet
+    if (
+      this.auth.isAdmin() &&
+      this.caisses.length > 0 &&
+      this.dernieresOperations.length === 0
+    ) {
+      items.push({
+        title: 'Complétez votre profil',
+        description: 'Ajoutez les informations de votre organisation',
+        link: '/parametres/organisation',
+        priority: 'info',
+      });
+    }
+
+    return items.slice(0, 5); // Max 5 items
   }
 }

@@ -581,3 +581,102 @@
 .animate-slide-in {
   animation: slideIn var(--duration-slow) var(--ease-out) both;
 }
+// ─── Onglets par caisse ────────────────────────────────────────────────
+.caisse-tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.caisse-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+
+  &:hover {
+    border-color: var(--navy-400);
+    color: var(--navy-600);
+  }
+
+  &--active {
+    background: var(--navy-600);
+    border-color: var(--navy-600);
+    color: white;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}
+
+// ─── Barre de validation en masse ──────────────────────────────────────
+.validation-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-white);
+  border-top: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  z-index: 500;
+  animation: slideUp 0.3s var(--ease-out);
+
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--navy-800);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+}
+
+// ─── Colonne checkbox ──────────────────────────────────────────────────
+.col-check {
+  width: 40px;
+  text-align: center;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--navy-600);
+  }
+}
+
+// ─── Ligne sélectionnée ────────────────────────────────────────────────
+.row--selected {
+  background: var(--navy-50) !important;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s var(--ease-out);
+}

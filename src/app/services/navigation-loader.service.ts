@@ -7,7 +7,6 @@ export class NavigationLoaderService {
   loading$ = this.loadingSubject.asObservable();
 
   show(): void {
-    // ✅ Ne pas bloquer le thread principal
     requestAnimationFrame(() => {
       this.loadingSubject.next(true);
     });

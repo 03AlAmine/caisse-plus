@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
 import { ToastrService } from 'ngx-toastr';
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from '@angular/fire/auth';
+import { Auth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-profil',
@@ -12,6 +14,7 @@ import { ToastrService } from 'ngx-toastr';
 export class ProfilComponent implements OnInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
+  private fireAuth = inject(Auth);
   private toastr = inject(ToastrService);
 
   user: User | null = null;
@@ -19,6 +22,7 @@ export class ProfilComponent implements OnInit {
   isEditing = false;
   saving = false;
   showPassword = false;
+  resettingPassword = false;
 
   form!: FormGroup;
 
@@ -70,6 +74,7 @@ export class ProfilComponent implements OnInit {
 
   getRoleLabel(role?: string): string {
     const roles: Record<string, string> = {
+      superadmin: 'Super Admin',
       admin: 'Administrateur',
       tresorier: 'Trésorier',
       auditeur: 'Auditeur',
@@ -84,6 +89,7 @@ export class ProfilComponent implements OnInit {
 
   cancelEditing(): void {
     this.isEditing = false;
+    this.showPassword = false;
     this.form.reset({
       displayName: this.user?.displayName || '',
       email: this.user?.email || '',
@@ -102,15 +108,48 @@ export class ProfilComponent implements OnInit {
     try {
       const val = this.form.value;
 
-      await this.auth.updateUserProfile({ displayName: val.displayName });
+      // Mettre à jour le nom
+      if (val.displayName !== this.user?.displayName) {
+        await this.auth.updateUserProfile({ displayName: val.displayName });
+      }
 
-      // TODO: Implémenter le changement de mot de passe dans AuthService
       if (val.newPassword) {
-        this.toastr.info('Le changement de mot de passe sera disponible prochainement');
+        const fireUser = this.fireAuth.currentUser;
+        if (fireUser && fireUser.email) {
+          // Réauthentifier avant de changer le mot de passe
+          const currentPassword = prompt('Pour des raisons de sécurité, veuillez entrer votre mot de passe actuel :');
+          if (!currentPassword) {
+            this.toastr.warning('Le mot de passe actuel est requis pour effectuer ce changement');
+            this.saving = false;
+            return;
+          }
+
+          try {
+            const credential = EmailAuthProvider.credential(fireUser.email, currentPassword);
+            await reauthenticateWithCredential(fireUser, credential);
+            await updatePassword(fireUser, val.newPassword);
+            this.toastr.success('Mot de passe modifié avec succès');
+          } catch (authError: any) {
+            if (authError.code === 'auth/wrong-password') {
+              this.toastr.error('Mot de passe actuel incorrect');
+            } else {
+              this.toastr.error('Erreur lors du changement de mot de passe. Réessayez.');
+            }
+            this.saving = false;
+            return;
+          }
+        }
       }
 
       this.toastr.success('Profil mis à jour avec succès');
       this.isEditing = false;
+      this.showPassword = false;
+      this.form.reset({
+        displayName: val.displayName || this.user?.displayName || '',
+        email: this.user?.email || '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
       this.loadUser();
     } catch (error: any) {
       this.toastr.error(error.message || 'Erreur lors de la mise à jour');
@@ -121,11 +160,14 @@ export class ProfilComponent implements OnInit {
 
   async resetPassword(): Promise<void> {
     if (!this.user?.email) return;
+    this.resettingPassword = true;
     try {
       await this.auth.resetPassword(this.user.email);
-      this.toastr.success('Email de réinitialisation envoyé');
+      this.toastr.success('Email de réinitialisation envoyé à ' + this.user.email);
     } catch {
-      this.toastr.error('Erreur lors de l\'envoi de l\'email');
+      this.toastr.error("Erreur lors de l'envoi de l'email");
+    } finally {
+      this.resettingPassword = false;
     }
   }
 }

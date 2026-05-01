@@ -78,6 +78,7 @@
       </div>
     </div>
   </header>
+
   <!-- Alerte d'erreur visible -->
   <div class="alert alert--danger animate-fade-in" *ngIf="showError">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -91,7 +92,6 @@
     </svg>
     <div class="alert__body">
       <strong>{{ errorMessage }}</strong>
-      <p>Veuillez choisir un type "Secondaire" pour cette caisse.</p>
     </div>
     <button class="alert__close" (click)="closeError()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -164,142 +164,12 @@
         </div>
       </div>
 
-      <!-- Type de caisse -->
       <div class="form-group">
         <label class="form-label">
-          Type de caisse
+          Rôle de la caisse
           <span class="form-label__required">*</span>
         </label>
-        <div class="type-selector">
-          <div
-            class="type-option"
-            [class.type-option--selected]="type.value === 'principale'"
-            (click)="
-              type.setValue('principale');
-              form.get('nom')?.setValue('Caisse principale');
-              form.get('role')?.setValue('Principale');
-              onTypeChange()
-            "
-          >
-            <div class="type-option__radio">
-              <div class="radio-dot" *ngIf="type.value === 'principale'"></div>
-            </div>
-            <div class="type-option__content">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <polygon
-                  points="10,1 13,8 20,8 14.5,12.5 16.5,20 10,15 3.5,20 5.5,12.5 0,8 7,8"
-                  fill="currentColor"
-                />
-              </svg>
-              <div class="type-option__info">
-                <span class="type-option__label">Principale</span>
-                <span class="type-option__desc"
-                  >Caisse centrale — une seule par organisation</span
-                >
-              </div>
-            </div>
-          </div>
 
-          <div
-            class="type-option"
-            [class.type-option--selected]="type.value === 'secondaire'"
-            (click)="type.setValue('secondaire'); onTypeChange()"
-          >
-            <div class="type-option__radio">
-              <div class="radio-dot" *ngIf="type.value === 'secondaire'"></div>
-            </div>
-            <div class="type-option__content">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect
-                  x="2.5"
-                  y="6.5"
-                  width="6"
-                  height="5"
-                  rx="1"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <rect
-                  x="11.5"
-                  y="6.5"
-                  width="6"
-                  height="5"
-                  rx="1"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <rect
-                  x="2.5"
-                  y="13.5"
-                  width="6"
-                  height="5"
-                  rx="1"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <rect
-                  x="11.5"
-                  y="13.5"
-                  width="6"
-                  height="5"
-                  rx="1"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-              </svg>
-              <div class="type-option__info">
-                <span class="type-option__label">Secondaire</span>
-                <span class="type-option__desc"
-                  >Budget pour une activité spécifique</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="type-option"
-            [class.type-option--selected]="type.value === 'libre'"
-            (click)="type.setValue('libre'); onTypeChange()"
-          >
-            <div class="type-option__radio">
-              <div class="radio-dot" *ngIf="type.value === 'libre'"></div>
-            </div>
-            <div class="type-option__content">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle
-                  cx="10"
-                  cy="10"
-                  r="7"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path
-                  d="M10 6v8M6 10h8"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <div class="type-option__info">
-                <span class="type-option__label">Libre</span>
-                <span class="type-option__desc"
-                  >Caisse sans rôle défini — flexible</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rôle de la caisse -->
-      <!-- Rôle de la caisse -->
-      <div
-        class="form-group"
-        *ngIf="type.value === 'secondaire' || type.value === 'libre'"
-      >
-        <label class="form-label">Rôle</label>
-
-        <!-- ✅ Nouveau : Grille de rôles visuels -->
         <div class="role-grid">
           <button
             type="button"
@@ -377,7 +247,7 @@
           </button>
         </div>
 
-        <!-- Lien pour voir tous les rôles -->
+        <!-- Voir tous les rôles -->
         <button
           type="button"
           class="role-show-all"
@@ -408,7 +278,7 @@
           </svg>
         </button>
 
-        <!-- Liste complète des rôles -->
+        <!-- Liste complète -->
         <div class="role-grid" *ngIf="showAllRoles">
           <button
             type="button"
@@ -425,6 +295,7 @@
           Nom suggéré : <strong>{{ suggestedName }}</strong>
         </div>
       </div>
+
       <!-- Description -->
       <div class="form-group">
         <label class="form-label">Description</label>
@@ -535,10 +406,10 @@
               }}</span>
               <span
                 class="badge"
-                [class.badge--navy]="type.value === 'principale'"
-                [class.badge--gray]="type.value === 'secondaire'"
+                [class.badge--navy]="form.get('role')?.value === 'Principale'"
+                [class.badge--gray]="form.get('role')?.value !== 'Principale'"
               >
-                {{ type.value === "principale" ? "Principale" : "Secondaire" }}
+                {{ form.get("role")?.value || "Caisse" }}
               </span>
             </div>
           </div>

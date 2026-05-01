@@ -74,7 +74,9 @@
         <button
           class="btn btn--secondary"
           (click)="showAlimenterModal = true"
-          *ngIf="caissesList.length >= 2"
+          *ngIf="
+            caissesList.length >= 2 && (comportement$ | async)?.transfertActif
+          "
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path
@@ -427,7 +429,6 @@
             </div>
           </div>
           <div class="list-row__cell list-row__cell--type">
-            <!-- ✅ Correction : caissePrincipale au lieu de c -->
             <span class="badge" [class.badge--navy]="true">
               {{
                 caissePrincipale.role ||
@@ -494,7 +495,6 @@
             </div>
           </div>
           <div class="list-row__cell list-row__cell--type">
-            <!-- ✅ Correct : utilise c (variable du *ngFor) -->
             <span
               class="badge"
               [class.badge--navy]="c.type === 'principale'"

@@ -19,7 +19,108 @@
     </header>
     <!-- Checklist de démarrage -->
     <app-getting-started-checklist></app-getting-started-checklist>
-    <!-- KPI Grid — ✅ Vocabulaire métier -->
+
+    <section
+      class="todo-section animate-fade-in"
+      *ngIf="getTodoItems().length > 0"
+    >
+      <div class="todo-card card">
+        <div class="todo-card__header">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path
+              d="M9 2l2.5 5 5.5.5-4 3.5 1 5.5L9 13.5 4.5 16.5l1-5.5-4-3.5 5.5-.5L9 2z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>À faire</span>
+          <span class="todo-card__count">{{ getTodoItems().length }}</span>
+        </div>
+        <div class="todo-card__list">
+          <a
+            class="todo-item"
+            *ngFor="let item of getTodoItems()"
+            [routerLink]="item.link"
+            [class.todo-item--warning]="item.priority === 'warning'"
+            [class.todo-item--danger]="item.priority === 'danger'"
+            [class.todo-item--info]="item.priority === 'info'"
+          >
+            <div class="todo-item__icon">
+              <svg
+                *ngIf="item.priority === 'warning'"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M8 2L14 13H2L8 2Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <svg
+                *ngIf="item.priority === 'danger'"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M8 5v3M8 11v.5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <svg
+                *ngIf="item.priority === 'info'"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                />
+                <path
+                  d="M8 5v3M8 10v.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <div class="todo-item__content">
+              <span class="todo-item__title">{{ item.title }}</span>
+              <span class="todo-item__desc">{{ item.description }}</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M3 7h8M8 4l3 3-3 3"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
     <section class="kpi-grid">
       <article
         class="kpi-card animate-fade-in stagger-{{ i + 1 }}"

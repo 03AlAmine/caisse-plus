@@ -609,6 +609,232 @@
           </button>
         </div>
       </div>
+
+      <!-- ═══ Section Vocabulaire ═══ -->
+      <div class="activite-section" *ngIf="currentTemplate && auth.isAdmin()">
+        <div class="activite-section__header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M2 4h12M2 8h12M2 12h8"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            Vocabulaire
+          </h3>
+          <p class="activite-section__hint">
+            Personnalisez les termes utilisés dans l'application
+          </p>
+        </div>
+        <form [formGroup]="vocabForm" class="vocab-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Entrées (singulier)</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="entree"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sorties (singulier)</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="sortie"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Entrées (pluriel)</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="entreePluriel"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sorties (pluriel)</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="sortiePluriel"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ═══ Section Comportements ═══ -->
+      <div class="activite-section" *ngIf="currentTemplate && auth.isAdmin()">
+        <div class="activite-section__header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle
+                cx="8"
+                cy="8"
+                r="2.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="M8 1v2M8 13v2M1 8h2M13 8h2"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            Options
+          </h3>
+          <p class="activite-section__hint">
+            Activez ou désactivez les fonctionnalités
+          </p>
+        </div>
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-item__info">
+              <span class="toggle-item__label">Transferts entre caisses</span>
+              <span class="toggle-item__desc"
+                >Permettre les transferts de fonds</span
+              >
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="comportement.transfertActif"
+                (change)="toggleComportement('transfertActif')"
+              />
+              <span class="switch__slider"></span>
+            </label>
+          </div>
+          <div class="toggle-item">
+            <div class="toggle-item__info">
+              <span class="toggle-item__label">Budgets par catégorie</span>
+              <span class="toggle-item__desc"
+                >Suivre les dépenses par catégorie</span
+              >
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="comportement.budgetParCategorie"
+                (change)="toggleComportement('budgetParCategorie')"
+              />
+              <span class="switch__slider"></span>
+            </label>
+          </div>
+          <div class="toggle-item">
+            <div class="toggle-item__info">
+              <span class="toggle-item__label">Alerte solde minimum</span>
+              <span class="toggle-item__desc"
+                >Bloquer si le solde est insuffisant</span
+              >
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="comportement.soldeMinimumActif"
+                (change)="toggleComportement('soldeMinimumActif')"
+              />
+              <span class="switch__slider"></span>
+            </label>
+          </div>
+          <div class="toggle-item">
+            <div class="toggle-item__info">
+              <span class="toggle-item__label">Validation des opérations</span>
+              <span class="toggle-item__desc"
+                >Workflow de validation trésorier</span
+              >
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="comportement.validationActive"
+                (change)="toggleComportement('validationActive')"
+              />
+              <span class="switch__slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Bouton sauvegarder -->
+        <div class="activite-actions" *ngIf="hasConfigChanges">
+          <button class="btn btn--secondary btn--sm" (click)="resetConfig()">
+            Annuler
+          </button>
+          <button
+            class="btn btn--primary btn--sm"
+            (click)="saveConfig()"
+            [disabled]="savingConfig"
+          >
+            <span *ngIf="!savingConfig">Enregistrer</span>
+            <span *ngIf="savingConfig" class="btn-spinner"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ✅ Seuil de validation -->
+      <div class="activite-section" *ngIf="auth.isAdmin()">
+        <div class="activite-section__header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M8 2L14 13H2L8 2Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8 6v3M8 11v.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            Seuil de validation
+          </h3>
+          <p class="activite-section__hint">
+            Les opérations dont le montant dépasse ce seuil seront mises en
+            attente de validation
+          </p>
+        </div>
+
+        <div class="seuil-config">
+          <div class="seuil-input-wrapper">
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="seuilValidation"
+              min="0"
+              step="10000"
+              placeholder="100 000"
+            />
+            <span class="seuil-suffix">FCFA</span>
+          </div>
+          <div class="seuil-hint">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle
+                cx="6"
+                cy="6"
+                r="5"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M6 3v3M6 8v.5"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+            </svg>
+            Actuellement :
+            <strong>{{ seuilValidation | number: "1.0-0" }} FCFA</strong>
+          </div>
+        </div>
+      </div>
     </div>
   </ng-container>
 </div>

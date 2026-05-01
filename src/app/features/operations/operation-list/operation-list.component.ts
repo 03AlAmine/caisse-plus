@@ -25,7 +25,10 @@ export class OperationListComponent implements OnInit, OnDestroy {
   operationsFiltered: Operation[] = [];
   caisses: Caisse[] = [];
   loading = true;
+  selectedOps: Set<string> = new Set();
+  showValidationBar = false;
 
+  selectedCaisseTab: string = 'toutes';
   Math = Math;
 
   filtreStatut = 'tous';
@@ -44,18 +47,19 @@ export class OperationListComponent implements OnInit, OnDestroy {
   private opsSub?: Subscription;
   private userSub?: Subscription;
 
-private vocabulaireService = inject(VocabulaireService);
+  private vocabulaireService = inject(VocabulaireService);
+  comportement$ = this.vocabulaireService.comportement$;
 
-get v(): VocabulaireMetier {
-  return this.vocabulaireService.vocabulaire;
-}
+  get v(): VocabulaireMetier {
+    return this.vocabulaireService.vocabulaire;
+  }
 
-ngOnInit(): void {
-  this.vocabulaireService.loadVocabulaire();    // Attendre que le profil utilisateur soit chargé avant de lancer les requêtes Firestore
+  ngOnInit(): void {
+    this.vocabulaireService.loadVocabulaire(); // Attendre que le profil utilisateur soit chargé avant de lancer les requêtes Firestore
     this.userSub = this.auth.currentUser$
       .pipe(
-        filter(user => user !== null && !!user.organisationId),
-        take(1)
+        filter((user) => user !== null && !!user.organisationId),
+        take(1),
       )
       .subscribe(() => {
         this.loadData();
@@ -72,7 +76,7 @@ ngOnInit(): void {
     this.loading = true;
     this.opsSub?.unsubscribe();
     this.opsSub = this.opService.getAll().subscribe({
-      next: ops => {
+      next: (ops) => {
         this.operationsRaw = ops;
         this.applyFiltres();
         this.calculateEvolution();
@@ -82,27 +86,33 @@ ngOnInit(): void {
         console.error('Erreur chargement opérations:', err);
         this.toastr.error('Impossible de charger les opérations');
         this.loading = false;
-      }
+      },
     });
   }
 
   private loadCaisses(): void {
-    this.caisseService.getAll().subscribe(c => this.caisses = c);
+    this.caisseService.getAll().subscribe((c) => (this.caisses = c));
   }
 
   get totalEntrees(): number {
     return this.operationsFiltered
-      .filter(o => o.statut === 'validee' &&
-        (o.type === 'entree' ||
-        (o.type === 'transfert' && (o.sens === 'entree'))))
+      .filter(
+        (o) =>
+          o.statut === 'validee' &&
+          (o.type === 'entree' ||
+            (o.type === 'transfert' && o.sens === 'entree')),
+      )
       .reduce((s, o) => s + o.montant, 0);
   }
 
   get totalSorties(): number {
     return this.operationsFiltered
-      .filter(o => o.statut === 'validee' &&
-        (o.type === 'sortie' ||
-        (o.type === 'transfert' && (o.sens === 'sortie'))))
+      .filter(
+        (o) =>
+          o.statut === 'validee' &&
+          (o.type === 'sortie' ||
+            (o.type === 'transfert' && o.sens === 'sortie')),
+      )
       .reduce((s, o) => s + o.montant, 0);
   }
 
@@ -111,18 +121,26 @@ ngOnInit(): void {
   }
 
   get nbEnAttente(): number {
-    return this.operationsFiltered.filter(o => o.statut === 'en_attente').length;
+    return this.operationsFiltered.filter((o) => o.statut === 'en_attente')
+      .length;
   }
 
   applyFiltres(): void {
-    this.operationsFiltered = this.operationsRaw.filter(op => {
-      const statutOk = this.filtreStatut === 'tous' || op.statut === this.filtreStatut;
+    this.operationsFiltered = this.operationsRaw.filter((op) => {
+      const statutOk =
+        this.filtreStatut === 'tous' || op.statut === this.filtreStatut;
       const typeOk = this.filtreType === 'tous' || op.type === this.filtreType;
-      const caisseOk = this.filtreCaisseId === 'toutes' || op.caisseId === this.filtreCaisseId;
-      const searchOk = !this.filtreSearch ||
+      const caisseOk =
+        this.filtreCaisseId === 'toutes' || op.caisseId === this.filtreCaisseId;
+      const searchOk =
+        !this.filtreSearch ||
         op.libelle?.toLowerCase().includes(this.filtreSearch.toLowerCase()) ||
-        (op.responsableNom ?? '').toLowerCase().includes(this.filtreSearch.toLowerCase()) ||
-        (op.numeroPiece ?? '').toLowerCase().includes(this.filtreSearch.toLowerCase());
+        (op.responsableNom ?? '')
+          .toLowerCase()
+          .includes(this.filtreSearch.toLowerCase()) ||
+        (op.numeroPiece ?? '')
+          .toLowerCase()
+          .includes(this.filtreSearch.toLowerCase());
       const dateOk = this.checkDate(op);
       return statutOk && typeOk && caisseOk && searchOk && dateOk;
     });
@@ -131,7 +149,8 @@ ngOnInit(): void {
   private checkDate(op: Operation): boolean {
     if (!this.filtreDateDebut && !this.filtreDateFin) return true;
     const d = this.toDate(op.date);
-    if (this.filtreDateDebut && d < new Date(this.filtreDateDebut)) return false;
+    if (this.filtreDateDebut && d < new Date(this.filtreDateDebut))
+      return false;
     if (this.filtreDateFin) {
       const fin = new Date(this.filtreDateFin);
       fin.setHours(23, 59, 59);
@@ -146,45 +165,71 @@ ngOnInit(): void {
     const currentYear = now.getFullYear();
 
     const currentEntrees = this.operationsRaw
-      .filter(o => o.type === 'entree' && o.statut === 'validee' &&
-            this.toDate(o.date).getMonth() === currentMonth &&
-            this.toDate(o.date).getFullYear() === currentYear)
+      .filter(
+        (o) =>
+          o.type === 'entree' &&
+          o.statut === 'validee' &&
+          this.toDate(o.date).getMonth() === currentMonth &&
+          this.toDate(o.date).getFullYear() === currentYear,
+      )
       .reduce((s, o) => s + o.montant, 0);
 
     const lastMonthEntrees = this.operationsRaw
-      .filter(o => o.type === 'entree' && o.statut === 'validee' &&
-            this.toDate(o.date).getMonth() === (currentMonth === 0 ? 11 : currentMonth - 1) &&
-            this.toDate(o.date).getFullYear() === (currentMonth === 0 ? currentYear - 1 : currentYear))
+      .filter(
+        (o) =>
+          o.type === 'entree' &&
+          o.statut === 'validee' &&
+          this.toDate(o.date).getMonth() ===
+            (currentMonth === 0 ? 11 : currentMonth - 1) &&
+          this.toDate(o.date).getFullYear() ===
+            (currentMonth === 0 ? currentYear - 1 : currentYear),
+      )
       .reduce((s, o) => s + o.montant, 0);
 
     if (lastMonthEntrees > 0) {
-      this.evolutionEntrees = Math.round((currentEntrees - lastMonthEntrees) / lastMonthEntrees * 100);
+      this.evolutionEntrees = Math.round(
+        ((currentEntrees - lastMonthEntrees) / lastMonthEntrees) * 100,
+      );
     }
 
     const currentSorties = this.operationsRaw
-      .filter(o => o.type === 'sortie' && o.statut === 'validee' &&
-            this.toDate(o.date).getMonth() === currentMonth &&
-            this.toDate(o.date).getFullYear() === currentYear)
+      .filter(
+        (o) =>
+          o.type === 'sortie' &&
+          o.statut === 'validee' &&
+          this.toDate(o.date).getMonth() === currentMonth &&
+          this.toDate(o.date).getFullYear() === currentYear,
+      )
       .reduce((s, o) => s + o.montant, 0);
 
     const lastMonthSorties = this.operationsRaw
-      .filter(o => o.type === 'sortie' && o.statut === 'validee' &&
-            this.toDate(o.date).getMonth() === (currentMonth === 0 ? 11 : currentMonth - 1) &&
-            this.toDate(o.date).getFullYear() === (currentMonth === 0 ? currentYear - 1 : currentYear))
+      .filter(
+        (o) =>
+          o.type === 'sortie' &&
+          o.statut === 'validee' &&
+          this.toDate(o.date).getMonth() ===
+            (currentMonth === 0 ? 11 : currentMonth - 1) &&
+          this.toDate(o.date).getFullYear() ===
+            (currentMonth === 0 ? currentYear - 1 : currentYear),
+      )
       .reduce((s, o) => s + o.montant, 0);
 
     if (lastMonthSorties > 0) {
-      this.evolutionSorties = Math.round((currentSorties - lastMonthSorties) / lastMonthSorties * 100);
+      this.evolutionSorties = Math.round(
+        ((currentSorties - lastMonthSorties) / lastMonthSorties) * 100,
+      );
     }
   }
 
   hasActiveFilters(): boolean {
-    return this.filtreStatut !== 'tous' ||
-           this.filtreType !== 'tous' ||
-           this.filtreCaisseId !== 'toutes' ||
-           !!this.filtreSearch ||
-           !!this.filtreDateDebut ||
-           !!this.filtreDateFin;
+    return (
+      this.filtreStatut !== 'tous' ||
+      this.filtreType !== 'tous' ||
+      this.filtreCaisseId !== 'toutes' ||
+      !!this.filtreSearch ||
+      !!this.filtreDateDebut ||
+      !!this.filtreDateFin
+    );
   }
 
   toDate(val: any): Date {
@@ -204,7 +249,7 @@ ngOnInit(): void {
   }
 
   getCaisseColor(caisseId: string): string {
-    const caisse = this.caisses.find(c => c.id === caisseId);
+    const caisse = this.caisses.find((c) => c.id === caisseId);
     return caisse?.couleur || 'var(--color-gray-400)';
   }
 
@@ -223,7 +268,9 @@ ngOnInit(): void {
 
     try {
       await this.opService.rejeter(op.id!);
-      this.toastr.warning(`Opération "${op.libelle}" rejetée${reason ? ` : ${reason}` : ''}`);
+      this.toastr.warning(
+        `Opération "${op.libelle}" rejetée${reason ? ` : ${reason}` : ''}`,
+      );
     } catch {
       this.toastr.error('Erreur lors du rejet');
     }
@@ -233,7 +280,7 @@ ngOnInit(): void {
   openDetail(op: Operation): void {
     this.selectedOperation = {
       ...op,
-      date:      this.toDate(op.date),
+      date: this.toDate(op.date),
       createdAt: this.toDate(op.createdAt),
     };
   }
@@ -249,8 +296,17 @@ ngOnInit(): void {
   }
 
   exportToCSV(): void {
-    const headers = ['Date', 'Libellé', 'Caisse', 'Catégorie', 'Type', 'Statut', 'Montant', 'Responsable'];
-    const rows = this.operationsFiltered.map(op => [
+    const headers = [
+      'Date',
+      'Libellé',
+      'Caisse',
+      'Catégorie',
+      'Type',
+      'Statut',
+      'Montant',
+      'Responsable',
+    ];
+    const rows = this.operationsFiltered.map((op) => [
       this.toDate(op.date).toLocaleDateString('fr-FR'),
       op.libelle,
       op.caisseNom || '',
@@ -258,11 +314,15 @@ ngOnInit(): void {
       op.type,
       op.statut,
       op.montant.toString(),
-      op.responsableNom || ''
+      op.responsableNom || '',
     ]);
 
-    const csvContent = [headers, ...rows].map(row => row.join(';')).join('\n');
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(';'))
+      .join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.href = url;
@@ -270,5 +330,77 @@ ngOnInit(): void {
     link.click();
     URL.revokeObjectURL(url);
     this.toastr.success('Export CSV effectué');
+  }
+
+  get caisseTabs(): { id: string; nom: string; couleur: string }[] {
+    return this.caisses.map((c) => ({
+      id: c.id!,
+      nom: c.nom,
+      couleur: c.couleur || 'var(--gray-400)',
+    }));
+  }
+
+  filterByCaisseTab(): void {
+    if (this.selectedCaisseTab === 'toutes') {
+      this.filtreCaisseId = 'toutes';
+    } else {
+      this.filtreCaisseId = this.selectedCaisseTab;
+    }
+    this.applyFiltres();
+  }
+
+  toggleOpSelection(op: Operation): void {
+    if (!op.id) return;
+    if (this.selectedOps.has(op.id)) {
+      this.selectedOps.delete(op.id);
+    } else {
+      this.selectedOps.add(op.id);
+    }
+    this.showValidationBar = this.selectedOps.size > 0;
+  }
+
+  isOpSelected(op: Operation): boolean {
+    return !!op.id && this.selectedOps.has(op.id);
+  }
+
+  selectAllPending(): void {
+    const pendingOps = this.operationsFiltered.filter(
+      (o) => o.statut === 'en_attente',
+    );
+    if (this.selectedOps.size === pendingOps.length) {
+      this.selectedOps.clear();
+      this.showValidationBar = false;
+    } else {
+      pendingOps.forEach((o) => {
+        if (o.id) this.selectedOps.add(o.id);
+      });
+      this.showValidationBar = this.selectedOps.size > 0;
+    }
+  }
+
+  async validerSelection(): Promise<void> {
+    const ids = Array.from(this.selectedOps);
+    if (ids.length === 0) return;
+
+    try {
+      await this.opService.validerBatch(ids);
+
+      this.toastr.success(`${ids.length} opération(s) validée(s) avec succès`);
+      this.selectedOps.clear();
+      this.showValidationBar = false;
+      this.loadData();
+    } catch (err: any) {
+      this.toastr.error(err.message || 'Erreur lors de la validation');
+    }
+  }
+  /**
+   *  Vérifie si toutes les opérations en attente sont sélectionnées
+   */
+  allPendingSelected(): boolean {
+    const pendingOps = this.operationsFiltered.filter(
+      (o) => o.statut === 'en_attente',
+    );
+    if (pendingOps.length === 0) return false;
+    return pendingOps.every((o) => o.id && this.selectedOps.has(o.id));
   }
 }

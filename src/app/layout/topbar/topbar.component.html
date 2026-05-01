@@ -37,10 +37,55 @@
       </svg>
     </button>
 
+    <!-- Dans topbar__left, après le greeting -->
     <div class="topbar__page-title" *ngIf="auth.currentUser$ | async as user">
       <span class="topbar__greeting"
         >Bonjour, {{ getUserDisplayName(user) }}</span
       >
+      <!-- ✅ Indicateur online/offline -->
+      <span
+        class="topbar__status"
+        [class.topbar__status--offline]="!(connectivity.online$ | async)"
+        [class.topbar__status--online]="connectivity.online$ | async"
+      >
+        <svg
+          *ngIf="connectivity.online$ | async"
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+          fill="none"
+        >
+          <circle cx="4" cy="4" r="3" fill="#10B981" />
+        </svg>
+        <svg
+          *ngIf="!(connectivity.online$ | async)"
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+          fill="none"
+        >
+          <circle cx="4" cy="4" r="3" fill="#EF4444" />
+        </svg>
+        {{ (connectivity.online$ | async) ? "En ligne" : "Hors ligne" }}
+      </span>
+      <span
+        class="topbar__solde"
+        *ngIf="soldeTotal !== null"
+        [class.topbar__solde--neg]="soldeTotal < 0"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect
+            x="2"
+            y="3.5"
+            width="10"
+            height="8"
+            rx="1.5"
+            stroke="currentColor"
+            stroke-width="1.2"
+          />
+        </svg>
+        {{ soldeTotal | number: "1.0-0" }} FCFA
+      </span>
     </div>
   </div>
 

@@ -19,7 +19,6 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideStorage, getStorage } from '@angular/fire/storage';
 
-// ✅ Service Worker pour PWA
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 registerLocaleData(localeFr);
@@ -44,13 +43,11 @@ registerLocaleData(localeFr);
       progressBar: true,
     }),
 
-    // ✅ Service Worker (PWA) — UNE SEULE FOIS
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
       registrationStrategy: 'registerWhenStable:30000'
     }),
 
-    // ✅ Firebase config moderne
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),

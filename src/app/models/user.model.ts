@@ -1,3 +1,5 @@
+import { TemplateComportement } from "./templates.data";
+
 export type UserRole =
   | 'superadmin'
   | 'admin'
@@ -33,6 +35,7 @@ export interface Organisation {
   actif?: boolean;
   invitationCode?: string;
   invitationCodeExpiresAt?: Date;
+  comportement?: TemplateComportement;
 }
 
 // ─── Matrice complète des permissions ───────────────────────────────────────
@@ -48,7 +51,13 @@ export const PERMISSIONS = {
   CAISSE_TRANSFERER: ['superadmin', 'admin', 'tresorier'],
 
   // Opérations
-  OPERATION_LIRE: ['superadmin', 'admin', 'tresorier', 'auditeur', 'utilisateur'],
+  OPERATION_LIRE: [
+    'superadmin',
+    'admin',
+    'tresorier',
+    'auditeur',
+    'utilisateur',
+  ],
   OPERATION_CREER: ['superadmin', 'admin', 'tresorier', 'utilisateur'],
   OPERATION_VALIDER: ['superadmin', 'admin', 'tresorier'],
   OPERATION_REJETER: ['superadmin', 'admin', 'tresorier'],

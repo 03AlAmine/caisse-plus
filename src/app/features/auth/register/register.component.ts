@@ -12,6 +12,7 @@ import {
   TEMPLATES,
   ActiviteTemplate,
   getAllCategoriesFromTemplate,
+  CategorieTemplate,
 } from '../../../models/templates.data';
 import { ToastrService } from 'ngx-toastr';
 
@@ -25,23 +26,23 @@ export class RegisterComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
+
   // Données
   templates = TEMPLATES;
   selectedTemplate: ActiviteTemplate | null = null;
   templatePreview: { nom: string; type: string; couleur: string }[] = [];
 
+  step = 1; // 1=Infos, 2=Template, 3=Catégories, 4=Organisation
+  totalSteps = 4;
+  selectedCategories: Map<string, boolean> = new Map();
+
   form: FormGroup = this.fb.group(
     {
-      // Étape 1 : Infos personnelles
       displayName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
-
-      // Étape 2 : Template
       templateId: ['', Validators.required],
-
-      // Étape 3 : Organisation
       typeInscription: ['nouvelle', Validators.required],
       organisationNom: ['', [Validators.minLength(3)]],
       organisationId: [''],
@@ -53,11 +54,8 @@ export class RegisterComponent implements OnInit {
   loading = false;
   errorMessage = '';
   showPassword = false;
-  step = 1; // 1 = Infos, 2 = Template, 3 = Organisation
-  totalSteps = 3;
 
   ngOnInit(): void {
-    // Mettre à jour les validateurs en fonction du type d'inscription
     this.form.get('typeInscription')?.valueChanges.subscribe((value) => {
       this.updateOrganisationValidators(value);
     });
@@ -147,7 +145,6 @@ export class RegisterComponent implements OnInit {
 
   nextStep(): void {
     if (this.step === 1) {
-      // Valider les champs de l'étape 1
       this.displayName.markAsTouched();
       this.email.markAsTouched();
       this.password.markAsTouched();
@@ -163,13 +160,16 @@ export class RegisterComponent implements OnInit {
         this.errorMessage = '';
       }
     } else if (this.step === 2) {
-      // Valider le choix du template
       if (!this.selectedTemplate) {
         this.errorMessage = "Veuillez choisir un modèle d'activité";
         return;
       }
       this.form.patchValue({ templateId: this.selectedTemplate.id });
+      this.initCategorySelection();
       this.step = 3;
+      this.errorMessage = '';
+    } else if (this.step === 3) {
+      this.step = 4;
       this.errorMessage = '';
     }
   }
@@ -188,7 +188,6 @@ export class RegisterComponent implements OnInit {
     this.form.patchValue({ templateId: template.id });
     this.errorMessage = '';
 
-    // Préparer l'aperçu des catégories (max 8)
     const allCategories = getAllCategoriesFromTemplate(template);
     this.templatePreview = allCategories.slice(0, 8).map((cat) => ({
       nom: cat.nom,
@@ -214,6 +213,39 @@ export class RegisterComponent implements OnInit {
       custom: 'M12 2l3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1 3-6zM12 2v20',
     };
     return icons[icon] || 'M12 2l3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1 3-6z';
+  }
+
+  // ─── Gestion des catégories (étape 3) ──────────────────────────────────
+
+  private initCategorySelection(): void {
+    if (!this.selectedTemplate) return;
+    const allCategories = getAllCategoriesFromTemplate(this.selectedTemplate);
+    this.selectedCategories.clear();
+    allCategories.forEach((cat) => {
+      this.selectedCategories.set(cat.nom, true);
+    });
+  }
+
+  getTemplateCategories(): CategorieTemplate[] {
+    if (!this.selectedTemplate) return [];
+    return getAllCategoriesFromTemplate(this.selectedTemplate);
+  }
+
+  toggleCategory(nom: string): void {
+    const current = this.selectedCategories.get(nom) ?? true;
+    this.selectedCategories.set(nom, !current);
+  }
+
+  get selectedCategoriesCount(): number {
+    let count = 0;
+    this.selectedCategories.forEach((v) => {
+      if (v) count++;
+    });
+    return count;
+  }
+
+  get totalCategoriesCount(): number {
+    return this.selectedCategories.size;
   }
 
   // ─── Soumission ────────────────────────────────────────────────────────
@@ -257,22 +289,14 @@ export class RegisterComponent implements OnInit {
         );
       }
 
-      // ✅ Rediriger vers les paramètres de l'organisation pour compléter le profil
       this.auth.isAuthenticated$
         .pipe(
           filter((isAuth) => isAuth === true),
           take(1),
         )
         .subscribe(() => {
-          if (type === 'nouvelle') {
-            // ✅ Forcer l'affichage du modal de bienvenue après inscription
-            localStorage.removeItem('caisseplus_welcome_seen');
-
-            // Rediriger vers le dashboard (le modal s'affichera automatiquement)
-            this.router.navigate(['/dashboard']);
-          } else {
-            this.router.navigate(['/dashboard']);
-          }
+          localStorage.removeItem('caisseplus_welcome_seen');
+          this.router.navigate(['/dashboard']);
         });
     } catch (err: any) {
       this.errorMessage = this.getFirebaseError(err.code || err.message);

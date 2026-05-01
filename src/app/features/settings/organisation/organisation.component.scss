@@ -397,3 +397,156 @@
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
+// ─── Formulaire vocabulaire ────────────────────────────────────────────
+.vocab-form {
+  margin-top: var(--space-2);
+}
+
+// ─── Liste de toggles ──────────────────────────────────────────────────
+.toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--gray-50);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &__info {
+    flex: 1;
+    padding-right: var(--space-4);
+  }
+
+  &__label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 1px;
+  }
+
+  &__desc {
+    font-size: var(--text-xs);
+    color: var(--gray-400);
+  }
+}
+
+// ─── Form row ──────────────────────────────────────────────────────────
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ─── Actions ───────────────────────────────────────────────────────────
+.activite-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+// ─── Interrupteur (Switch) ─────────────────────────────────────────────
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .switch__slider {
+      background: var(--navy-600);
+    }
+
+    &:checked + .switch__slider::before {
+      transform: translateX(20px);
+    }
+  }
+
+  &__slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gray-300);
+    border-radius: 24px;
+    transition: background var(--duration-fast);
+
+    &::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform var(--duration-fast);
+    }
+  }
+}
+// ─── Seuil de validation ──────────────────────────────────────────────
+.seuil-config {
+  margin-top: var(--space-2);
+}
+
+.seuil-input-wrapper {
+  display: flex;
+  align-items: center;
+  max-width: 250px;
+
+  .form-control {
+    flex: 1;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    font-weight: 600;
+  }
+
+  .seuil-suffix {
+    padding: 0 var(--space-4);
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-500);
+    height: 42px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.seuil-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--gray-500);
+
+  strong {
+    font-family: var(--font-mono);
+    color: var(--navy-700);
+  }
+}

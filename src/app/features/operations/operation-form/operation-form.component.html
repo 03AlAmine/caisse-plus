@@ -68,7 +68,6 @@
     <!-- Formulaire principal -->
     <div class="card form-card animate-slide-in">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <!-- Type d'opération — ✅ Vocabulaire métier -->
         <div class="form-group">
           <label class="form-label">
             Type d'opération
@@ -114,7 +113,9 @@
               class="type-tab"
               [class.type-tab--active]="form.get('type')?.value === 'transfert'"
               (click)="form.get('type')?.setValue('transfert')"
-              *ngIf="auth.isTresorier()"
+              *ngIf="
+                auth.isTresorier() && (comportement$ | async)?.transfertActif
+              "
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path
@@ -150,7 +151,6 @@
             "
             placeholder="Ex: Achat de fournitures, Cotisation mensuelle..."
           />
-          <!-- ✅ Suggestions de libellé -->
           <div class="libelle-suggestions" *ngIf="suggestedLibelles.length > 0">
             <button
               type="button"
@@ -259,30 +259,13 @@
           </div>
 
           <!-- Avertissement validation -->
-          <div
-            class="alert alert--warning alert--sm"
-            *ngIf="montant.value >= 100000 && !auth.isTresorier() && !isEdit"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M8 2L14 13H2L8 2Z"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M8 6v3M8 11v.5"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </svg>
-            <span
-              >Montant ≥ 100 000 FCFA — cette opération sera soumise à
-              validation.</span
-            >
-          </div>
-
+<div class="alert alert--warning alert--sm" *ngIf="montant.value >= seuilValidation && !auth.isTresorier() && !isEdit">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M8 6v3M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <span>Montant ≥ {{ seuilValidation | number:'1.0-0' }} FCFA — cette opération sera soumise à validation.</span>
+</div>
           <!-- Indicateur de solde -->
           <div
             class="alert alert--danger alert--sm"
@@ -323,7 +306,6 @@
             <span class="form-label__required">*</span>
           </label>
 
-          <!-- ✅ Grille visuelle des caisses -->
           <div class="caisse-grid">
             <button
               type="button"
@@ -433,7 +415,6 @@
             <span class="form-label__required">*</span>
           </label>
 
-          <!-- ✅ Grille visuelle des catégories -->
           <div class="categorie-grid">
             <button
               type="button"
@@ -667,7 +648,6 @@
           <a routerLink="/operations" class="btn btn--secondary btn--lg"
             >Annuler</a
           >
-          <!-- Bouton de soumission — ✅ Vocabulaire métier -->
           <button
             type="submit"
             class="btn btn--primary btn--lg"

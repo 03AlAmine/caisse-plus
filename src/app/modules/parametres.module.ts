@@ -6,7 +6,6 @@ import { UtilisateursComponent } from '../features/settings/utilisateurs/utilisa
 import { CategoriesParamComponent } from '../features/settings/categories/categories-param.component';
 import { OrganisationComponent } from '../features/settings/organisation/organisation.component';
 import { PreferencesComponent } from '../features/settings/preferences/preferences.component';
-
 const routes: Routes = [
   {
     path: '',

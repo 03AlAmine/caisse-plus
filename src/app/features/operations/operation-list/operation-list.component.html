@@ -42,7 +42,7 @@
     </div>
   </header>
 
-  <!-- Stats strip — ✅ Vocabulaire métier -->
+  <!-- Stats strip -->
   <div class="stats-strip animate-fade-in">
     <div class="stat-card stat-card--entree">
       <div class="stat-card__icon">
@@ -173,7 +173,37 @@
     </div>
   </div>
 
-  <!-- Filtres — ✅ Vocabulaire métier -->
+  <div class="caisse-tabs animate-fade-in" *ngIf="caisses.length > 1">
+    <button
+      class="caisse-tab"
+      [class.caisse-tab--active]="selectedCaisseTab === 'toutes'"
+      (click)="selectedCaisseTab = 'toutes'; filterByCaisseTab()"
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect
+          x="1.5"
+          y="3.5"
+          width="11"
+          height="8"
+          rx="1.5"
+          stroke="currentColor"
+          stroke-width="1.2"
+        />
+      </svg>
+      Toutes
+    </button>
+    <button
+      class="caisse-tab"
+      *ngFor="let c of caisseTabs"
+      [class.caisse-tab--active]="selectedCaisseTab === c.id"
+      (click)="selectedCaisseTab = c.id; filterByCaisseTab()"
+    >
+      <span class="caisse-tab__dot" [style.background]="c.couleur"></span>
+      {{ c.nom }}
+    </button>
+  </div>
+
+  <!-- Filtres -->
   <div class="filter-panel card animate-slide-in">
     <div class="filter-panel__row">
       <div class="filter-search">
@@ -315,12 +345,51 @@
     </div>
   </div>
 
+  <div
+    class="validation-bar animate-slide-up"
+    *ngIf="showValidationBar && auth.isTresorier()"
+  >
+    <div class="validation-bar__content">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path
+          d="M2 8L7 13L16 3"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span
+        ><strong>{{ selectedOps.size }}</strong> opération(s)
+        sélectionnée(s)</span
+      >
+    </div>
+    <div class="validation-bar__actions">
+      <button
+        class="btn btn--secondary btn--xs"
+        (click)="selectedOps.clear(); showValidationBar = false"
+      >
+        Annuler
+      </button>
+      <button class="btn btn--success btn--sm" (click)="validerSelection()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path
+            d="M2 7L6 11L12 3"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
+        Valider la sélection
+      </button>
+    </div>
+  </div>
+
   <!-- Loading -->
   <div class="loading-center" *ngIf="loading">
     <span class="spinner"></span>
   </div>
 
-  <!-- Tableau — ✅ Vocabulaire métier -->
+  <!-- Tableau -->
   <ng-container *ngIf="!loading">
     <div
       class="table-wrapper card"
@@ -329,6 +398,14 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th class="col-check" *ngIf="auth.isTresorier()">
+              <input
+                type="checkbox"
+                [checked]="allPendingSelected()"
+                (change)="selectAllPending()"
+                title="Tout sélectionner"
+              />
+            </th>
             <th>N° Pièce</th>
             <th>Date</th>
             <th>Libellé</th>
@@ -346,7 +423,20 @@
             *ngFor="let op of operationsFiltered"
             [class.row--pending]="op.statut === 'en_attente'"
             [class.row--rejected]="op.statut === 'rejetee'"
+            [class.row--selected]="isOpSelected(op)"
           >
+            <td
+              class="col-check"
+              *ngIf="auth.isTresorier()"
+              (click)="$event.stopPropagation()"
+            >
+              <input
+                type="checkbox"
+                [checked]="isOpSelected(op)"
+                (change)="toggleOpSelection(op)"
+                *ngIf="op.statut === 'en_attente'"
+              />
+            </td>
             <td>
               <span class="piece-badge" *ngIf="op.numeroPiece">{{
                 op.numeroPiece
@@ -406,7 +496,6 @@
               </div>
             </td>
             <td>
-              <!-- ✅ Vocabulaire métier pour le type -->
               <span
                 class="type-badge"
                 [class.type-badge--entree]="op.type === 'entree'"
@@ -598,7 +687,7 @@
     </ng-template>
   </ng-container>
 
-  <!-- Modal détail opération — ✅ Vocabulaire métier -->
+  <!-- Modal détail opération -->
   <div class="modal-overlay" *ngIf="selectedOperation" (click)="closeDetail()">
     <div class="modal modal--detail" (click)="$event.stopPropagation()">
       <div
@@ -736,7 +825,6 @@
 
           <div class="detail-grid__row">
             <span class="detail-grid__label">Type</span>
-            <!-- ✅ Vocabulaire métier -->
             <span class="detail-grid__val">
               {{
                 selectedOperation.type === "entree"

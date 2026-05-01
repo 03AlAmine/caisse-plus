@@ -51,15 +51,27 @@ export class CaisseService {
     }) as Observable<Caisse>;
   }
 
-  // Créer une caisse
+  private async deduireType(): Promise<'principale' | 'secondaire'> {
+    const caisses = await firstValueFrom(this.getAll());
+    const hasPrincipale = caisses.some(
+      (c) => c.type === 'principale' && c.actif === true,
+    );
+    return hasPrincipale ? 'secondaire' : 'principale';
+  }
+
   async create(
-    data: Omit<Caisse, 'id' | 'organisationId' | 'createdAt'>,
+    data: Omit<Caisse, 'id' | 'organisationId' | 'createdAt' | 'type'> & {
+      type?: string;
+    },
   ): Promise<string> {
+    if (!data.type) {
+      data.type = await this.deduireType();
+    }
+
     // Vérifier qu'il n'existe pas déjà une caisse principale
     if (data.type === 'principale') {
       const caisses = await firstValueFrom(this.getAll());
       const hasPrincipale = caisses.some((c) => c.type === 'principale');
-
       if (hasPrincipale) {
         throw new Error('Une caisse principale existe déjà.');
       }
@@ -67,6 +79,7 @@ export class CaisseService {
 
     const ref = await addDoc(this.col, {
       ...data,
+      type: data.type, 
       solde: 0,
       organisationId: this.orgId,
       actif: true,
@@ -112,10 +125,16 @@ export class CaisseService {
       }
 
       const sourceNom = srcSnap.data()?.['nom'] ?? 'Caisse source';
-      const destNom   = dstSnap.data()?.['nom'] ?? 'Caisse destination';
+      const destNom = dstSnap.data()?.['nom'] ?? 'Caisse destination';
 
-      tx.update(srcRef, { solde: increment(-montant), updatedAt: serverTimestamp() });
-      tx.update(dstRef, { solde: increment(montant),  updatedAt: serverTimestamp() });
+      tx.update(srcRef, {
+        solde: increment(-montant),
+        updatedAt: serverTimestamp(),
+      });
+      tx.update(dstRef, {
+        solde: increment(montant),
+        updatedAt: serverTimestamp(),
+      });
 
       const now = serverTimestamp();
 

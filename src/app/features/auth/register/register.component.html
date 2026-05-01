@@ -116,7 +116,7 @@
             </svg>
             <span *ngIf="step <= 1">1</span>
           </div>
-          <span class="step-item__label">Informations</span>
+          <span class="step-item__label">Infos</span>
         </div>
         <div class="step-line" [class.step-line--done]="step > 1"></div>
         <div
@@ -144,8 +144,33 @@
           <span class="step-item__label">Activité</span>
         </div>
         <div class="step-line" [class.step-line--done]="step > 2"></div>
-        <div class="step-item" [class.step-item--active]="step >= 3">
-          <div class="step-item__dot">3</div>
+        <div
+          class="step-item"
+          [class.step-item--active]="step >= 3"
+          [class.step-item--done]="step > 3"
+        >
+          <div class="step-item__dot">
+            <svg
+              *ngIf="step > 3"
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+            >
+              <path
+                d="M2 7L6 11L12 3"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span *ngIf="step <= 3">3</span>
+          </div>
+          <span class="step-item__label">Catégories</span>
+        </div>
+        <div class="step-line" [class.step-line--done]="step > 3"></div>
+        <div class="step-item" [class.step-item--active]="step >= 4">
+          <div class="step-item__dot">4</div>
           <span class="step-item__label">Organisation</span>
         </div>
       </div>
@@ -604,8 +629,87 @@
             </div>
           </div>
         </ng-container>
+
+        <!-- ═══ ÉTAPE 3 : Personnalisation des catégories ═══ -->
+        <ng-container *ngIf="step === 3 && selectedTemplate">
+          <div class="categories-section">
+            <h2>Personnalisez vos catégories</h2>
+            <p class="categories-section__desc">
+              Décochez les catégories qui ne vous concernent pas.
+              <strong>Vous pourrez les modifier plus tard.</strong>
+            </p>
+
+            <!-- Compteur -->
+            <div class="categories-count">
+              {{ selectedCategoriesCount }} /
+              {{ totalCategoriesCount }} catégories sélectionnées
+            </div>
+
+            <!-- Grille des catégories -->
+            <div class="categories-grid">
+              <div
+                class="category-chip"
+                *ngFor="let cat of getTemplateCategories()"
+                [class.category-chip--selected]="
+                  selectedCategories.get(cat.nom)
+                "
+                [class.category-chip--entree]="cat.type === 'entree'"
+                [class.category-chip--sortie]="cat.type === 'sortie'"
+                (click)="toggleCategory(cat.nom)"
+              >
+                <span class="category-chip__check">
+                  <svg
+                    *ngIf="selectedCategories.get(cat.nom)"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M2 6L5 9L10 3"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
+                <span class="category-chip__name">{{ cat.nom }}</span>
+                <span class="category-chip__type">{{
+                  cat.type === "entree" ? "Entrée" : "Sortie"
+                }}</span>
+              </div>
+            </div>
+
+            <div
+              class="alert alert--danger alert--sm"
+              *ngIf="errorMessage && step === 3"
+            >
+              <span>{{ errorMessage }}</span>
+            </div>
+
+            <div class="step-actions">
+              <button
+                type="button"
+                class="btn btn--secondary"
+                (click)="previousStep()"
+              >
+                Retour
+              </button>
+              <button type="button" class="btn btn--ghost" (click)="nextStep()">
+                Passer cette étape
+              </button>
+              <button
+                type="button"
+                class="btn btn--primary"
+                (click)="nextStep()"
+              >
+                Continuer
+              </button>
+            </div>
+          </div>
+        </ng-container>
         <!-- ═══ ÉTAPE 3 : Organisation ═══ -->
-        <ng-container *ngIf="step === 3">
+        <ng-container *ngIf="step === 4">
           <div class="form-group">
             <label class="form-label">Type d'inscription</label>
             <div class="radio-group">
@@ -793,7 +897,7 @@
 
           <div
             class="alert alert--danger alert--sm"
-            *ngIf="errorMessage && step === 3"
+            *ngIf="errorMessage && step === 4"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle

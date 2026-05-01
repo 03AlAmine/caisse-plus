@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { CaisseService } from '../../../services/caisse.service';
 import { OperationService } from '../../../services/operation.service';
+import { firstValueFrom } from 'rxjs';
 
 interface Step {
   id: string;
@@ -10,6 +11,7 @@ interface Step {
   description: string;
   icon: string;
   done: boolean;
+  loading: boolean;
   action: string;
   route: string;
 }
@@ -40,11 +42,13 @@ interface Step {
           class="checklist-step"
           *ngFor="let step of steps; let i = index"
           [class.checklist-step--done]="step.done"
+          [class.checklist-step--loading]="step.loading"
           [class.checklist-step--current]="
-            !step.done && (i === 0 || steps[i - 1].done)
+            !step.done && !step.loading && (i === 0 || steps[i - 1].done)
           "
         >
           <div class="checklist-step__icon">
+            <!-- Done -->
             <svg
               *ngIf="step.done"
               width="16"
@@ -60,7 +64,10 @@ interface Step {
                 stroke-linecap="round"
               />
             </svg>
-            <span *ngIf="!step.done" class="checklist-step__number">{{
+            <!-- Loading spinner -->
+            <span *ngIf="step.loading" class="checklist-step__spinner"></span>
+            <!-- Number -->
+            <span *ngIf="!step.done && !step.loading" class="checklist-step__number">{{
               i + 1
             }}</span>
           </div>
@@ -69,7 +76,7 @@ interface Step {
             <span class="checklist-step__desc">{{ step.description }}</span>
           </div>
           <a
-            *ngIf="!step.done && (i === 0 || steps[i - 1].done)"
+            *ngIf="!step.done && !step.loading && (i === 0 || steps[i - 1].done)"
             class="checklist-step__action"
             [routerLink]="step.route"
             (click)="dismiss()"
@@ -159,6 +166,11 @@ interface Step {
         text-decoration: line-through;
       }
 
+      .checklist-step--loading .checklist-step__label,
+      .checklist-step--loading .checklist-step__desc {
+        opacity: 0.4;
+      }
+
       .checklist-step__icon {
         width: 28px;
         height: 28px;
@@ -185,6 +197,21 @@ interface Step {
       .checklist-step--current .checklist-step__number {
         background: var(--navy-100);
         color: var(--navy-700);
+      }
+
+      /* Spinner pour l'état loading */
+      .checklist-step__spinner {
+        display: block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--gray-200);
+        border-top-color: var(--gray-400);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
 
       .checklist-step__content {
@@ -257,46 +284,83 @@ export class GettingStartedChecklistComponent implements OnInit {
   private caisseService = inject(CaisseService);
   private opService = inject(OperationService);
 
-  showChecklist = true;
+  showChecklist = false; // masqué jusqu'à confirmation (pas de flash)
   steps: Step[] = [];
 
   ngOnInit(): void {
-    this.checkProgress();
+    this.initChecklist();
   }
 
   get completedSteps(): number {
     return this.steps.filter((s) => s.done).length;
   }
 
-  private async checkProgress(): Promise<void> {
+  private initChecklist(): void {
+    // 1. Vérifier si déjà masqué — sortie immédiate, aucun appel réseau
     const dismissed = localStorage.getItem('checklist_dismissed');
     if (dismissed) {
-      this.showChecklist = false;
       return;
     }
 
-    // Vérifier l'état de chaque étape
-    const org = await this.auth.getCurrentOrganisation();
-    const caisses = await new Promise<number>((resolve) => {
-      this.caisseService.getAll().subscribe((c) => resolve(c.length));
+    // 2. Afficher immédiatement le composant avec les étapes en état "loading"
+    this.steps = this.buildSteps({
+      hasCompleteProfile: false,
+      hasCaisses: false,
+      hasOperations: false,
     });
-    const operations = await new Promise<number>((resolve) => {
-      this.opService.getAll().subscribe((o) => resolve(o.length));
-    });
+    this.steps.forEach((s) => (s.loading = true));
+    this.showChecklist = true;
 
-    const hasCompleteProfile =
-      org?.description || org?.adresse || org?.telephone || org?.email;
-    const hasCaisses = caisses > 0;
-    const hasOperations = operations > 0;
+    // 3. Charger toutes les données en parallèle
+    this.loadProgress();
+  }
 
-    this.steps = [
+  private async loadProgress(): Promise<void> {
+    try {
+      // Appels parallèles — au lieu de séquentiels
+      const [org, caisseCount, operationCount] = await Promise.all([
+        this.auth.getCurrentOrganisation(),
+        firstValueFrom(this.caisseService.getAll()).then((c) => c.length),
+        firstValueFrom(this.opService.getAll()).then((o) => o.length),
+      ]);
+
+      const hasCompleteProfile = !!(
+        org?.description ||
+        org?.adresse ||
+        org?.telephone ||
+        org?.email
+      );
+      const hasCaisses = caisseCount > 0;
+      const hasOperations = operationCount > 0;
+
+      // Mettre à jour les étapes avec les vraies données
+      this.steps = this.buildSteps({ hasCompleteProfile, hasCaisses, hasOperations });
+
+      // Masquer automatiquement si tout est complété
+      if (this.completedSteps === this.steps.length) {
+        this.showChecklist = false;
+      }
+    } catch (err) {
+      // En cas d'erreur, on retire l'état loading pour ne pas bloquer l'UI
+      this.steps.forEach((s) => (s.loading = false));
+      console.error('Erreur chargement checklist:', err);
+    }
+  }
+
+  private buildSteps(state: {
+    hasCompleteProfile: boolean;
+    hasCaisses: boolean;
+    hasOperations: boolean;
+  }): Step[] {
+    return [
       {
         id: 'profile',
         label: 'Complétez votre profil',
         description:
           'Ajoutez la description et les contacts de votre organisation',
         icon: 'user',
-        done: !!hasCompleteProfile,
+        done: state.hasCompleteProfile,
+        loading: false,
         action: 'Compléter',
         route: '/parametres/organisation?completer=true',
       },
@@ -306,25 +370,23 @@ export class GettingStartedChecklistComponent implements OnInit {
         description:
           'Une caisse est nécessaire pour enregistrer des opérations',
         icon: 'wallet',
-        done: hasCaisses,
+        done: state.hasCaisses,
+        loading: false,
         action: 'Créer',
         route: '/caisses/nouveau',
       },
       {
         id: 'operation',
         label: 'Enregistrez votre première opération',
-        description: 'Ajoutez une entrée ou une sortie pour commencer le suivi',
+        description:
+          'Ajoutez une entrée ou une sortie pour commencer le suivi',
         icon: 'plus',
-        done: hasOperations,
+        done: state.hasOperations,
+        loading: false,
         action: 'Ajouter',
         route: '/operations/nouveau',
       },
     ];
-
-    // Si tout est fait, masquer automatiquement
-    if (this.completedSteps === this.steps.length) {
-      this.showChecklist = false;
-    }
   }
 
   dismiss(): void {

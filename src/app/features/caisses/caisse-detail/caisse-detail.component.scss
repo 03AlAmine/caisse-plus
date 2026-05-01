@@ -794,3 +794,10 @@
 .animate-slide-in {
   animation: slideIn var(--duration-slow) var(--ease-out) both;
 }
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--gray-50);
+  background: var(--gray-50);
+}

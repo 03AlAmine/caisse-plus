@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import {
   Router,
   NavigationEnd,
@@ -8,11 +8,14 @@ import {
 } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { NavigationLoaderService } from './services/navigation-loader.service';
+import { PreferencesService } from './services/preferences.service';
 import { filter, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   template: `
+    <app-offline-indicator></app-offline-indicator>
+
     <!-- Splash screen -->
     <div *ngIf="showSplash" class="splash-screen">
       <div class="splash-logo">
@@ -79,10 +82,11 @@ import { filter, take } from 'rxjs/operators';
     `,
   ],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private navigationLoader = inject(NavigationLoaderService);
+  private prefsService = inject(PreferencesService);
 
   showSplash = true;
   showWelcomeModal = false;
@@ -91,6 +95,11 @@ export class AppComponent implements OnInit {
   private loaderTimer: any = null;
   private readonly LOADER_DELAY = 200;
   private firstCheckDone = false;
+
+  // Idle watcher
+  private idleInterval: any = null;
+  private lastActivity = Date.now();
+  private sessionTimeoutMinutes = 0; // 0 = jamais, chargé depuis Firestore
 
   constructor() {
     this.router.events.subscribe((event) => {
@@ -113,12 +122,9 @@ export class AppComponent implements OnInit {
         }
         this.navigationLoader.hide();
 
-        // ✅ Vérifier le modal de bienvenue après CHAQUE navigation
         if (!this.firstCheckDone) {
           this.firstCheckDone = true;
-          // Déjà fait dans ngOnInit, ne pas refaire
         } else {
-          // Pour les navigations suivantes, on vérifie quand même
           this.checkFirstLogin();
         }
       }
@@ -136,16 +142,63 @@ export class AppComponent implements OnInit {
         this.firstCheckDone = true;
 
         if (ready) {
-          // Vérifier après le premier rendu
           setTimeout(() => {
             this.checkFirstLogin();
           }, 1000);
+
+          // Démarrer le watcher d'inactivité seulement si l'utilisateur est connecté
+          this.startIdleWatcher();
         }
       });
   }
 
+  ngOnDestroy(): void {
+    if (this.idleInterval) {
+      clearInterval(this.idleInterval);
+      this.idleInterval = null;
+    }
+  }
+
+  // ─── Idle watcher ──────────────────────────────────────────────────────────
+
+  private async startIdleWatcher(): Promise<void> {
+    // Charger le sessionTimeout depuis Firestore une seule fois
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) return;
+
+    try {
+      const prefs = await this.prefsService.getUserPreferences(uid);
+      this.sessionTimeoutMinutes = prefs.sessionTimeout ?? 0;
+    } catch {
+      // En cas d'erreur, pas de timeout automatique
+      this.sessionTimeoutMinutes = 0;
+    }
+
+    // Écouter l'activité utilisateur
+    ['click', 'keydown', 'touchstart', 'mousemove'].forEach((eventName) => {
+      document.addEventListener(eventName, () => {
+        this.lastActivity = Date.now();
+      });
+    });
+
+    // Vérifier toutes les minutes
+    this.idleInterval = setInterval(() => {
+      // Ne rien faire si pas connecté ou timeout désactivé
+      if (!this.auth.currentUser) return;
+      if (this.sessionTimeoutMinutes <= 0) return;
+
+      const inactiveMs = Date.now() - this.lastActivity;
+      const inactiveMinutes = inactiveMs / (1000 * 60);
+
+      if (inactiveMinutes >= this.sessionTimeoutMinutes) {
+        this.auth.logout();
+      }
+    }, 60_000);
+  }
+
+  // ─── Login / Welcome ───────────────────────────────────────────────────────
+
   private checkFirstLogin(): void {
-    // ✅ Ne pas vérifier si le modal est déjà ouvert
     if (this.showWelcomeModal) return;
 
     const hasSeenWelcome = localStorage.getItem('caisseplus_welcome_seen');

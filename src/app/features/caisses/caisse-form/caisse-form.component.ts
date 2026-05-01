@@ -7,6 +7,7 @@ import { Caisse } from '../../../models/caisse.model';
 import { ToastrService } from 'ngx-toastr';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
+
 @Component({
   selector: 'app-caisse-form',
   templateUrl: './caisse-form.component.html',
@@ -30,26 +31,14 @@ export class CaisseFormComponent implements OnInit {
   showAllRoles = false;
 
   COULEURS = [
-    '#0A1628', // Navy
-    '#00A86B', // Green
-    '#7C3AED', // Purple
-    '#F4A623', // Gold
-    '#E8453C', // Red
-    '#0EA5E9', // Cyan
-    '#EC4899', // Pink
-    '#6B7280', // Gray
-    '#10B981', // Emerald
-    '#F59E0B', // Amber
+    '#0A1628', '#00A86B', '#7C3AED', '#F4A623', '#E8453C',
+    '#0EA5E9', '#EC4899', '#6B7280', '#10B981', '#F59E0B',
   ];
 
   ngOnInit(): void {
     this.caisseId = this.route.snapshot.paramMap.get('id');
-    this.isEdit =
-      !!this.caisseId &&
-      this.route.snapshot.url.some((s) => s.path === 'modifier');
-
+    this.isEdit = !!this.caisseId && this.route.snapshot.url.some((s) => s.path === 'modifier');
     this.initForm();
-
     if (this.isEdit && this.caisseId) {
       this.loadCaisse(this.caisseId);
     }
@@ -57,23 +46,13 @@ export class CaisseFormComponent implements OnInit {
 
   private initForm(): void {
     this.form = this.fb.group({
-      nom: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(2),
-          Validators.maxLength(50),
-        ],
-      ],
-      type: ['secondaire', Validators.required],
-      role: [''], // ← Nouveau champ
+      nom: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      role: ['', Validators.required],
       description: ['', [Validators.maxLength(200)]],
       couleur: ['#0A1628'],
       responsableNom: ['', [Validators.maxLength(100)]],
     });
   }
-
-  // Dans loadCaisse()
 
   private async loadCaisse(id: string): Promise<void> {
     this.loading = true;
@@ -82,8 +61,7 @@ export class CaisseFormComponent implements OnInit {
       if (caisse) {
         this.form.patchValue({
           nom: caisse.nom,
-          type: caisse.type,
-          role: caisse.role || '', // ← Charger le rôle
+          role: caisse.role || '',
           description: caisse.description || '',
           couleur: caisse.couleur || '#0A1628',
           responsableNom: caisse.responsableNom || '',
@@ -97,12 +75,7 @@ export class CaisseFormComponent implements OnInit {
     }
   }
 
-  get nom() {
-    return this.form.get('nom')!;
-  }
-  get type() {
-    return this.form.get('type')!;
-  }
+  get nom() { return this.form.get('nom')!; }
 
   onSubmit(): void {
     if (this.form.invalid) {
@@ -110,7 +83,6 @@ export class CaisseFormComponent implements OnInit {
       this.toastr.warning('Veuillez corriger les erreurs dans le formulaire');
       return;
     }
-
     if (this.isEdit) {
       this.showConfirmModal = true;
     } else {
@@ -127,15 +99,19 @@ export class CaisseFormComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
-  // Dans saveCaisse()
   private async saveCaisse(): Promise<void> {
     this.loading = true;
     this.showError = false;
     this.errorMessage = '';
 
     const formValue = this.form.value;
+
     const data = {
-      ...formValue,
+      nom: formValue.nom,
+      role: formValue.role,
+      description: formValue.description,
+      couleur: formValue.couleur,
+      responsableNom: formValue.responsableNom,
       organisationId: this.auth.organisationId,
       actif: true,
       solde: 0,
@@ -143,59 +119,25 @@ export class CaisseFormComponent implements OnInit {
 
     try {
       if (this.isEdit && this.caisseId) {
-        const caisse = await firstValueFrom(
-          this.caisseService.getById(this.caisseId),
-        );
-        if (caisse?.type === 'principale' && formValue.type !== 'principale') {
-          this.showError = true;
-          this.errorMessage =
-            'Impossible de modifier le type de la caisse principale';
-          this.loading = false;
-          return;
-        }
         await this.caisseService.update(this.caisseId, formValue);
         this.toastr.success('Caisse mise à jour avec succès');
       } else {
-        // Vérifier si une caisse principale existe déjà
-        if (formValue.type === 'principale') {
-          const existingPrincipal = await this.checkExistingPrincipal();
-          if (existingPrincipal) {
-            this.showError = true;
-            this.errorMessage =
-              'Une caisse principale existe déjà. Veuillez choisir un type secondaire.';
-            this.loading = false;
-            // Faire défiler vers le haut pour voir l'erreur
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-          }
-        }
         await this.caisseService.create(data);
         this.toastr.success('Caisse créée avec succès');
       }
       this.router.navigate(['/caisses']);
     } catch (err: any) {
       this.showError = true;
-      this.errorMessage =
-        err.message || "Une erreur est survenue lors de l'enregistrement";
+      this.errorMessage = err.message || "Une erreur est survenue lors de l'enregistrement";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       this.loading = false;
     }
   }
 
-  // Méthode pour fermer l'alerte
   closeError(): void {
     this.showError = false;
     this.errorMessage = '';
-  }
-
-  private async checkExistingPrincipal(): Promise<boolean> {
-    try {
-      const caisses = await firstValueFrom(this.caisseService.getAll());
-      return caisses.some((c) => c.type === 'principale' && c.actif === true);
-    } catch {
-      return false;
-    }
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
@@ -206,117 +148,44 @@ export class CaisseFormComponent implements OnInit {
       }
     });
   }
-  /**
-   * Sélectionne un rôle et met à jour le nom suggéré
-   */
+
   selectRole(role: string): void {
     this.form.get('role')?.setValue(role);
-    // ✅ Toujours mettre à jour le nom suggéré, même si déjà rempli
     this.updateSuggestedName(role);
   }
 
-  /**
-   * Met à jour le nom de la caisse en fonction du rôle choisi
-   */
   private updateSuggestedName(role: string): void {
     if (!role) return;
-
-    this.caisseService
-      .getAll()
-      .pipe(take(1))
-      .subscribe((caisses) => {
-        const count = caisses.filter((c: Caisse) => c.role === role).length;
-        const name =
-          count > 0 ? `Caisse ${role} ${count + 1}` : `Caisse ${role}`;
+    this.caisseService.getAll().pipe(take(1)).subscribe((caisses) => {
+      const count = caisses.filter((c: Caisse) => c.role === role).length;
+      const name = count > 0 ? `Caisse ${role} ${count + 1}` : `Caisse ${role}`;
+      if (!this.form.get('nom')?.value || this.form.get('nom')?.value === `Caisse ${role}`) {
         this.form.get('nom')?.setValue(name);
-      });
-  }
-
-  /**
-   * Appelé quand on change le type de caisse
-   */
-  onTypeChange(): void {
-    const type = this.type.value;
-    const roleControl = this.form.get('role');
-    const nomControl = this.form.get('nom');
-
-    if (type === 'principale') {
-      nomControl?.setValue('Caisse principale');
-      roleControl?.setValue('Principale');
-    } else if (type === 'secondaire') {
-      // Réinitialiser si on passe de principale à secondaire
-      if (roleControl?.value === 'Principale') {
-        roleControl?.setValue('');
-        nomControl?.setValue('');
       }
-    }
-    // Pour "libre", on laisse l'utilisateur choisir
+    });
   }
+
   get suggestedName(): string {
     const role = this.form.get('role')?.value;
     const nom = this.form.get('nom')?.value;
-
     if (!role) return '';
     if (nom && nom.length > 0) return nom;
-
-    // ✅ Au lieu de getExistingCaisses(), utiliser une valeur simple
-    // Le compteur sera fait dans suggestCaisseName()
     return `Caisse ${role}`;
   }
 
-  suggestCaisseName(role: string): void {
-    if (!role || this.form.get('nom')?.value) return;
-
-    // ✅ Compter les caisses existantes via le service
-    this.caisseService
-      .getAll()
-      .pipe(take(1))
-      .subscribe((caisses) => {
-        const count = caisses.filter((c: Caisse) => c.role === role).length;
-        const name =
-          count > 0 ? `Caisse ${role} ${count + 1}` : `Caisse ${role}`;
-        this.form.get('nom')?.setValue(name);
-      });
-  }
+  // ❌ Supprimer ces méthodes qui utilisaient 'type'
+  // onTypeChange()
+  // checkExistingPrincipal()
 
   allRoles = [
-    'Boutique',
-    'Dépôt',
-    'Livraison',
-    'Cuisine',
-    'Terrasse',
-    'Atelier',
-    'Tissus',
-    'Retouches',
-    'Outillage',
-    'Déplacement',
-    'Projets',
-    'Donateurs',
-    'Carburant',
-    'Péage',
-    'Intrants',
-    'Matériel',
-    'Sécurité',
-    'Événements',
-    'Divers',
-    'Générale',
-    'Secondaire',
-    'Principale',
+    'Boutique', 'Dépôt', 'Livraison', 'Cuisine', 'Terrasse',
+    'Atelier', 'Tissus', 'Retouches', 'Outillage', 'Déplacement',
+    'Projets', 'Donateurs', 'Carburant', 'Péage', 'Intrants',
+    'Matériel', 'Sécurité', 'Événements', 'Divers', 'Générale',
+    'Secondaire', 'Principale',
   ];
 
-  // Rôles suggérés en fonction du template
   get suggestedRoles(): string[] {
-    // Récupérer les rôles depuis le template de l'organisation
-    const template = this.auth.getOrganisationTemplate(); // ou via un service
-    // Pour l'instant, retourner les plus courants
-    return [
-      'Boutique',
-      'Dépôt',
-      'Cuisine',
-      'Atelier',
-      'Projets',
-      'Générale',
-      'Divers',
-    ];
+    return ['Boutique', 'Dépôt', 'Cuisine', 'Atelier', 'Projets', 'Générale', 'Divers'];
   }
 }

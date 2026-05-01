@@ -31,6 +31,7 @@ import {
   ActiviteTemplate,
   VocabulaireMetier,
   VOCABULAIRE_DEFAUT,
+  TemplateComportement,
 } from '../models/templates.data';
 
 @Injectable({ providedIn: 'root' })
@@ -103,7 +104,6 @@ export class AuthService {
 
   /**
    * Inscription avec création d'une nouvelle organisation
-   * @param templateId - ID du template d'activité choisi (optionnel, défaut: 'libre')
    */
   async registerWithNewOrganisation(
     email: string,
@@ -120,32 +120,29 @@ export class AuthService {
     const uid = credential.user.uid;
     await updateProfile(credential.user, { displayName });
 
-    // Créer l'organisation
     const organisationRef = doc(collection(this.firestore, 'organisations'));
     const organisationId = organisationRef.id;
 
     await setDoc(organisationRef, {
       nom: organisationNom,
       ownerId: uid,
-      templateId: templateId, // ← Stocker le template choisi
+      templateId,
       createdAt: serverTimestamp(),
       membres: [uid],
       actif: true,
     });
 
-    // Créer le profil utilisateur
     await setDoc(doc(this.firestore, `users/${uid}`), {
       uid,
       email,
       displayName,
       role: 'admin',
-      organisationId: organisationId,
+      organisationId,
       actif: true,
       createdAt: serverTimestamp(),
       createdBy: uid,
     });
 
-    // Initialiser les catégories et caisses à partir du template
     await this.initFromTemplate(organisationId, templateId);
   }
 
@@ -158,7 +155,6 @@ export class AuthService {
     displayName: string,
     organisationId: string,
     invitationCode?: string,
-    templateId?: string, // Non utilisé pour une organisation existante
   ): Promise<void> {
     const orgRef = doc(this.firestore, `organisations/${organisationId}`);
     const orgSnap = await getDoc(orgRef);
@@ -187,24 +183,19 @@ export class AuthService {
     const uid = credential.user.uid;
     await updateProfile(credential.user, { displayName });
 
-    await updateDoc(orgRef, {
-      membres: arrayUnion(uid),
-    });
+    await updateDoc(orgRef, { membres: arrayUnion(uid) });
 
     await setDoc(doc(this.firestore, `users/${uid}`), {
       uid,
       email,
       displayName,
       role: 'utilisateur',
-      organisationId: organisationId,
+      organisationId,
       actif: true,
       createdAt: serverTimestamp(),
       createdBy: uid,
       invitedBy: orgData['ownerId'],
     });
-
-    // Pas d'initialisation de template pour une organisation existante
-    // L'utilisateur hérite des catégories déjà en place
   }
 
   async logout(): Promise<void> {
@@ -236,7 +227,7 @@ export class AuthService {
       .toUpperCase();
     const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
     await updateDoc(orgRef, {
-      invitationCode: invitationCode,
+      invitationCode,
       invitationCodeGeneratedAt: serverTimestamp(),
     });
     return invitationCode;
@@ -249,19 +240,12 @@ export class AuthService {
     return orgSnap.exists() ? { id: orgSnap.id, ...orgSnap.data() } : null;
   }
 
-  /**
-   * Récupère le template de l'organisation courante
-   */
   async getOrganisationTemplate(): Promise<ActiviteTemplate | undefined> {
     const org = await this.getCurrentOrganisation();
     if (!org?.templateId) return undefined;
     return getTemplateById(org.templateId);
   }
 
-  /**
-   * Change le template de l'organisation (admin uniquement)
-   * Ajoute les catégories manquantes sans supprimer les existantes
-   */
   async changerTemplate(templateId: string): Promise<void> {
     if (!this.isAdmin()) {
       throw new Error(
@@ -274,14 +258,10 @@ export class AuthService {
       throw new Error("Modèle d'activité introuvable");
     }
 
-    // Mettre à jour l'organisation
     const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
     await updateDoc(orgRef, { templateId });
 
-    // Ajouter les catégories manquantes
     await this.initFromTemplate(this.organisationId, templateId);
-
-    // Ajouter les caisses suggérées manquantes
     await this.initCaissesFromTemplate(this.organisationId, template);
   }
 
@@ -306,29 +286,130 @@ export class AuthService {
     await this.logout();
   }
 
+  async updateOrganisation(data: {
+    nom?: string;
+    description?: string;
+    adresse?: string;
+    telephone?: string;
+    email?: string;
+  }): Promise<void> {
+    if (!this.organisationId) throw new Error('Aucune organisation');
+    const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
+    await updateDoc(orgRef, { ...data, updatedAt: serverTimestamp() });
+  }
+
+  async getVocabulaire(): Promise<VocabulaireMetier> {
+    const template = await this.getOrganisationTemplate();
+    return template?.vocabulaire || VOCABULAIRE_DEFAUT;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Comportement — stocké dans organisations/{orgId}.comportement
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Sauvegarde le comportement personnalisé dans le document organisation.
+   */
+  async saveComportement(comportement: TemplateComportement): Promise<void> {
+    if (!this.organisationId) throw new Error('Aucune organisation');
+    const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
+    await updateDoc(orgRef, {
+      comportement,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  /**
+   * Récupère le comportement de l'organisation.
+   * Priorité : valeur personnalisée dans Firestore > template par défaut > defaults codés.
+   */
+  async getComportement(): Promise<TemplateComportement> {
+    const defaults: TemplateComportement = {
+      transfertActif: true,
+      budgetParCategorie: true,
+      soldeMinimumActif: true,
+      multiCaisse: true,
+      rapportsAvances: true,
+      validationActive: true,
+    };
+
+    try {
+      const org = await this.getCurrentOrganisation();
+      if (org?.comportement) {
+        // Fusionner avec les defaults pour garantir tous les champs
+        return { ...defaults, ...org.comportement };
+      }
+
+      const template = await this.getOrganisationTemplate();
+      if (template?.comportement) {
+        return { ...defaults, ...template.comportement };
+      }
+    } catch (e) {
+      console.error('Erreur chargement comportement:', e);
+    }
+
+    return defaults;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Seuil de validation — stocké dans organisations/{orgId}.seuilValidation
+  // ✅ Unifié avec saveComportement : même document, même logique
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Récupère le seuil de validation de l'organisation.
+   * Source unique : organisations/{orgId}.seuilValidation
+   * Valeur par défaut : 100 000 FCFA
+   */
+  async getSeuilValidation(): Promise<number> {
+    const defaut = 100000;
+
+    try {
+      const org = await this.getCurrentOrganisation();
+      if (typeof org?.seuilValidation === 'number' && org.seuilValidation > 0) {
+        return org.seuilValidation;
+      }
+    } catch (e) {
+      console.error('Erreur chargement seuil validation:', e);
+    }
+
+    return defaut;
+  }
+
+  /**
+   * Sauvegarde le seuil de validation dans le document organisation.
+   * Source unique : organisations/{orgId}.seuilValidation
+   * Réservé aux administrateurs.
+   */
+  async saveSeuilValidation(seuil: number): Promise<void> {
+    if (!this.organisationId) throw new Error('Aucune organisation');
+    if (!this.isAdmin()) {
+      throw new Error('Seul un administrateur peut modifier ce paramètre');
+    }
+
+    const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
+    await updateDoc(orgRef, {
+      seuilValidation: seuil,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   // Initialisation à partir du template
   // ═══════════════════════════════════════════════════════════════════════
 
-  /**
-   * Initialise les catégories à partir du template sélectionné.
-   * Stratégie non-destructive : n'ajoute que les catégories absentes.
-   */
   private async initFromTemplate(
     organisationId: string,
     templateId: string,
   ): Promise<number> {
     const template = getTemplateById(templateId);
     if (!template) {
-      console.warn(
-        `Template ${templateId} introuvable, utilisation des catégories par défaut.`,
-      );
+      console.warn(`Template ${templateId} introuvable.`);
       return 0;
     }
 
     const allCategories = getAllCategoriesFromTemplate(template);
 
-    // Récupérer les catégories existantes pour éviter les doublons
     const existingSnap = await getDocs(
       query(
         collection(this.firestore, 'categories'),
@@ -342,37 +423,28 @@ export class AuthService {
       ),
     );
 
-    // Filtrer les catégories à ajouter
     const aAjouter = allCategories.filter(
       (cat) => !nomsExistants.has(cat.nom.toLowerCase().trim()),
     );
 
-    // Ajouter en batch
-    const batch = [];
-    for (const cat of aAjouter) {
-      const ref = doc(collection(this.firestore, 'categories'));
-      batch.push(
-        setDoc(ref, {
-          nom: cat.nom,
-          type: cat.type,
-          couleur: cat.couleur,
-          organisationId: organisationId,
-          systeme: true, // Marquer comme catégorie système venant du template
+    if (aAjouter.length > 0) {
+      await Promise.all(
+        aAjouter.map((cat) => {
+          const ref = doc(collection(this.firestore, 'categories'));
+          return setDoc(ref, {
+            nom: cat.nom,
+            type: cat.type,
+            couleur: cat.couleur,
+            organisationId,
+            systeme: true,
+          });
         }),
       );
-    }
-
-    if (batch.length > 0) {
-      await Promise.all(batch);
     }
 
     return aAjouter.length;
   }
 
-  /**
-   * Initialise les caisses suggérées par le template.
-   * Ne crée pas de caisse principale s'il en existe déjà une.
-   */
   private async initCaissesFromTemplate(
     organisationId: string,
     template: ActiviteTemplate,
@@ -392,7 +464,6 @@ export class AuthService {
     let addedCount = 0;
 
     for (const caisseSuggeree of template.caissesSuggerees) {
-      // Ne pas créer de caisse principale s'il en existe déjà une
       if (caisseSuggeree.role === 'Principale' && hasPrincipale) continue;
 
       const nomExiste = existingCaisses.some(
@@ -400,22 +471,20 @@ export class AuthService {
           (c['nom'] as string).toLowerCase().trim() ===
           caisseSuggeree.nom.toLowerCase().trim(),
       );
-
       if (nomExiste) continue;
 
-      // Déterminer le type en fonction du rôle
       let type: 'principale' | 'secondaire' | 'libre' = 'libre';
       if (caisseSuggeree.role === 'Principale') type = 'principale';
       else if (caisseSuggeree.role === 'Secondaire') type = 'secondaire';
 
       await addDoc(collection(this.firestore, 'caisses'), {
         nom: caisseSuggeree.nom,
-        type: type,
-        role: caisseSuggeree.role, // ← Stocker le rôle
+        type,
+        role: caisseSuggeree.role,
         description: caisseSuggeree.description || '',
         couleur: caisseSuggeree.couleur || '#6B7280',
         solde: 0,
-        organisationId: organisationId,
+        organisationId,
         actif: true,
         createdAt: serverTimestamp(),
       });
@@ -441,31 +510,5 @@ export class AuthService {
       invitedBy: data['invitedBy'],
       createdAt: data['createdAt']?.toDate() ?? new Date(),
     } as User;
-  }
-
-  /**
-   * Met à jour les informations de l'organisation
-   */
-  async updateOrganisation(data: {
-    nom?: string;
-    description?: string;
-    adresse?: string;
-    telephone?: string;
-    email?: string;
-  }): Promise<void> {
-    if (!this.organisationId) throw new Error('Aucune organisation');
-
-    const orgRef = doc(this.firestore, `organisations/${this.organisationId}`);
-    await updateDoc(orgRef, {
-      ...data,
-      updatedAt: serverTimestamp(),
-    });
-  }
-  /**
-   * Récupère le vocabulaire de l'organisation courante
-   */
-  async getVocabulaire(): Promise<VocabulaireMetier> {
-    const template = await this.getOrganisationTemplate();
-    return template?.vocabulaire || VOCABULAIRE_DEFAUT;
   }
 }

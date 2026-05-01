@@ -1,0 +1,297 @@
+<!-- Bouton flottant -->
+<button class="quick-add-fab" (click)="open()" *ngIf="!isOpen" @fabIn>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 5v14M5 12h14"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+  </svg>
+</button>
+
+<!-- Overlay -->
+<div
+  class="quick-add-overlay"
+  *ngIf="isOpen"
+  @overlayIn
+  (click)="close()"
+></div>
+
+<!-- Panneau -->
+<div class="quick-add-panel" *ngIf="isOpen" @panelIn>
+  <div class="quick-add-panel__header">
+    <div class="quick-add-panel__title">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 3v14M3 10h14"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span>{{ panelTitle }}</span>
+    </div>
+    <button class="quick-add-panel__close" (click)="close()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M3 3l10 10M13 3L3 13"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="quick-add-form">
+    <!-- Toggle Entrée/Sortie -->
+    <div class="quick-add-toggle">
+      <button
+        type="button"
+        class="quick-add-toggle__btn"
+        [class.quick-add-toggle__btn--active]="
+          form.get('type')?.value === 'entree'
+        "
+        [style.--active-color]="'var(--color-success)'"
+        (click)="setType('entree')"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M8 14V2M2 8l6-6 6 6"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        {{ v.entree }}
+      </button>
+      <button
+        type="button"
+        class="quick-add-toggle__btn"
+        [class.quick-add-toggle__btn--active]="
+          form.get('type')?.value === 'sortie'
+        "
+        [style.--active-color]="'var(--color-danger)'"
+        (click)="setType('sortie')"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M8 2v12M2 8l6 6 6-6"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        {{ v.sortie }}
+      </button>
+    </div>
+
+    <!-- Montant -->
+    <div class="quick-add-amount">
+      <input
+        type="number"
+        class="quick-add-amount__input"
+        formControlName="montant"
+        placeholder="0"
+        min="1"
+        step="100"
+        #montantInput
+      />
+      <span class="quick-add-amount__currency">FCFA</span>
+    </div>
+
+    <!-- Libellé -->
+    <div class="form-group">
+      <label class="form-label">Libellé</label>
+      <input
+        type="text"
+        class="form-control"
+        formControlName="libelle"
+        [placeholder]="libellePlaceholder"
+      />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Caisse</label>
+      <div class="quick-caisse-grid">
+        <button
+          type="button"
+          class="quick-caisse-card"
+          *ngFor="let c of caisses"
+          [class.quick-caisse-card--active]="
+            form.get('caisseId')?.value === c.id
+          "
+          [class.quick-caisse-card--warning]="
+            form.get('type')?.value === 'sortie' &&
+            c.solde < (form.get('montant')?.value || 0)
+          "
+          (click)="selectCaisse(c)"
+        >
+          <span
+            class="quick-caisse-card__dot"
+            [style.background]="c.couleur || 'var(--gray-400)'"
+          ></span>
+          <span class="quick-caisse-card__name">{{ c.nom }}</span>
+          <span class="quick-caisse-card__solde">{{
+            c.solde | number: "1.0-0"
+          }}</span>
+          <span
+            class="quick-caisse-card__check"
+            *ngIf="form.get('caisseId')?.value === c.id"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="6" fill="var(--navy-600)" />
+              <path
+                d="M3 6L5 8.5L9 4"
+                stroke="white"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Catégorie</label>
+      <div class="quick-cat-grid">
+        <button
+          type="button"
+          class="quick-cat-card"
+          *ngFor="let cat of visibleCategories"
+          [class.quick-cat-card--active]="
+            form.get('categorieId')?.value === cat.id
+          "
+          [class.quick-cat-card--entree]="cat.type === 'entree'"
+          [class.quick-cat-card--sortie]="cat.type === 'sortie'"
+          (click)="selectCategorie(cat)"
+        >
+          <span
+            class="quick-cat-card__color"
+            [style.background]="cat.couleur"
+          ></span>
+          <span class="quick-cat-card__name">{{ cat.nom }}</span>
+          <span
+            class="quick-cat-card__check"
+            *ngIf="form.get('categorieId')?.value === cat.id"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="6" fill="var(--navy-600)" />
+              <path
+                d="M3 6L5 8.5L9 4"
+                stroke="white"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <button
+        type="button"
+        class="role-show-all"
+        *ngIf="categories.length > 6"
+        (click)="showAllCategories = !showAllCategories"
+      >
+        {{
+          showAllCategories
+            ? "Réduire"
+            : "+" + (categories.length - 6) + " autres"
+        }}
+      </button>
+    </div>
+
+    <!-- Message solde insuffisant -->
+    <div class="quick-add-error" *ngIf="showSoldeError">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle
+          cx="7"
+          cy="7"
+          r="5.5"
+          stroke="currentColor"
+          stroke-width="1.2"
+        />
+        <path
+          d="M7 4v3M7 9v.5"
+          stroke="currentColor"
+          stroke-width="1.2"
+          stroke-linecap="round"
+        />
+      </svg>
+      Solde insuffisant ({{ selectedCaisse?.solde | number: "1.0-0" }} FCFA
+      disponibles)
+    </div>
+
+    <!-- Bouton -->
+    <button
+      type="submit"
+      class="quick-add-submit"
+      [disabled]="loading || form.invalid || showSoldeError"
+    >
+      <span *ngIf="!loading">{{ submitLabel }}</span>
+      <span *ngIf="loading" class="btn-spinner"></span>
+    </button>
+
+    <!-- Lien vers formulaire complet -->
+    <a
+      routerLink="/operations/nouveau"
+      class="quick-add-full"
+      (click)="close()"
+    >
+      Formulaire complet
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path
+          d="M3 6h6M6 3l3 3-3 3"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </a>
+  </form>
+</div>
+<div class="quick-add-empty" *ngIf="!hasCaisses">
+  <div class="quick-add-empty__icon">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <rect
+        x="8"
+        y="16"
+        width="32"
+        height="22"
+        rx="3"
+        stroke="currentColor"
+        stroke-width="1.5"
+      />
+      <path
+        d="M16 16V10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6"
+        stroke="currentColor"
+        stroke-width="1.5"
+      />
+      <circle cx="24" cy="27" r="3" stroke="currentColor" stroke-width="1.5" />
+    </svg>
+  </div>
+  <h3>Aucune caisse disponible</h3>
+  <p>
+    Vous devez créer une caisse avant de pouvoir enregistrer des opérations.
+  </p>
+  <a
+    routerLink="/caisses/nouveau"
+    class="btn btn--primary btn--sm"
+    (click)="close()"
+  >
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path
+        d="M7 3v8M3 7h8"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+      />
+    </svg>
+    Créer une caisse
+  </a>
+</div>

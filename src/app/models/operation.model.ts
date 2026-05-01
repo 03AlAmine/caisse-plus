@@ -4,11 +4,11 @@ export type OperationSens = 'entree' | 'sortie'; // direction réelle d'un trans
 
 export interface Operation {
   id?: string;
-  numeroPiece?: string; // ex: "CA-18976" pour caisse, "CP-0559" pour grands comptes
+  numeroPiece?: string;
   libelle: string;
   montant: number;
   type: OperationType;
-  sens?: OperationSens; // 'sortie' sur la caisse source, 'entree' sur la caisse destination
+  sens?: OperationSens;
   statut: OperationStatut;
   caisseId: string;
   caisseNom?: string;
@@ -19,6 +19,8 @@ export interface Operation {
   date: Date;
   createdAt: Date;
   updatedAt?: Date;
+  updatedBy?: string;
+  motifRejet?: string; 
   justificatifs?: string[];
   notes?: string;
   transfertCaisseDestId?: string;

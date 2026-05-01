@@ -7,6 +7,7 @@ import { CaisseService } from '../../../services/caisse.service';
 import { AuthService } from '../../../services/auth.service';
 import { Caisse } from '../../../models/caisse.model';
 import { ToastrService } from 'ngx-toastr';
+import { VocabulaireService } from '../../../services/vocabulaire.service';
 
 @Component({
   selector: 'app-caisse-list',
@@ -27,6 +28,8 @@ export class CaisseListComponent implements OnInit, OnDestroy {
   isLoading = true;
   private subscription: Subscription | null = null;
   viewMode: 'card' | 'list' = 'card';
+  private vocabulaireService = inject(VocabulaireService);
+  comportement$ = this.vocabulaireService.comportement$;
 
   ngOnInit(): void {
     const savedView = localStorage.getItem('caisse-view-mode');

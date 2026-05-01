@@ -27,6 +27,7 @@ export class OperationFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private toastr = inject(ToastrService);
   private vocabulaireService = inject(VocabulaireService);
+  comportement$ = this.vocabulaireService.comportement$;
 
   form!: FormGroup;
   caisses: Caisse[] = [];
@@ -45,6 +46,7 @@ export class OperationFormComponent implements OnInit {
   get v(): VocabulaireMetier {
     return this.vocabulaireService.vocabulaire;
   }
+  seuilValidation: number = 100000;
 
   ngOnInit(): void {
     this.vocabulaireService.loadVocabulaire();
@@ -61,8 +63,12 @@ export class OperationFormComponent implements OnInit {
     this.loadData();
     this.setupTypeListener();
     this.setupSoldeValidator();
+    this.loadSeuilValidation();
   }
 
+  private async loadSeuilValidation(): Promise<void> {
+    this.seuilValidation = await this.auth.getSeuilValidation();
+  }
   private initForm(today: string, caisseIdParam: string): void {
     this.form = this.fb.group({
       libelle: [

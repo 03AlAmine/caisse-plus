@@ -10,6 +10,7 @@ import {
   getTemplateById,
   getAllCategoriesFromTemplate,
 } from '../../../models/templates.data';
+import { TemplateComportement } from '../../../models/templates.data';
 
 @Component({
   selector: 'app-organisation',
@@ -23,6 +24,18 @@ export class OrganisationComponent implements OnInit {
   private caisseService = inject(CaisseService);
   private toastr = inject(ToastrService);
 
+  // Dans la classe
+  vocabForm!: FormGroup;
+  comportement: TemplateComportement = {
+    transfertActif: true,
+    budgetParCategorie: true,
+    soldeMinimumActif: true,
+    multiCaisse: true,
+    rapportsAvances: true,
+    validationActive: true,
+  };
+  hasConfigChanges = false;
+  savingConfig = false;
   // Onglets
   activeTab: 'infos' | 'activite' = 'infos';
 
@@ -43,12 +56,14 @@ export class OrganisationComponent implements OnInit {
   organisation: any = null;
   form!: FormGroup;
 
+  seuilValidation: number = 100000;
+  private originalSeuil: number = 100000;
+
   ngOnInit(): void {
     this.initForm();
     this.loadOrganisation();
     this.loadTemplate();
 
-    // ✅ Si on vient de s'inscrire (profil incomplet), ouvrir directement l'onglet Infos
     // et passer en mode édition
     const params = new URLSearchParams(window.location.search);
     if (params.get('completer') === 'true') {
@@ -62,14 +77,46 @@ export class OrganisationComponent implements OnInit {
     }
   }
 
+  // Dans initForm()
   private initForm(): void {
-    this.form = this.fb.group({
-      nom: ['', [Validators.required, Validators.minLength(3)]],
-      description: [''],
-      adresse: [''],
-      telephone: [''],
-      email: ['', Validators.email],
+    this.form = this.fb.group({});
+
+    this.vocabForm = this.fb.group({
+      entree: [''],
+      sortie: [''],
+      entreePluriel: [''],
+      sortiePluriel: [''],
     });
+  }
+
+  // Dans loadTemplate()
+  private async loadTemplate(): Promise<void> {
+    this.currentTemplate = await this.auth.getOrganisationTemplate();
+
+    if (this.currentTemplate) {
+      // Charger le vocabulaire
+      this.vocabForm.patchValue({
+        entree: this.currentTemplate.vocabulaire.entree,
+        sortie: this.currentTemplate.vocabulaire.sortie,
+        entreePluriel: this.currentTemplate.vocabulaire.entreePluriel,
+        sortiePluriel: this.currentTemplate.vocabulaire.sortiePluriel,
+      });
+
+      // ✅ Charger le comportement depuis Firestore (priorité) ou le template
+      this.comportement = await this.auth.getComportement();
+
+      // Sauvegarder l'état original pour détecter les changements
+      this.originalConfig = {
+        vocabulaire: this.vocabForm.value,
+        comportement: { ...this.comportement },
+      };
+    }
+
+    this.seuilValidation = await this.auth.getSeuilValidation();
+    this.originalSeuil = this.seuilValidation;
+
+    // Écouter les changements
+    this.vocabForm.valueChanges.subscribe(() => this.checkConfigChanges());
   }
 
   private async loadOrganisation(): Promise<void> {
@@ -89,10 +136,6 @@ export class OrganisationComponent implements OnInit {
     } finally {
       this.loading = false;
     }
-  }
-
-  private async loadTemplate(): Promise<void> {
-    this.currentTemplate = await this.auth.getOrganisationTemplate();
   }
 
   // ─── Template Icon ────────────────────────────────────────────────────
@@ -248,5 +291,74 @@ export class OrganisationComponent implements OnInit {
     ].filter((v) => !v).length;
 
     return champsVides >= 2;
+  }
+
+  private originalConfig: any = {};
+
+  toggleComportement(key: keyof TemplateComportement): void {
+    this.comportement[key] = !this.comportement[key];
+    this.checkConfigChanges();
+  }
+
+  private checkConfigChanges(): void {
+    const vocabChanged =
+      JSON.stringify(this.vocabForm.value) !==
+      JSON.stringify(this.originalConfig?.vocabulaire);
+    const compChanged =
+      JSON.stringify(this.comportement) !==
+      JSON.stringify(this.originalConfig?.comportement);
+    const seuilChanged = this.seuilValidation !== this.originalSeuil;
+    this.hasConfigChanges = vocabChanged || compChanged || seuilChanged;
+  }
+
+  async saveConfig(): Promise<void> {
+    this.savingConfig = true;
+    try {
+      // Sauvegarder le comportement
+      await this.auth.saveComportement(this.comportement);
+
+      //  Sauvegarder le seuil de validation
+      if (this.seuilValidation !== this.originalSeuil) {
+        await this.auth.saveSeuilValidation(this.seuilValidation);
+        this.originalSeuil = this.seuilValidation;
+      }
+
+      const config = {
+        vocabulaire: this.vocabForm.value,
+        comportement: this.comportement,
+      };
+      localStorage.setItem('caisseplus_user_config', JSON.stringify(config));
+
+      this.originalConfig = {
+        vocabulaire: { ...this.vocabForm.value },
+        comportement: { ...this.comportement },
+      };
+      this.hasConfigChanges = false;
+
+      this.toastr.success('Configuration enregistrée avec succès');
+    } catch (error: any) {
+      this.toastr.error(error.message || "Erreur lors de l'enregistrement");
+    } finally {
+      this.savingConfig = false;
+    }
+  }
+
+  resetConfig(): void {
+    if (this.currentTemplate) {
+      this.vocabForm.patchValue({
+        entree: this.currentTemplate.vocabulaire.entree,
+        sortie: this.currentTemplate.vocabulaire.sortie,
+        entreePluriel: this.currentTemplate.vocabulaire.entreePluriel,
+        sortiePluriel: this.currentTemplate.vocabulaire.sortiePluriel,
+      });
+      this.comportement = { ...this.currentTemplate.comportement };
+      this.originalConfig = {
+        vocabulaire: this.vocabForm.value,
+        comportement: { ...this.comportement },
+      };
+      this.hasConfigChanges = false;
+    }
+    this.seuilValidation = this.originalSeuil;
+    this.hasConfigChanges = false;
   }
 }

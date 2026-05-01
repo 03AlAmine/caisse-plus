@@ -22,6 +22,8 @@ import {
 } from '../../services/search.service';
 import { ToastrService } from 'ngx-toastr';
 import { ViewChild, ElementRef } from '@angular/core';
+import { CaisseService } from '../../services/caisse.service';
+import { ConnectivityService } from '../../services/connectivity.service';
 
 @Component({
   selector: 'app-topbar',
@@ -56,8 +58,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
   showSuggestions = false;
   selectedSuggestionIndex = -1;
 
-  // ✅ Nouvelle propriété
   showMobileSearch = false;
+
+  private caisseService = inject(CaisseService);
+  soldeTotal: number | null = null;
+
+  connectivity = inject(ConnectivityService);
 
   // Dans la classe
   @ViewChild('mobileSearchInput') mobileSearchInput!: ElementRef;
@@ -85,6 +91,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
         this.notifSub = this.notifService
           .getNotifications()
           .subscribe((notifs) => (this.notifications = notifs));
+      });
+    this.caisseService
+      .getAll()
+      .pipe(take(1))
+      .subscribe((caisses) => {
+        this.soldeTotal = caisses.reduce((s, c) => s + (c.solde || 0), 0);
       });
   }
 
@@ -284,7 +296,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ Garder UNIQUEMENT cette version
   toggleMobileSearch(): void {
     this.showMobileSearch = !this.showMobileSearch;
     if (this.showMobileSearch) {

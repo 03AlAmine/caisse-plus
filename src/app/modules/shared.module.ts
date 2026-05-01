@@ -17,6 +17,7 @@ import { GettingStartedChecklistComponent } from '../shared/components/getting-s
 import { MobileNavComponent } from '../shared/components/mobile-nav/mobile-nav.component';
 import { NavigationLoaderComponent } from '../shared/components/navigation-loader/navigation-loader.component';
 import { InstallPromptComponent } from '../shared/components/install-prompt/install-prompt.component';
+import { OfflineIndicatorComponent } from '../shared/components/offline-indicator/offline-indicator.component';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import { InstallPromptComponent } from '../shared/components/install-prompt/inst
     MobileNavComponent,
     NavigationLoaderComponent,
     InstallPromptComponent,
+    OfflineIndicatorComponent,
   ],
   imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   exports: [
@@ -62,6 +64,7 @@ import { InstallPromptComponent } from '../shared/components/install-prompt/inst
     MobileNavComponent,
     NavigationLoaderComponent,
     InstallPromptComponent,
+    OfflineIndicatorComponent,
   ],
 })
 export class SharedModule {}
